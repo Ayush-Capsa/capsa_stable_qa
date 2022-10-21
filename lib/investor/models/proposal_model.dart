@@ -1,0 +1,91 @@
+import 'dart:typed_data';
+
+class ProposalModel {
+  final String invoice_value,
+      p_type,
+      start_date,
+      due_date,
+      eff_due_date,
+      minimum_investment,
+      invoice_number,
+      description,
+      customer_name,
+      comp_contract_address,
+      child_address,
+      discount_percentage,
+      discount_status,
+      companyName,
+      lender_pan,
+      cust_pan,
+      comp_pan,
+      prop_amt,
+      int_rate,
+      prop_stat,
+      docID,
+      sign_stat,
+      digital_name,
+  ask_amt
+      ;
+
+  String digital_name_accept_time;
+  String digital_name_buyer_accept_time, digital_name_buyer;
+
+  // final DateTime discountedDate;
+
+  ProposalModel({
+    this.invoice_value,
+    this.p_type,
+    this.start_date,
+    this.due_date,
+    this.eff_due_date,
+    this.minimum_investment,
+    this.invoice_number,
+    this.description,
+    this.customer_name,
+    this.comp_contract_address,
+    this.child_address,
+    this.discount_percentage,
+    this.discount_status,
+    this.companyName,
+    this.lender_pan,
+    this.cust_pan,
+    this.comp_pan,
+    this.prop_amt,
+    this.int_rate,
+    this.prop_stat,
+    this.docID,
+    this.sign_stat,
+    this.digital_name,
+    this.digital_name_buyer,
+    this.digital_name_accept_time,
+    this.digital_name_buyer_accept_time,
+    this.ask_amt,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'cust_pan': cust_pan,
+        'customer_name': customer_name,
+        'description': description,
+        'docID': docID,
+        'due_date': due_date,
+        'eff_due_date': eff_due_date,
+        'int_rate': int_rate,
+        'invoice_number': invoice_number,
+        'invoice_value': invoice_value,
+        'lender_pan': lender_pan,
+        'p_type': p_type,
+        'prop_amt': prop_amt,
+        'prop_stat': prop_stat,
+        'sign_stat': sign_stat,
+        'start_date': start_date,
+        'sign_stat': sign_stat,
+        'digital_name': digital_name,
+        'digital_name_buyer': digital_name_buyer,
+        'digital_name_accept_time': digital_name_accept_time,
+        'digital_name_buyer_accept_time': digital_name_buyer_accept_time,
+        'start_date': start_date,
+        'start_date': start_date,
+        'start_date': start_date,
+        'ask_amt': ask_amt,
+      };
+}

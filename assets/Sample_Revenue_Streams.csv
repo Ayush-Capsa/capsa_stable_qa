@@ -1,0 +1,2 @@
+Customer Name or Unique ID,Email,Billing Amount,Billing Interval,Billing Started On,Billing Ends On (if applicable),"Status (active, delinquent, cancelled)"
+EXAMPLE CUSTOMER,customer@email.com," N 10,000.00 ",MONTHLY,01/10/2020,01/10/2023,Active
