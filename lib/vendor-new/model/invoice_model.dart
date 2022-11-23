@@ -122,3 +122,29 @@ class InvoiceModel {
     return super.toString();
   }
 }
+
+class InvoiceBuilderItemDescriptionModel {
+  String description;
+  String quantity;
+  String rate;
+  String amount;
+
+  InvoiceBuilderItemDescriptionModel({
+    this.description,
+    this.quantity,
+    this.rate,
+    this.amount,
+  });
+
+  Map<String,dynamic> toJson(){
+    var _obj = {
+      'description': description.toString(),
+      'quantity': quantity.toString(),
+      'rate': rate.toString(),
+      'amount': amount.toString()
+    };
+
+    return _obj;
+  }
+
+}

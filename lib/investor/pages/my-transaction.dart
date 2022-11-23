@@ -3,7 +3,7 @@ import 'package:beamer/beamer.dart';
 import 'package:capsa/common/responsive.dart';
 import 'package:capsa/functions/currency_format.dart';
 import 'package:capsa/functions/hexcolor.dart';
-import 'package:capsa/investor/widgets/bid-cards.dart';
+import 'package:capsa/investor/widgets/bid_cards.dart';
 import 'package:capsa/models/bid_history_model.dart';
 import 'package:capsa/providers/bid_history_provider.dart';
 import 'package:capsa/widgets/user_input.dart';

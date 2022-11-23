@@ -358,6 +358,42 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
               ),
+              SizedBox(height: 24),
+              InkWell(
+                onTap: () {
+                  Beamer.of(context).beamToNamed('/email-preference');
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(15),
+                      topRight: Radius.circular(15),
+                      bottomLeft: Radius.circular(15),
+                      bottomRight: Radius.circular(15),
+                    ),
+                    color: Color.fromRGBO(245, 251, 255, 1),
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          'Email preference settings',
+                          textAlign: TextAlign.left,
+                          style: TextStyle(
+                              color: Color.fromRGBO(0, 0, 0, 1),
+                              // fontFamily: 'Poppins',
+                              fontSize: 16,
+                              letterSpacing: 0 /*percentages not used in flutter. defaulting to zero*/,
+                              fontWeight: FontWeight.normal,
+                              height: 1),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               if (Responsive.isMobile(context)) SizedBox(height: 24),
               if (Responsive.isMobile(context))
                 InkWell(

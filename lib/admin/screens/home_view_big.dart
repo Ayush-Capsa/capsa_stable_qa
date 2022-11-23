@@ -51,7 +51,7 @@ class _HomeViewBigState extends State<HomeViewBig> with SingleTickerProviderStat
                         selectedIndex: ((tab.index - 1) < 0) ? _cSelectedIndex - 1 : tab.index - 1,
                         onDestinationSelected: (int index) {
                           index++;
-                          if (index == 20) {
+                          if (index == 21) {
                             authProvider.authChange(false,'');
                             box.put('isAuthenticated', false);
                             box.delete('userData');
@@ -217,6 +217,17 @@ class _HomeViewBigState extends State<HomeViewBig> with SingleTickerProviderStat
                             ),
                             label: Text(
                               'Transaction\nLedger',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 12),
+                            ),
+                          ),
+                          NavigationRailDestination(
+                            icon: Icon(
+                              LineAwesomeIcons.list_alt,
+                              size: 18,
+                            ),
+                            label: Text(
+                              'Reconcilation',
                               textAlign: TextAlign.center,
                               style: TextStyle(fontSize: 12),
                             ),

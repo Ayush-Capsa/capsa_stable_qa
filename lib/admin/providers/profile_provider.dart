@@ -57,6 +57,44 @@ class ProfileProvider extends ChangeNotifier {
 
   //get withdrawResponse => null;
 
+  Future<Object> reconcileApi() async {
+    // capsaPrint(amount);
+    // capsaPrint(desc);
+    // capsaPrint(accountNo);
+    if (box.get('isAuthenticated', defaultValue: false)) {
+      var userData = Map<String, dynamic>.from(box.get('userData'));
+      var _body = {};
+      _body['panNumber'] = userData['panNumber'];
+      // _body['panNumber'] = userData['panNumber'];
+
+      dynamic _uri;
+      _uri = apiUrl + '/admin/reconcilationAPI';
+      _uri = Uri.parse(_uri);
+
+      // capsaPrint('_body');
+      // capsaPrint(_body);
+
+      try {
+        var response = await http.post(_uri,
+            headers: <String, String>{
+              'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+            },
+            body: _body);
+        capsaPrint('Response recociliation api ${response.body}');
+        var data = jsonDecode(response.body);
+
+        return data;
+      } catch (e) {
+
+        return {"message" : "failed"};
+
+      }
+
+
+    }
+    return null;
+  }
+
   Future<Object> queryProfile() async {
     // capsaPrint('here 1');
     if (box.get('isAuthenticated', defaultValue: false)) {
@@ -749,4 +787,93 @@ class ProfileProvider extends ChangeNotifier {
     }
     return null;
   }
+
+  Future<Object> getUserEmailPreference({panNumber = null, role = null}) async {
+    // capsaPrint('here 1');
+    if (box.get('isAuthenticated', defaultValue: false)) {
+      var userData = Map<String, dynamic>.from(box.get('userData'));
+      var _body = {};
+      var _role = userData['role'];
+      _body['panNumber'] = panNumber ?? userData['panNumber'];
+      // _body['panNumber'] = userData['panNumber'];
+      _body['role'] = role ?? userData['role'];
+      if(_body['role'] == 'COMPANY'){
+        _body['role'] = 'VENDOR';
+      }else if(_body['role'] == 'BUYER'){
+        _body['role'] = 'ANCHOR';
+      }
+      dynamic _uri;
+      // if (_role == 'INVESTOR')
+      //   _uri = apiUrl + 'dashboard/i/profile';
+      // else
+      _uri = apiUrl + 'dashboard/r/getUserEmailPreferences';
+
+      _uri = Uri.parse(_uri);
+      var response = await http.post(_uri,
+          headers: <String, String>{
+            'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+          },
+          body: _body);
+      var data = jsonDecode(response.body);
+
+      //capsaPrint('Body : $_bankList')
+
+      // if (data['res'] == 'success') {
+      //   var _data = data['data'];
+      //   // capsaPrint('_data');
+      //   // capsaPrint(_data);
+      //
+      //   var bankDetails = _data['bankDetails'];
+      //   List<ProfileModel> _profileModel = [];
+      //
+      //   _bidHistoryDataList.addAll(_profileModel);
+      //   notifyListeners();
+      // }
+      return data;
+    }
+    return null;
+  }
+
+  Future<Object> setUserEmailPreference(dynamic _body,{panNumber = null, role = null}) async {
+    // capsaPrint('here 1');
+    if (box.get('isAuthenticated', defaultValue: false)) {
+      var userData = Map<String, dynamic>.from(box.get('userData'));
+      var _role = userData['role'];
+      capsaPrint('PanNumber : ${userData['panNumber']} ');
+      _body['panNumber'] = panNumber ?? userData['panNumber'];
+      // _body['panNumber'] = userData['panNumber'];
+      _body['role'] = role ?? userData['role'];
+      dynamic _uri;
+      capsaPrint('SEt Preferences Email $_body');
+      // if (_role == 'INVESTOR')
+      //   _uri = apiUrl + 'dashboard/i/profile';
+      // else
+      _uri = apiUrl + 'dashboard/r/setUserEmailPreferences';
+
+      _uri = Uri.parse(_uri);
+      var response = await http.post(_uri,
+          headers: <String, String>{
+            'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+          },
+          body: _body);
+      var data = jsonDecode(response.body);
+
+      //capsaPrint('Body : $_bankList')
+
+      // if (data['res'] == 'success') {
+      //   var _data = data['data'];
+      //   // capsaPrint('_data');
+      //   // capsaPrint(_data);
+      //
+      //   var bankDetails = _data['bankDetails'];
+      //   List<ProfileModel> _profileModel = [];
+      //
+      //   _bidHistoryDataList.addAll(_profileModel);
+      //   notifyListeners();
+      // }
+      return data;
+    }
+    return null;
+  }
+
 }

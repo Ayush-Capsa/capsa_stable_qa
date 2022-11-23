@@ -375,9 +375,9 @@ class SignUpActionProvider extends ChangeNotifier {
     dynamic _uri;
 
     if (role == 'COMPANY') {
-      _uri = _url + 'signup/racccreate';
+      _uri = 'signup/racccreate';
     } else {
-      _uri = _url + 'signup/lacccreate';
+      _uri = 'signup/lacccreate';
     }
 
     //_uri = Uri.parse(_uri);
@@ -444,7 +444,11 @@ class SignUpActionProvider extends ChangeNotifier {
     try {
       var response = await http.post(_uri, body: _body);
 
+
+
       var data = jsonDecode(response.body);
+
+      capsaPrint('getAccountNumber response : $data');
 
       return data;
     } catch (e) {

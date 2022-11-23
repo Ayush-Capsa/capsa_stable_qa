@@ -83,7 +83,7 @@ class _WithdrawResponseState extends State<WithdrawResponse> {
       );
 
       var data = jsonDecode(url_response.body);
-      // capsaPrint('Response withdraw : $data');
+      capsaPrint('Response withdraw : \n$_body\n$data');
       // if (data['res'] == 'success') {
       //
       //

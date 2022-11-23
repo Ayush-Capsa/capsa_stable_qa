@@ -58,6 +58,7 @@ class BankDetails {
     this.trf_typ_ft,
     this.pan_copy,
     this.chq_copy,
+
   });
 }
 
@@ -76,7 +77,7 @@ class TransactionDetails {
       status,
       trans_hash,
       updated_on,
-      withdrawl_amt;
+      withdrawl_amt,reference;
 
   TransactionDetails({
     this.account_number,
@@ -94,6 +95,7 @@ class TransactionDetails {
     this.trans_hash,
     this.updated_on,
     this.withdrawl_amt,
+    this.reference
   });
 }
 
@@ -167,6 +169,7 @@ class PortfolioData {
   var perIn2Month;
   var perIn6Month;
   var totalUpcomingPayments;
+  var y_axis_gain_per;
 
   PortfolioData({
     this.totalDiscount,
@@ -180,6 +183,7 @@ class PortfolioData {
     this.marker,
     this.x_axis,
     this.y_axis,
+    this.y_axis_gain_per,
     this.up_pymt,
     this.retPer,
     this.account_no,
@@ -292,7 +296,8 @@ class AccountData{
   String userId;
   bool isBlackListed;
   bool isRestricted;
+  String email;
 
-  AccountData({this.panNumber, this.name, this.role, this.userId, this.isBlackListed, this.isRestricted});
+  AccountData({this.panNumber, this.name, this.role, this.userId, this.isBlackListed, this.isRestricted, this.email});
 
 }

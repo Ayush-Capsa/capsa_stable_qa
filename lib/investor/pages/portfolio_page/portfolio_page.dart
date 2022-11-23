@@ -2,52 +2,105 @@ import 'package:capsa/common/page_bgimage.dart';
 import 'package:capsa/common/responsive.dart';
 import 'package:capsa/functions/currency_format.dart';
 import 'package:capsa/investor/data/my-portfolio-chart1.dart';
-import 'package:capsa/investor/data/my-portfolio-chart2.dart';
+
+import 'package:capsa/investor/pages/portfolio_page/bids_analysis_tab.dart';
+import 'package:capsa/investor/pages/portfolio_page/overview_tab.dart';
+import 'package:capsa/investor/provider/invoice_providers.dart';
 import 'package:capsa/models/profile_model.dart';
 import 'package:capsa/providers/profile_provider.dart';
 import 'package:capsa/widgets/StatefulWrapper.dart';
 import 'package:capsa/widgets/TopBarWidget.dart';
 import 'package:capsa/widgets/capsaapp/generatedcardwidget/generatedcardwidget.dart';
 import 'package:capsa/widgets/orientation_switcher.dart';
+import 'package:capsa/widgets/user_input.dart';
 import 'package:flutter/material.dart';import 'package:capsa/functions/custom_print.dart';
 import 'package:beamer/beamer.dart';
 import 'package:capsa/functions/hexcolor.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'package:charts_flutter/flutter.dart' as charts;
 
-class PortfolioPage extends StatelessWidget {
+class PortfolioPage extends StatefulWidget {
   PortfolioPage({Key key}) : super(key: key);
 
-  static List<TimeSeriesSales2> _createSampleData(PortfolioData portfolioData) {
+  @override
+  State<PortfolioPage> createState() => _PortfolioPageState();
+}
 
+class _PortfolioPageState extends State<PortfolioPage> {
 
-    List<TimeSeriesSales2> data = [];
-    var now = DateTime.now();
+  dynamic anchor;
+  TextEditingController currencyController = TextEditingController(text: 'All');
+  String selectedCurrency = "";
+  bool checking = false;
+  Map<String, String> currencyAvailability = {};
+  List<String> term = [];
+  bool currencyLoaded = true;
 
-    if (portfolioData.x_axis.length > 0) {
-      data.add(new TimeSeriesSales2(new DateTime(now.year, 1, 1).month.toString(), 0));
+  int currentIndex = 0;
 
-      int i = 0;
-      portfolioData.x_axis.forEach((element) {
-        var yAxis = portfolioData.y_axis[i];
+  List<dynamic> tabs = [
+    OverView(),
+    BidsAnalysis()
+  ];
 
-        // capsaPrint('yAxis');
-        // capsaPrint(yAxis);
+  Widget returnTab(int index, dynamic selectedCurrency){
+    return index == 0?OverView(selectedCurrency: selectedCurrency,):BidsAnalysis(selectedCurrency: selectedCurrency,);
+  }
 
-        var xAxis = element;
+  Widget tab(String text, int index){
+    return InkWell(
+      onTap: (){
+        setState(() {
+          currentIndex = index;
+        });
+      },
+      child: Container(
+        width: Responsive.isMobile(context) ? 110 : 154,
+        height: Responsive.isMobile(context) ? 34 : 46,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.only(topLeft: Radius.circular(0), topRight: Radius.circular(15),bottomLeft: Radius.circular(15), bottomRight: Radius.circular(15)),
+          color: index == currentIndex?HexColor('#0098DB'):Colors.white,
+          border: Border.all(width: 2, color: HexColor('#0098DB')),
 
-        // capsaPrint('xAxis');
-        // capsaPrint(xAxis);
+        ),
+        child: Center(
+          child: Text(text,style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: Responsive.isMobile(context) ? 12 :  18, color: index == currentIndex?Colors.white:Colors.black),),
+        ),
+      ),
+    ) ;
+  }
 
-        data.add(new TimeSeriesSales2(new DateTime(xAxis[0], xAxis[1], xAxis[2]).month.toString(), num.parse(yAxis)));
-        i++;
-      });
-      data.add(new TimeSeriesSales2(new DateTime(now.year, 12, 31).month.toString(), 0));
+  // void getData() async {
+  //   capsaPrint('get data called');
+  //   // setState(() {
+  //   //   currencyLoaded = false;
+  //   // });
+  //   InvoiceProvider _invoiceProvider =
+  //   Provider.of<InvoiceProvider>(context, listen: false);
+  //   Map<dynamic, dynamic> _data = {};
+  //   _data = await _invoiceProvider.getCurrencies();
+  //   var currencyCheck = await _invoiceProvider.checkCurrency();
+  //   capsaPrint('Response check $currencyCheck');
+  //   term = [];
+  //   var _items = _data['data'];
+  //   //term.add('All');
+  //   _items.forEach((element) {
+  //     term.add(element['currency_code'].toString());
+  //     currencyAvailability[element['currency_code']] =
+  //         element['is_active'].toString();
+  //   });
+  //   selectedCurrency = term[0];
+  //   setState(() {
+  //     currencyLoaded = true;
+  //   });
+  // }
 
-    }
-
-    return data;
+  @override
+  void initState(){
+    super.initState();
+    //getData();
   }
 
   @override
@@ -58,13 +111,15 @@ class PortfolioPage extends StatelessWidget {
 
     MyPortfolioData myPortfolioData = _profileProvider.myPortfolioData;
 
+    // if(Responsive.isMobile(context))currentIndex = 0;
+
     return StatefulWrapper(
       onInit: () {
-        _profileProvider.myportfoliopageData();
-
-        _profileProvider.queryPortfolioData2();
-        _profileProvider.queryFewData();
-        _profileProvider.queryBankTransaction();
+        // _profileProvider.myportfoliopageData();
+        //
+        // _profileProvider.queryPortfolioData2(currency: selectedCurrency);
+        // _profileProvider.queryFewData(currency: selectedCurrency);
+        // _profileProvider.queryBankTransaction(currency: selectedCurrency);
 
       },
       child: Scaffold(
@@ -73,114 +128,194 @@ class PortfolioPage extends StatelessWidget {
           child: SingleChildScrollView(
             child: Padding(
               padding: Responsive.isMobile(context) ? EdgeInsets.fromLTRB(10, 15, 10, 15) : EdgeInsets.fromLTRB(25, 25, 25, 25),
-              child: Column(
+              child: currencyLoaded?Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+
                   if(! Responsive.isMobile(context))
                   SizedBox(
                     height: 22,
                   ),
-                  TopBarWidget("My Portfolio,", ""),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  OrientationSwitcher(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Flexible(
-                        flex: 2,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    InkWell(
-                                      // onTap: () => context.beamToNamed("/account"),
-                                      child: GeneratedCardWidget(
-                                          title: "Companies in Portfolio",
-                                          icon: "assets/images/Frame 140.png",
-                                          currency: false,
-                                          subText: myPortfolioData.companyInyPortfolio.toString(),
-                                          color: HexColor("#0098DB")),
-                                    ),
-                                    SizedBox(
-                                      width: 14,
-                                    ),
-                                    InkWell(
-                                      onTap: () => context.beamToNamed("/my-bids"),
-                                      child: GeneratedCardWidget(
-                                          title: "Total Invoice Bought",
-                                          icon: "assets/images/invbought.png",
-                                          currency: true,
-                                          subText: formatCurrency(myPortfolioData.invoiceBought),
-                                          color: HexColor("#219653")),
-                                    ),
-                                    SizedBox(
-                                      width: 14,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              height: 35,
-                            ),
-                            Text(
-                              'Portfolio Chart',
-                              textAlign: TextAlign.right,
-                              style: TextStyle(
-                                  color: Color.fromRGBO(51, 51, 51, 1),
-                                  fontFamily: 'Poppins',
-                                  fontSize: 20,
-                                  letterSpacing: 0 /*percentages not used in flutter. defaulting to zero*/,
-                                  fontWeight: FontWeight.normal,
-                                  height: 1),
-                            ),
-                            SizedBox(
-                              height: 3,
-                            ),
-                            Text(
-                              'Chart analysis of your invoice investment is shown here',
-                              textAlign: TextAlign.right,
-                              style: TextStyle(
-                                  color: Color.fromRGBO(51, 51, 51, 1),
-                                  fontSize: 12,
-                                  letterSpacing: 0 /*percentages not used in flutter. defaulting to zero*/,
-                                  fontWeight: FontWeight.normal,
-                                  height: 1),
-                            ),
-                            SizedBox(
-                              height: 10,
-                            ),
-                            if(_profileProvider.portfolioData.x_axis != null)
-                            SizedBox(
-                              height: 500,
-                              width: double.infinity,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: SplineSeriesChart(
-                                  _createSampleData(_profileProvider.portfolioData),
+                  TopBarWidget("My Portfolio", ""),
 
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                  SizedBox(
+                    height: 31,
+                  ),
+
+                  //if(! Responsive.isMobile(context))
+                    OrientationSwitcher(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: Responsive.isMobile(context)? CrossAxisAlignment.start : CrossAxisAlignment.center,
+                    orientation: Responsive.isMobile(context)?'Column':'Row',
+                    children: [
+                      Row(
+                        children: [
+                          tab('Overview',0),
+                          SizedBox(width: 15,),
+                          tab('Bids Analysis',1)
+                        ],
+
                       ),
-                      SizedBox(
-                        width: 15,
-                      ),
-                      Flexible(flex: 1, child: vendorInPort(myPortfolioData,context)),
+
+                      //SizedBox(height: 15,),
                     ],
                   ),
+
+                  SizedBox(
+                    height: Responsive.isMobile(context)? 8 : 31,
+                  ),
+
+                  returnTab(currentIndex, selectedCurrency),
+
+                  // OrientationSwitcher(
+                  //   mainAxisAlignment: MainAxisAlignment.start,
+                  //   crossAxisAlignment: CrossAxisAlignment.start,
+                  //   children: [
+                  //     Flexible(
+                  //       flex: 2,
+                  //       child: Column(
+                  //         mainAxisAlignment: MainAxisAlignment.start,
+                  //         crossAxisAlignment: CrossAxisAlignment.start,
+                  //         children: [
+                  //           Container(
+                  //             child: SingleChildScrollView(
+                  //               scrollDirection: Axis.horizontal,
+                  //               child: Row(
+                  //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //                 crossAxisAlignment: CrossAxisAlignment.center,
+                  //                 children: [
+                  //                   InkWell(
+                  //                     // onTap: () => context.beamToNamed("/account"),
+                  //                     child: GeneratedCardWidget(
+                  //                         title: "Companies in Portfolio",
+                  //                         icon: "assets/images/Frame 140.png",
+                  //                         currency: false,
+                  //                         subText: myPortfolioData.companyInyPortfolio.toString(),
+                  //                         color: HexColor("#0098DB")),
+                  //                   ),
+                  //                   SizedBox(
+                  //                     width: 14,
+                  //                   ),
+                  //                   InkWell(
+                  //                     onTap: () => context.beamToNamed("/my-bids"),
+                  //                     child: GeneratedCardWidget(
+                  //                         title: "Total Invoice Bought",
+                  //                         icon: "assets/images/invbought.png",
+                  //                         currency: true,
+                  //                         subText: formatCurrency(myPortfolioData.invoiceBought),
+                  //                         color: HexColor("#219653")),
+                  //                   ),
+                  //                   SizedBox(
+                  //                     width: 14,
+                  //                   ),
+                  //                 ],
+                  //               ),
+                  //             ),
+                  //           ),
+                  //           SizedBox(
+                  //             height: 35,
+                  //           ),
+                  //           Text(
+                  //             'Portfolio Chart',
+                  //             textAlign: TextAlign.right,
+                  //             style: TextStyle(
+                  //                 color: Color.fromRGBO(51, 51, 51, 1),
+                  //                 fontFamily: 'Poppins',
+                  //                 fontSize: 20,
+                  //                 letterSpacing: 0 /*percentages not used in flutter. defaulting to zero*/,
+                  //                 fontWeight: FontWeight.normal,
+                  //                 height: 1),
+                  //           ),
+                  //           SizedBox(
+                  //             height: 3,
+                  //           ),
+                  //           Text(
+                  //             'Chart analysis of your invoice investment is shown here',
+                  //             textAlign: TextAlign.right,
+                  //             style: TextStyle(
+                  //                 color: Color.fromRGBO(51, 51, 51, 1),
+                  //                 fontSize: 12,
+                  //                 letterSpacing: 0 /*percentages not used in flutter. defaulting to zero*/,
+                  //                 fontWeight: FontWeight.normal,
+                  //                 height: 1),
+                  //           ),
+                  //           SizedBox(
+                  //             height: 10,
+                  //           ),
+                  //           if(_profileProvider.portfolioData.x_axis != null)
+                  //           Container(
+                  //             //height: 600,
+                  //             //width: double.infinity,
+                  //             decoration: BoxDecoration(
+                  //               borderRadius: BorderRadius.only(
+                  //                 topLeft: Radius.circular(Responsive.isMobile(context) ? 20 : 30.0),
+                  //                 topRight: Radius.circular(Responsive.isMobile(context) ? 20 : 30.0),
+                  //                 bottomRight: Radius.circular(Responsive.isMobile(context) ? 0 : 0.0),
+                  //                 bottomLeft: Radius.circular(Responsive.isMobile(context) ? 20 : 30.0),
+                  //               ),
+                  //               boxShadow: [
+                  //                 BoxShadow(
+                  //                   color: Color.fromARGB(25, 0, 0, 0),
+                  //                   offset: Offset(4.0, 4.0),
+                  //                   blurRadius: 5.0,
+                  //                 ),
+                  //                 BoxShadow(
+                  //                   color: Color.fromARGB(255, 255, 255, 255),
+                  //                   offset: Offset(-4.0, -4.0),
+                  //                   blurRadius: 0.0,
+                  //                 )
+                  //               ],
+                  //               gradient: RadialGradient(
+                  //                 center: Alignment(-1.0, -1.0),
+                  //                 radius: 2,
+                  //                 //stops: [0.0, 1.0],
+                  //                 colors: [Color.fromARGB(193, 200, 248, 255), Color.fromARGB(0, 196, 196, 196)],
+                  //               ),
+                  //             ),
+                  //             child: Padding(
+                  //               padding: const EdgeInsets.all(8.0),
+                  //               child: Column(
+                  //                 crossAxisAlignment: CrossAxisAlignment.center,
+                  //                 children: [
+                  //                   Padding(
+                  //                     padding: const EdgeInsets.all(8.0),
+                  //                     child: SplineSeriesChart(
+                  //                       PortfolioPage._createSampleData(_profileProvider.portfolioData),
+                  //
+                  //                     ),
+                  //                   ),
+                  //
+                  //                   SizedBox(height: 14,),
+                  //
+                  //                   Padding(
+                  //                     padding: const EdgeInsets.all(16.0),
+                  //                     child: Container(
+                  //                       width: 252,
+                  //                       height: 34,
+                  //                       decoration: BoxDecoration(
+                  //                         color: Colors.white,
+                  //                         borderRadius: BorderRadius.all(Radius.circular(15))
+                  //                       ),
+                  //                       child: Center(child: Text('Trends of your investment by month', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w400),)),
+                  //                     ),
+                  //                   )
+                  //                 ],
+                  //               ),
+                  //             ),
+                  //           ),
+                  //         ],
+                  //       ),
+                  //     ),
+                  //     SizedBox(
+                  //       width: 15,
+                  //     ),
+                  //     SizedBox(
+                  //       height: 15,
+                  //     ),
+                  //     Flexible(flex: 1, child: vendorInPort(myPortfolioData,context)),
+                  //   ],
+                  // ),
                   SizedBox(
                     width: 28,
                   ),
@@ -188,7 +323,7 @@ class PortfolioPage extends StatelessWidget {
                     height: 22,
                   ),
                 ],
-              ),
+              ):Center(child: CircularProgressIndicator(),),
             ),
           ),
         ),

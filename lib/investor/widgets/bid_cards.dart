@@ -4,6 +4,7 @@ import 'package:capsa/functions/hexcolor.dart';
 import 'package:capsa/models/bid_history_model.dart';
 import 'package:flutter/material.dart';import 'package:capsa/functions/custom_print.dart';
 import 'package:capsa/common/constants.dart';
+import 'package:intl/intl.dart';
 
 class BibsCard extends StatelessWidget {
   final BidHistoryModel bids;
@@ -40,16 +41,38 @@ class BibsCard extends StatelessWidget {
       }
     } else {
 
+      // if (bids.paymentStatus == '1') {
+      //   _text = 'Closed';
+      //   clr = HexColor("#EB5757");
+      // } else {
+      //   if (bids.discount_status == 'true') {
+      //     _text = 'Open';
+      //     clr = Colors.green;
+      //   }  else if (DateFormat("yyyy-MM-ddThh:mm:ss")
+      //       .parse(bids.effectiveDueDate)
+      //       .isBefore(DateTime.now())) {
+      //     _text = 'OverDue';
+      //     clr = HexColor('#F2994A');
+      //   }
+      // }
+
       if (bids.paymentStatus == '1') {
         _text = 'Closed';
         clr = HexColor("#EB5757");
       } else {
         if (bids.discount_status == 'true') {
-          _text = 'Open';
-          clr = Colors.green;
+
+          if (DateFormat("yyyy-MM-ddThh:mm:ss")
+              .parse(bids.effectiveDueDate)
+              .isBefore(DateTime.now())){
+            _text = 'Overdue';
+            clr = HexColor('#F2994A');
+          } else{
+            _text = 'Open';
+            clr = Colors.green;
+          }
         } else {
           _text = 'Pending';
-          clr = HexColor('#F2994A');
         }
       }
 
@@ -123,7 +146,7 @@ class BibsCard extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
                                   Text(
-                                    bids.companyName.truncateTo(Responsive.isMobile(context) ? 15 : 18),
+                                    bids.customerName.truncateTo(Responsive.isMobile(context) ? 15 : 18),
                                     textAlign: TextAlign.left,
                                     maxLines: 1,
                                     style: TextStyle(
@@ -136,7 +159,7 @@ class BibsCard extends StatelessWidget {
                                   ),
                                   SizedBox(height: 5),
                                   Text(
-                                    'Vendor' ,
+                                    'Anchor' ,
                                     textAlign: TextAlign.left,
                                     style: TextStyle(
                                         color: Color.fromRGBO(51, 51, 51, 1),

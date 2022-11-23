@@ -1,7 +1,9 @@
+import 'package:capsa/providers/profile_provider.dart';
 import 'package:capsa/anchor/Profile/change_password.dart';
 import 'package:capsa/anchor/provider/anchor_action_providers.dart';
 import 'package:capsa/common/constants.dart';
 import 'package:capsa/models/profile_model.dart';
+import 'package:capsa/pages/email-preference/email_preferences_anchor_page.dart';
 import 'package:flutter/material.dart';
 import 'package:capsa/functions/custom_print.dart';
 import 'package:capsa/functions/custom_print.dart';
@@ -431,7 +433,7 @@ class _profileScreenState extends State<profileScreen> {
                             padding: const EdgeInsets.fromLTRB(29, 0, 64, 55),
                             child: Container(
                               width: MediaQuery.of(context).size.width * 0.35,
-                              height: 200,
+                              height: 260,
                               child: Card(
                                 color: Color.fromRGBO(255, 255, 255, 1),
                                 shape: RoundedRectangleBorder(
@@ -537,6 +539,52 @@ class _profileScreenState extends State<profileScreen> {
                                         ),
                                       ),
                                     ),
+                                    // Padding(
+                                    //   padding: const EdgeInsets.fromLTRB(
+                                    //       16, 0, 16, 16),
+                                    //   child: InkWell(
+                                    //     onTap: () {
+                                    //       Navigator.push(
+                                    //         context,
+                                    //         MaterialPageRoute(
+                                    //           builder: (context) =>
+                                    //               ChangeNotifierProvider(
+                                    //                   create: (BuildContext
+                                    //                   context) =>
+                                    //                       ProfileProvider(),
+                                    //                   child: EmailPreferenceAnchorPage()),
+                                    //         ),
+                                    //       );
+                                    //     },
+                                    //     child: Container(
+                                    //       width: MediaQuery.of(context)
+                                    //           .size
+                                    //           .width *
+                                    //           0.34,
+                                    //       height: 59,
+                                    //       child: Card(
+                                    //         color: Color.fromRGBO(
+                                    //             245, 251, 255, 1),
+                                    //         shape: RoundedRectangleBorder(
+                                    //             borderRadius: BorderRadius.all(
+                                    //                 Radius.circular(15))),
+                                    //         child: Padding(
+                                    //           padding:
+                                    //           const EdgeInsets.fromLTRB(
+                                    //               16, 8, 260, 8),
+                                    //           child: Text(
+                                    //             'Email Preference',
+                                    //             style: TextStyle(
+                                    //                 fontSize: 18,
+                                    //                 fontWeight: FontWeight.w500,
+                                    //                 color: Color.fromRGBO(
+                                    //                     51, 51, 51, 1)),
+                                    //           ),
+                                    //         ),
+                                    //       ),
+                                    //     ),
+                                    //   ),
+                                    // ),
                                   ],
                                 ),
                               ),

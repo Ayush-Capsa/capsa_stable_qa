@@ -19,6 +19,7 @@ import 'package:capsa/admin/screens/investor_edit.dart';
 import 'package:capsa/admin/screens/investor_list.dart';
 import 'package:capsa/admin/screens/invoices_screen.dart';
 import 'package:capsa/admin/screens/pending_invoice_screen.dart';
+import 'package:capsa/admin/screens/reconciliation_screen.dart';
 import 'package:capsa/admin/screens/transaction_ledger.dart';
 import 'package:capsa/admin/screens/vendor_edit.dart';
 import 'package:capsa/admin/screens/vendor_list.dart';
@@ -54,6 +55,8 @@ final desktopWidgetList = <Widget>[
   // CheckCreditScore(title: 'Check Credit Score'),
 
   TransactionLedger(),
+
+  ReconciliationScreen(),
 
   TransferAmount(),
 

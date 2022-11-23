@@ -13,7 +13,8 @@ import 'package:capsa/investor/pages/investor-transaction-details-page.dart';
 import 'package:capsa/investor/pages/live_deals.dart';
 import 'package:capsa/investor/pages/my_bids.dart';
 import 'package:capsa/investor/pages/my-transaction.dart';
-import 'package:capsa/investor/pages/portfolio-page.dart';
+
+import 'package:capsa/investor/pages/portfolio_page/portfolio_page.dart';
 import 'package:capsa/investor/pages/upcoming_payments.dart';
 import 'package:capsa/investor/pages/upload_kyc_docs.dart';
 import 'package:capsa/investor/provider/invoice_providers.dart';
@@ -25,6 +26,7 @@ import 'package:capsa/pages/account_page.dart';
 import 'package:capsa/pages/change-transaction-pin/change_transaction_pin.dart';
 import 'package:capsa/pages/change_password_page.dart';
 import 'package:capsa/pages/edit_profile_page.dart';
+import 'package:capsa/pages/email-preference/email_preference_investor_page.dart';
 import 'package:capsa/pages/faq-page.dart';
 import 'package:capsa/pages/profile_page.dart';
 import 'package:capsa/pages/withdraw-amt/withdraw_amt_page.dart';
@@ -350,6 +352,19 @@ class _InvestorNewAppState extends State<InvestorNewApp> {
                               body: AllUpcomingPaymentsPage()),
                         );
                       },
+                      '/email-preference': (context, state, data) {
+                        return BeamPage(
+                          key: ValueKey('email-preference'),
+                          title: 'Email Preference',
+                          type: BeamPageType.fadeTransition,
+                          child: InvestorMain(
+                              pageUrl: "/email-preference",
+                              mobileTitle: "Email Preference",
+                              menuList: false,
+                              backButton: true,
+                              body: EmailPreferenceInvestorPage()),
+                        );
+                      },
                       '/account': (context, state, data) {
                         return BeamPage(
                           key: ValueKey('investor-account'),
@@ -579,7 +594,7 @@ class InvestorMain extends StatelessWidget {
                         if (_backButton)
                           InkWell(
                             onTap: () {
-                              print('BeamBack ${Beamer.of(context).canBeamBack} ');
+                              print('BeamBack ${Beamer.of(context).canBeamBack} \n\n');
                               if(Beamer.of(context).canBeamBack) {
                                 Beamer.of(context).beamBack();
                               } else {

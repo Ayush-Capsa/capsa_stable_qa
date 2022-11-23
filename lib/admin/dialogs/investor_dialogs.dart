@@ -63,7 +63,7 @@ final lableStyle = TextStyle(
 
 showBidDialog(
     BuildContext context, int index, OpenDealProvider openDealProvider,
-    {buyNow: false}) {
+    {buyNow = false}) {
   return showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -428,7 +428,7 @@ class _ShowBidContentMyClassState extends State<ShowBidContentMyClass> {
                   // return;
                   if (widget.buyNow)
                     await widget.openDealProvider
-                        .bidActionCall(context, openInvoice, 1, widget.index);
+                        .bidActionCall(context, openInvoice, 1, widget.index, buyNow: widget.buyNow);
                   else
                     await widget.openDealProvider.bidActionCall(
                         context, openInvoice, 0, widget.index,

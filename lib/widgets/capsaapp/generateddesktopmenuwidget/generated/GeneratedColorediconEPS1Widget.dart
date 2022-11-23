@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';import 'package:capsa/functions/custom_print.dart';
 import 'package:beamer/beamer.dart';
 
+import '../../../../main.dart';
+
 class GeneratedColorediconEPS1Widget extends StatelessWidget {
 
 
@@ -28,7 +30,11 @@ class GeneratedColorediconEPS1Widget extends StatelessWidget {
               if (backUrl != null) {
                 context.beamToNamed(backUrl);
               } else {
-                context.beamBack();
+                if(Beamer.of(context).canBeamBack) {
+                  Beamer.of(context).beamBack();
+                } else {
+                  context.beamToNamed('/home');
+                }
               }
             }
           },

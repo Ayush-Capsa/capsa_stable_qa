@@ -253,7 +253,7 @@ class OpenDealProvider extends ChangeNotifier {
   }
 
   Future<Object> bidAction(OpenDealModel openInvoice, int clickType,
-      {String rate, String amt, String tRate}) async {
+      {String rate, String amt, String tRate,buyNow = false}) async {
     // capsaPrint('clickType');
     // capsaPrint(clickType);
 
@@ -317,6 +317,7 @@ class OpenDealProvider extends ChangeNotifier {
       _body['click_type'] = clickType.toString();
 
       _body['diffDays'] = invoicedays.toString();
+      _body['isBuyNow'] = buyNow ? '1' : '0';
 
       // capsaPrint(_body);
       // return null;
@@ -346,14 +347,14 @@ class OpenDealProvider extends ChangeNotifier {
 
   Future<void> bidActionCall(
       context, OpenDealModel openInvoice, int clickType, index,
-      {String rate, String amt, String tRate}) async {
+      {String rate, String amt, String tRate, buyNow = false}) async {
     // capsaPrint('bidActionCall');
 
     dynamic _result = await checkBalance(openInvoice);
     if (_result['res'] == 'success') {
       if (_result['data']['passok'].toString() == 'true') {
         dynamic _result2 = await bidAction(openInvoice, clickType,
-            rate: rate, amt: amt, tRate: tRate);
+            rate: rate, amt: amt, tRate: tRate, buyNow : buyNow);
 
         if (_result2['res'] == 'success') {
           await queryOpenDealList();
@@ -1032,6 +1033,8 @@ class OpenDealProvider extends ChangeNotifier {
     // console.log(value1, invoice_amt);
 
     // Greater than 70% of the invoice amount
+    if(value1>0 && shwBid(openInvoice))
+      return true;
     var per70 = (70 * invoice_amt / 100);
 
     // less than 80% of the invoice amount

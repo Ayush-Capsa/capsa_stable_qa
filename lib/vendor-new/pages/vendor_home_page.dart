@@ -43,7 +43,7 @@ class VendorHomePage extends StatelessWidget {
 
     var invoice = Provider.of<InvoiceProvider>(context);
     var bidcount = Provider.of<VendorActionProvider>(context);
-    final _desktopHomeCardList = [
+    dynamic _desktopHomeCardList = [
       {
         'title': "Bids",
         'text': "View all bids from investors",
@@ -55,7 +55,7 @@ class VendorHomePage extends StatelessWidget {
       },
       {
         'title': "Live Invoices",
-        'text': "View all active invoices ready for bidding",
+        'text': "View all your active invoices for bidding here",
         'icon': "assets/images/beats_Icons.png",
         'color': HexColor('#219653'),
         'number': invoice.getInvoicesFilterCount(type: 'live').toString() +
@@ -84,6 +84,51 @@ class VendorHomePage extends StatelessWidget {
         'sTabWidth': Responsive.isMobile(context) ? 120.0 : 160.0
       },
     ];
+
+    final _mobileHomeCardList = [
+      {
+        'title': "Bids",
+        'text': "View all bids from investors",
+        'number': bidcount.bidProposalCount.toString() + " Bids",
+        'icon': "assets/images/bid_icon.png",
+        'color': Color.fromARGB(255, 107, 0, 109),
+        'sTextWidth': Responsive.isMobile(context) ? 120.0 : 120.0,
+        'sTabWidth': Responsive.isMobile(context) ? 120.0 : 160.0
+      },
+      {
+        'title': "Invoice Builder",
+        'text': "Build you own invoice",
+        'icon': "assets/images/beats_Icons.png",
+        'color': HexColor('#219653'),
+        'number': 'Try Now',
+        'sTextWidth': Responsive.isMobile(context) ? 120.0 : 120.0,
+        'sTabWidth': Responsive.isMobile(context) ? 120.0 : 160.0
+      },
+      {
+        'title': "Pending Invoices",
+        'number': invoice.getInvoicesFilterCount(type: 'pending').toString() +
+            " Invoices",
+        'text': "View all invoices pending anchor’s approval",
+        'icon': "assets/images/window_likeicon.png",
+        'color': HexColor('#F2994A'),
+        'sTextWidth': Responsive.isMobile(context) ? 120.0 : 120.0,
+        'sTabWidth': Responsive.isMobile(context) ? 120.0 : 160.0
+      },
+      {
+        'title': "All Invoices",
+        'number': invoice.getInvoicesFilterCount(type: 'all').toString() +
+            " Invoices",
+        'text': "View all your uploaded invoices",
+        'icon': "assets/images/booklike_icon.png",
+        'color': HexColor('#3AC0C9'),
+        'sTextWidth': Responsive.isMobile(context) ? 120.0 : 120.0,
+        'sTabWidth': Responsive.isMobile(context) ? 120.0 : 160.0
+      },
+    ];
+
+    if(Responsive.isMobile(context)) {
+      _desktopHomeCardList = _mobileHomeCardList;
+    }
 
     //ProfileProvider _profileProvider = Provider.of<ProfileProvider>(context);
 
@@ -842,7 +887,7 @@ class VendorHomePage extends StatelessWidget {
                                 children: [
                                   InkWell(
                                       onTap: () {
-                                        context.beamToNamed('/live-invoices');
+                                        Responsive.isMobile(context)?context.beamToNamed('/invoice-builder'):context.beamToNamed('/live-invoices');
                                       },
                                       child: GeneratedPresentedWidget(
                                         _desktopHomeCardList[1],

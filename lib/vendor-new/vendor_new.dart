@@ -5,18 +5,22 @@ import 'package:capsa/common/constants.dart';
 import 'package:capsa/common/page_bgimage.dart';
 import 'package:capsa/common/responsive.dart';
 import 'package:capsa/functions/hexcolor.dart';
-import 'package:capsa/investor/investor-new.dart';
+
 import 'package:capsa/pages/account-all-transaction-history.dart';
 import 'package:capsa/pages/change-transaction-pin/change_transaction_pin.dart';
+import 'package:capsa/pages/email-preference/email_preference_vendor_page.dart';
 import 'package:capsa/pages/withdraw-amt/withdraw_amt_page.dart';
 import 'package:capsa/pages/withdraw-amt/withdraw_response_page.dart';
 import 'package:capsa/vendor-new/pages/add_invoice/confirm_invoice.dart';
 import 'package:capsa/vendor-new/pages/add_invoice/invoice_table_page.dart';
+import 'package:capsa/vendor-new/pages/invoice_builder_history.dart';
+import 'package:capsa/vendor-new/pages/invoice_builder_page.dart';
 
 import 'package:capsa/vendor-new/pages/invoice_list_page.dart';
 import 'package:capsa/vendor-new/pages/live_deals/live_deals_page.dart';
 import 'package:capsa/vendor-new/pages/upload_kyc_docs.dart';
 import 'package:capsa/vendor-new/pages/upload-account-letter.dart';
+import 'package:capsa/vendor-new/provider/invoice_builder_provider.dart';
 import 'package:capsa/widgets/capsaapp/generated_mobilemenunavigationsvendorwidget/Generated_MobileMenuNavigationsVendorWidget.dart';
 import 'package:capsa/pages/account_page.dart';
 import 'package:capsa/vendor-new/pages/add_invoice/add_invoice_page.dart';
@@ -359,6 +363,59 @@ class _VendorNewAppState extends State<VendorNewApp> {
                         return returnFunInvoiceList(
                             "notPresented", "/notPresented-invoices");
                       },
+                      '/invoice-builder': (context, state, data) {
+                        return BeamPage(
+                          key: ValueKey('invoice-builder'),
+                          title: 'Invoice Builder',
+                          // popToNamed: '/',
+                          type: BeamPageType.fadeTransition,
+                          child: VendorMain(
+                              pageUrl: "/invoice-builder",
+                              mobileTitle: "Invoice Builder",
+                              menuList: Responsive.isMobile(context)?false:null,
+                              backButton: Responsive.isMobile(context)?true:false,
+                              body: InvoiceBuilderPage()),
+                        );
+
+                        //   BeamPage(
+                        //   key: ValueKey('invoice-builder'),
+                        //   title: 'Invoice Builder',
+                        //   type: BeamPageType.fadeTransition,
+                        //   child: VendorMain(
+                        //       pageUrl: "/invoice-builder",
+                        //       mobileTitle: "Invoice Builder",
+                        //       menuList: false,
+                        //       backButton: true,
+                        //       body: InvoiceBuilderPage()),
+                        // );
+                      },
+                      '/invoice-history': (context, state, data) {
+                        return BeamPage(
+                          key: ValueKey('invoice-history'),
+                          title: 'Invoice History',
+                          // popToNamed: '/',
+                          type: BeamPageType.fadeTransition,
+                          child: VendorMain(
+                              pageUrl: "/invoice-history",
+                              mobileTitle: "Invoice History",
+                              menuList: false,
+                              backButton: true,
+                              body: InvoiceBuilderHistory()),
+                        );
+                      },
+                      '/email-preference': (context, state, data) {
+                        return BeamPage(
+                          key: ValueKey('email-preference'),
+                          title: 'Email Preference',
+                          type: BeamPageType.fadeTransition,
+                          child: VendorMain(
+                              pageUrl: "/email-preference",
+                              mobileTitle: "Email Preference Page",
+                              menuList: false,
+                              backButton: true,
+                              body: EmailPreferenceVendorPage()),
+                        );
+                      },
                       '/account': (context, state, data) {
                         return BeamPage(
                           key: ValueKey('vendor-account'),
@@ -458,6 +515,9 @@ class _VendorNewAppState extends State<VendorNewApp> {
         ChangeNotifierProvider<InvoiceProvider>(
           create: (_) => InvoiceProvider(),
         ),
+        ChangeNotifierProvider<InvoiceBuilderProvider>(
+          create: (_) => InvoiceBuilderProvider(),
+        ),
       ],
       child: MaterialApp.router(
         onGenerateTitle: (context) {
@@ -480,22 +540,84 @@ class VendorMain extends StatelessWidget {
   final String pageUrl;
   final bool menuList;
   final bool backButton;
+  final bool pop;
   final String mobileTitle;
   final String mobileSubTitle;
   final String backUrl;
 
   VendorMain(
       {this.pageUrl,
-      this.body,
-      this.mobileSubTitle,
-      this.mobileTitle,
-      this.backUrl,
-      this.menuList,
-      this.backButton,
-      Key key})
+        this.body,
+        this.mobileSubTitle,
+        this.mobileTitle,
+        this.backUrl,
+        this.menuList,
+        this.backButton,
+        this.pop = false,
+        Key key})
       : super(key: key);
 
-  final List<Map> _menuList = [
+  List<Map> _menuList = [
+    {
+      'title': 'Home',
+      'icon': 'assets/icons/homeIcons.png',
+      'activeIcon': 'assets/icons/active_homeIcons.png',
+      'active': false,
+      'url': "/home",
+    },
+    // {
+    //   'title': 'Live Deals',
+    //   'icon': 'assets/icons/livedealsicon.png',
+    //   'activeIcon': 'assets/icons/active_livedealsIcons.png',
+    //   'active': false,
+    //   'url': "/live-deals",
+    // },
+    {
+      'title': 'Bids',
+      'icon': 'assets/icons/bidsIcons.png',
+      'activeIcon': 'assets/icons/active_bidsIcons.png',
+      'active': false,
+      'url': "/bids",
+    },
+    {
+      'title': 'Invoice Builder',
+      'icon': 'assets/icons/pending.png',
+      'activeIcon': 'assets/icons/active_pending.png',
+      'active': false,
+      'url': "/invoice-builder",
+    },
+    {
+      'title': 'History',
+      'icon': 'assets/icons/history.png',
+      'activeIcon': 'assets/icons/active_historyIcons.png',
+      'active': false,
+      'url': "/history",
+    },
+    {
+      'title': 'Account',
+      'icon': 'assets/icons/accounticon.png',
+      'activeIcon': 'assets/icons/active_accountIcons.png',
+      'active': false,
+      'url': "/account",
+    },
+    {
+      'title': 'Profile',
+      'icon': 'assets/icons/profileIcons.png',
+      'activeIcon': 'assets/icons/active_profileIcons.png',
+      'active': false,
+      'url': "/profile",
+    },
+    {
+      'title': 'FAQ',
+      'icon': 'assets/icons/faqIcons.png',
+      'activeIcon': 'assets/icons/active_faqIcons.png',
+      'active': false,
+      'mobile': false,
+      'url': "/faq-vendor",
+    }
+  ];
+
+  final List<Map> _mobileMenuList = [
     {
       'title': 'Home',
       'icon': 'assets/icons/homeIcons.png',
@@ -593,6 +715,67 @@ class VendorMain extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    !Responsive.isMobile(context)?_menuList=[
+      {
+        'title': 'Home',
+        'icon': 'assets/icons/homeIcons.png',
+        'activeIcon': 'assets/icons/active_homeIcons.png',
+        'active': false,
+        'url': "/home",
+      },
+      // {
+      //   'title': 'Live Deals',
+      //   'icon': 'assets/icons/livedealsicon.png',
+      //   'activeIcon': 'assets/icons/active_livedealsIcons.png',
+      //   'active': false,
+      //   'url': "/live-deals",
+      // },
+      {
+        'title': 'Bids',
+        'icon': 'assets/icons/bidsIcons.png',
+        'activeIcon': 'assets/icons/active_bidsIcons.png',
+        'active': false,
+        'url': "/bids",
+      },
+      {
+        'title': 'Invoice Builder',
+        'icon': 'assets/icons/pending.png',
+        'activeIcon': 'assets/icons/active_pending.png',
+        'active': false,
+        'url': "/invoice-builder",
+      },
+      {
+        'title': 'History',
+        'icon': 'assets/icons/history.png',
+        'activeIcon': 'assets/icons/active_historyIcons.png',
+        'active': false,
+        'url': "/history",
+      },
+      {
+        'title': 'Account',
+        'icon': 'assets/icons/accounticon.png',
+        'activeIcon': 'assets/icons/active_accountIcons.png',
+        'active': false,
+        'url': "/account",
+      },
+      {
+        'title': 'Profile',
+        'icon': 'assets/icons/profileIcons.png',
+        'activeIcon': 'assets/icons/active_profileIcons.png',
+        'active': false,
+        'url': "/profile",
+      },
+      {
+        'title': 'FAQ',
+        'icon': 'assets/icons/faqIcons.png',
+        'activeIcon': 'assets/icons/active_faqIcons.png',
+        'active': false,
+        'mobile': false,
+        'url': "/faq-vendor",
+      }
+    ] : _menuList = _mobileMenuList;
+
     List<Map> _menuList2 = [];
 
     bool invmenu = false;
@@ -602,17 +785,17 @@ class VendorMain extends StatelessWidget {
       _menuList2 = [];
       // _menuList2 = menuList;
       _invoiceMenuList.forEach((k) => {
-            if (k['url'] == pageUrl) {k['active'] = true, invmenu = true},
-            _menuList2.add(k)
-          });
+        if (k['url'] == pageUrl) {k['active'] = true, invmenu = true},
+        _menuList2.add(k)
+      });
     } else if (menuList != null && !menuList) {
       _menuList2 = [];
     } else {
       _menuList2 = [];
       _menuList.forEach((k) => {
-            if (k['url'] == pageUrl) {k['active'] = true},
-            _menuList2.add(k)
-          });
+        if (k['url'] == pageUrl) {k['active'] = true},
+        _menuList2.add(k)
+      });
     }
     //
     // capsaPrint('_menuList2');
@@ -627,93 +810,94 @@ class VendorMain extends StatelessWidget {
     return Scaffold(
       bottomNavigationBar: (Responsive.isMobile(context))
           ? (_backButton)
-              ? invMenu2
-              : Generated_MobileMenuNavigationsVendorWidget(_menuList2)
+          ? invMenu2
+          : Generated_MobileMenuNavigationsVendorWidget(_menuList2)
           : null,
       appBar: Responsive.isMobile(context)
           ? PreferredSize(
-              preferredSize: Size.fromHeight(72.0),
-              child: AppBar(
-                automaticallyImplyLeading: false,
-                backgroundColor: HexColor("#F5FBFF"),
-                title: Column(
-                  children: [
-                    SizedBox(
-                      height: 18,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        if (_backButton)
-                          InkWell(
-                            onTap: () {
-                              if (invmenu)
-                                context.beamToNamed('/home');
-                              else
-                              if(Beamer.of(context).canBeamBack) {
-                                Beamer.of(context).beamBack();
-                              } else {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => CapsaHome(),
-                                  ),
-                                );
-                              }
-                            },
-                            child: Icon(
-                              Icons.arrow_back,
-                              color: HexColor("#0098DB"),
-                              size: 30,
-                            ),
-                          ),
-                        SizedBox(
-                          width: (_backButton) ? 12 : 8,
-                        ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              mobileTitle != null ? mobileTitle : '👋 Capsa,',
-                              textAlign: TextAlign.left,
-                              style: TextStyle(
-                                  color: Color.fromRGBO(51, 51, 51, 1),
-                                  fontFamily: 'Poppins',
-                                  fontSize: 16,
-                                  letterSpacing:
-                                      0 /*percentages not used in flutter. defaulting to zero*/,
-                                  fontWeight: FontWeight.normal,
-                                  height: 1),
-                            ),
-                            if (mobileSubTitle != null)
-                              SizedBox(
-                                height: 8,
-                              ),
-                            if (mobileSubTitle != null)
-                              Text(
-                                (mobileSubTitle != null)
-                                    ? mobileSubTitle
-                                    : 'Welcome, enjoy alternative financing!',
-                                textAlign: TextAlign.left,
-                                style: TextStyle(
-                                    color: Color.fromRGBO(51, 51, 51, 1),
-                                    // fontFamily: 'Poppins',
-                                    fontSize: 14,
-                                    letterSpacing:
-                                        0 /*percentages not used in flutter. defaulting to zero*/,
-                                    fontWeight: FontWeight.normal,
-                                    height: 1),
-                              ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+        preferredSize: Size.fromHeight(72.0),
+        child: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: HexColor("#F5FBFF"),
+          title: Column(
+            children: [
+              SizedBox(
+                height: 18,
               ),
-            )
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  if (_backButton)
+                    InkWell(
+                      onTap: () {
+                        if(pop) {
+                          Navigator.pop(context);
+                        } else if (invmenu)
+                          context.beamToNamed('/home');
+                        else if (Beamer.of(context).canBeamBack) {
+                          Beamer.of(context).beamBack();
+                        } else {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CapsaHome(),
+                            ),
+                          );
+                        }
+                      },
+                      child: Icon(
+                        Icons.arrow_back,
+                        color: HexColor("#0098DB"),
+                        size: 30,
+                      ),
+                    ),
+                  SizedBox(
+                    width: (_backButton) ? 12 : 8,
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        mobileTitle != null ? mobileTitle : '👋 Capsa,',
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                            color: Color.fromRGBO(51, 51, 51, 1),
+                            fontFamily: 'Poppins',
+                            fontSize: 16,
+                            letterSpacing:
+                            0 /*percentages not used in flutter. defaulting to zero*/,
+                            fontWeight: FontWeight.normal,
+                            height: 1),
+                      ),
+                      if (mobileSubTitle != null)
+                        SizedBox(
+                          height: 8,
+                        ),
+                      if (mobileSubTitle != null)
+                        Text(
+                          (mobileSubTitle != null)
+                              ? mobileSubTitle
+                              : 'Welcome, enjoy alternative financing!',
+                          textAlign: TextAlign.left,
+                          style: TextStyle(
+                              color: Color.fromRGBO(51, 51, 51, 1),
+                              // fontFamily: 'Poppins',
+                              fontSize: 14,
+                              letterSpacing:
+                              0 /*percentages not used in flutter. defaulting to zero*/,
+                              fontWeight: FontWeight.normal,
+                              height: 1),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      )
           : null,
       body: Container(
         // height: MediaQuery.of(context).size.height,
@@ -723,7 +907,7 @@ class VendorMain extends StatelessWidget {
           desktop: Row(
             children: <Widget>[
               DesktopMainMenuWidget(_menuList2,
-                  backUrl: backUrl, backButton: _backButton),
+                  backUrl: backUrl, backButton: _backButton, pop: pop),
               // const VerticalDivider(thickness: 1, width: 1),
               Expanded(
                 child: body,
@@ -783,7 +967,7 @@ class VendorMain extends StatelessWidget {
                             color: Color.fromRGBO(245, 251, 255, 1),
                           ),
                           padding:
-                              EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                          EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
@@ -834,7 +1018,7 @@ class VendorMain extends StatelessWidget {
                             color: Color.fromRGBO(255, 255, 255, 1),
                           ),
                           padding:
-                              EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                          EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
@@ -854,7 +1038,7 @@ class VendorMain extends StatelessWidget {
                               fontFamily: 'Poppins',
                               fontSize: 14,
                               letterSpacing:
-                                  0 /*percentages not used in flutter. defaulting to zero*/,
+                              0 /*percentages not used in flutter. defaulting to zero*/,
                               fontWeight: FontWeight.normal,
                               height: 1),
                         ),
@@ -869,3 +1053,400 @@ class VendorMain extends StatelessWidget {
     );
   }
 }
+
+// class VendorMain extends StatelessWidget {
+//   final Widget body;
+//   final String pageUrl;
+//   final bool menuList;
+//   final bool backButton;
+//   final String mobileTitle;
+//   final String mobileSubTitle;
+//   final String backUrl;
+//   final bool pop;
+//
+//   VendorMain(
+//       {this.pageUrl,
+//       this.body,
+//       this.mobileSubTitle,
+//       this.mobileTitle,
+//       this.backUrl,
+//       this.menuList,
+//       this.backButton,
+//         this.pop,
+//       Key key})
+//       : super(key: key);
+//
+//   final List<Map> _menuList = [
+//     {
+//       'title': 'Home',
+//       'icon': 'assets/icons/homeIcons.png',
+//       'activeIcon': 'assets/icons/active_homeIcons.png',
+//       'active': false,
+//       'url': "/home",
+//     },
+//     // {
+//     //   'title': 'Live Deals',
+//     //   'icon': 'assets/icons/livedealsicon.png',
+//     //   'activeIcon': 'assets/icons/active_livedealsIcons.png',
+//     //   'active': false,
+//     //   'url': "/live-deals",
+//     // },
+//     {
+//       'title': 'Bids',
+//       'icon': 'assets/icons/bidsIcons.png',
+//       'activeIcon': 'assets/icons/active_bidsIcons.png',
+//       'active': false,
+//       'url': "/bids",
+//     },
+//     {
+//       'title': 'History',
+//       'icon': 'assets/icons/history.png',
+//       'activeIcon': 'assets/icons/active_historyIcons.png',
+//       'active': false,
+//       'url': "/history",
+//     },
+//     {
+//       'title': 'Account',
+//       'icon': 'assets/icons/accounticon.png',
+//       'activeIcon': 'assets/icons/active_accountIcons.png',
+//       'active': false,
+//       'url': "/account",
+//     },
+//     {
+//       'title': 'Profile',
+//       'icon': 'assets/icons/profileIcons.png',
+//       'activeIcon': 'assets/icons/active_profileIcons.png',
+//       'active': false,
+//       'url': "/profile",
+//     },
+//     {
+//       'title': 'FAQ',
+//       'icon': 'assets/icons/faqIcons.png',
+//       'activeIcon': 'assets/icons/active_faqIcons.png',
+//       'active': false,
+//       'mobile': false,
+//       'url': "/faq-vendor",
+//     }
+//   ];
+//
+//   final List<Map> _invoiceMenuList = [
+//     {
+//       'title': 'All Invoices',
+//       'icon': 'assets/icons/allinvoice.png',
+//       'activeIcon': 'assets/icons/active_allinvoices.png',
+//       'active': false,
+//       'url': "/all-invoices",
+//       'replace': true,
+//     },
+//     {
+//       'title': 'Pending',
+//       'icon': 'assets/icons/pending.png',
+//       'activeIcon': 'assets/icons/active_pending.png',
+//       'active': false,
+//       'url': "/pending-invoices",
+//       'replace': true,
+//     },
+//     {
+//       'title': 'Live',
+//       'icon': 'assets/icons/live.png',
+//       'activeIcon': 'assets/icons/active_live.png',
+//       'active': false,
+//       'url': "/live-invoices",
+//       'replace': true,
+//     },
+//     {
+//       'title': 'Sold',
+//       'icon': 'assets/icons/livedealsicon.png',
+//       'activeIcon': 'assets/icons/active_livedealsIcons.png',
+//       'active': false,
+//       'url': "/sold-invoices",
+//       'replace': true,
+//     },
+//     {
+//       'title': 'Not Presented',
+//       'icon': 'assets/icons/not-presented.png',
+//       'activeIcon': 'assets/icons/active_not-presented.png',
+//       'active': false,
+//       'url': "/notPresented-invoices",
+//       'replace': true,
+//     },
+//   ];
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     List<Map> _menuList2 = [];
+//
+//     bool invmenu = false;
+//
+//     bool _backButton = false;
+//     if (menuList != null && menuList) {
+//       _menuList2 = [];
+//       // _menuList2 = menuList;
+//       _invoiceMenuList.forEach((k) => {
+//             if (k['url'] == pageUrl) {k['active'] = true, invmenu = true},
+//             _menuList2.add(k)
+//           });
+//     } else if (menuList != null && !menuList) {
+//       _menuList2 = [];
+//     } else {
+//       _menuList2 = [];
+//       _menuList.forEach((k) => {
+//             if (k['url'] == pageUrl) {k['active'] = true},
+//             _menuList2.add(k)
+//           });
+//     }
+//     //
+//     // capsaPrint('_menuList2');
+//     // capsaPrint(_menuList2);
+//
+//     if (backButton != null) _backButton = backButton;
+//
+//     // capsaPrint(Responsive.isMobile(context));
+//
+//     var invMenu2 = invmenu ? invBottomMenu(_invoiceMenuList, context) : null;
+//
+//     return Scaffold(
+//       bottomNavigationBar: (Responsive.isMobile(context))
+//           ? (_backButton)
+//               ? invMenu2
+//               : Generated_MobileMenuNavigationsVendorWidget(_menuList2)
+//           : null,
+//       appBar: Responsive.isMobile(context)
+//           ? PreferredSize(
+//               preferredSize: Size.fromHeight(72.0),
+//               child: AppBar(
+//                 automaticallyImplyLeading: false,
+//                 backgroundColor: HexColor("#F5FBFF"),
+//                 title: Column(
+//                   children: [
+//                     SizedBox(
+//                       height: 18,
+//                     ),
+//                     Row(
+//                       mainAxisAlignment: MainAxisAlignment.start,
+//                       crossAxisAlignment: CrossAxisAlignment.center,
+//                       children: [
+//                         if (_backButton)
+//                           InkWell(
+//                             onTap: () {
+//                               if (invmenu)
+//                                 context.beamToNamed('/home');
+//                               else
+//                               if(Beamer.of(context).canBeamBack) {
+//                                 Beamer.of(context).beamBack();
+//                               } else {
+//                                 Navigator.pushReplacement(
+//                                   context,
+//                                   MaterialPageRoute(
+//                                     builder: (context) => CapsaHome(),
+//                                   ),
+//                                 );
+//                               }
+//                             },
+//                             child: Icon(
+//                               Icons.arrow_back,
+//                               color: HexColor("#0098DB"),
+//                               size: 30,
+//                             ),
+//                           ),
+//                         SizedBox(
+//                           width: (_backButton) ? 12 : 8,
+//                         ),
+//                         Column(
+//                           mainAxisAlignment: MainAxisAlignment.center,
+//                           crossAxisAlignment: CrossAxisAlignment.start,
+//                           children: [
+//                             Text(
+//                               mobileTitle != null ? mobileTitle : '👋 Capsa,',
+//                               textAlign: TextAlign.left,
+//                               style: TextStyle(
+//                                   color: Color.fromRGBO(51, 51, 51, 1),
+//                                   fontFamily: 'Poppins',
+//                                   fontSize: 16,
+//                                   letterSpacing:
+//                                       0 /*percentages not used in flutter. defaulting to zero*/,
+//                                   fontWeight: FontWeight.normal,
+//                                   height: 1),
+//                             ),
+//                             if (mobileSubTitle != null)
+//                               SizedBox(
+//                                 height: 8,
+//                               ),
+//                             if (mobileSubTitle != null)
+//                               Text(
+//                                 (mobileSubTitle != null)
+//                                     ? mobileSubTitle
+//                                     : 'Welcome, enjoy alternative financing!',
+//                                 textAlign: TextAlign.left,
+//                                 style: TextStyle(
+//                                     color: Color.fromRGBO(51, 51, 51, 1),
+//                                     // fontFamily: 'Poppins',
+//                                     fontSize: 14,
+//                                     letterSpacing:
+//                                         0 /*percentages not used in flutter. defaulting to zero*/,
+//                                     fontWeight: FontWeight.normal,
+//                                     height: 1),
+//                               ),
+//                           ],
+//                         ),
+//                       ],
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//             )
+//           : null,
+//       body: Container(
+//         // height: MediaQuery.of(context).size.height,
+//         width: MediaQuery.of(context).size.width,
+//         decoration: bgDecoration,
+//         child: Responsive(
+//           desktop: Row(
+//             children: <Widget>[
+//               DesktopMainMenuWidget(_menuList2,
+//                   backUrl: backUrl, backButton: _backButton),
+//               // const VerticalDivider(thickness: 1, width: 1),
+//               Expanded(
+//                 child: body,
+//               )
+//             ],
+//           ),
+//           mobile: body,
+//         ),
+//       ),
+//     );
+//   }
+//
+//   Widget invBottomMenu(List<Map> menus, context) {
+//     return Container(
+//       width: MediaQuery.of(context).size.width * 0.9,
+//       height: 68,
+//       decoration: BoxDecoration(
+//         color: Color.fromRGBO(245, 251, 255, 1),
+//       ),
+//       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+//       child: Row(
+//         crossAxisAlignment: CrossAxisAlignment.center,
+//         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//         children: <Widget>[
+//           for (var menu in menus)
+//             Builder(builder: (context) {
+//               if (!menu['active'])
+//                 return InkWell(
+//                   onTap: () {
+//                     context.beamToNamed(
+//                       menu['url'],
+//
+//                       // replaceCurrent: (menu['replace'] != null && menu['replace']) ? true : false
+//                     );
+//                   },
+//                   child: Container(
+//                     decoration: BoxDecoration(
+//                       borderRadius: BorderRadius.only(
+//                         topLeft: Radius.circular(20),
+//                         topRight: Radius.circular(20),
+//                         bottomLeft: Radius.circular(20),
+//                         bottomRight: Radius.circular(20),
+//                       ),
+//                     ),
+//                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+//                     child: Row(
+//                       mainAxisSize: MainAxisSize.min,
+//                       children: <Widget>[
+//                         Container(
+//                           decoration: BoxDecoration(
+//                             borderRadius: BorderRadius.only(
+//                               topLeft: Radius.circular(8),
+//                               topRight: Radius.circular(8),
+//                               bottomLeft: Radius.circular(8),
+//                               bottomRight: Radius.circular(8),
+//                             ),
+//                             color: Color.fromRGBO(245, 251, 255, 1),
+//                           ),
+//                           padding:
+//                               EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+//                           child: Row(
+//                             mainAxisSize: MainAxisSize.min,
+//                             children: <Widget>[
+//                               Image.asset(
+//                                 menu['icon'],
+//                                 height: 20,
+//                               ),
+//                             ],
+//                           ),
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+//                 );
+//               else
+//                 return InkWell(
+//                   onTap: () {
+//                     context.beamToNamed(
+//                       menu['url'],
+//                       // replaceCurrent: (menu['replace'] != null && menu['replace']) ? true : false
+//                     );
+//                   },
+//                   child: Container(
+//                     decoration: BoxDecoration(
+//                       borderRadius: BorderRadius.only(
+//                         topLeft: Radius.circular(20),
+//                         topRight: Radius.circular(20),
+//                         bottomLeft: Radius.circular(20),
+//                         bottomRight: Radius.circular(20),
+//                       ),
+//                       border: Border.all(
+//                         color: Color.fromRGBO(0, 152, 219, 1),
+//                         width: 2,
+//                       ),
+//                     ),
+//                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+//                     child: Row(
+//                       mainAxisSize: MainAxisSize.min,
+//                       children: <Widget>[
+//                         Container(
+//                           decoration: BoxDecoration(
+//                             borderRadius: BorderRadius.only(
+//                               topLeft: Radius.circular(8),
+//                               topRight: Radius.circular(8),
+//                               bottomLeft: Radius.circular(8),
+//                               bottomRight: Radius.circular(8),
+//                             ),
+//                             color: Color.fromRGBO(255, 255, 255, 1),
+//                           ),
+//                           padding:
+//                               EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+//                           child: Row(
+//                             mainAxisSize: MainAxisSize.min,
+//                             children: <Widget>[
+//                               Image.asset(
+//                                 menu['activeIcon'],
+//                                 height: 20,
+//                               ),
+//                             ],
+//                           ),
+//                         ),
+//                         SizedBox(width: 4),
+//                         Text(
+//                           menu['title'],
+//                           textAlign: TextAlign.left,
+//                           style: TextStyle(
+//                               color: Color.fromRGBO(51, 51, 51, 1),
+//                               fontFamily: 'Poppins',
+//                               fontSize: 14,
+//                               letterSpacing:
+//                                   0 /*percentages not used in flutter. defaulting to zero*/,
+//                               fontWeight: FontWeight.normal,
+//                               height: 1),
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+//                 );
+//             }),
+//           // SizedBox(width: 25,),
+//         ],
+//       ),
+//     );
+//   }
+// }

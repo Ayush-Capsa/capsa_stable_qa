@@ -21,9 +21,9 @@ loginToRole(context,var _rawData) {
     Beamer.of(context).beamToNamed('/');
   }
   // context.beamToNamed('/');
-  Future.delayed(const Duration(milliseconds: 800), () {
-    html.window.location.reload();
-  });
+  // Future.delayed(const Duration(milliseconds: 800), () {
+  //   html.window.location.reload();
+  // });
   return;
 
 }

@@ -377,7 +377,8 @@ class _ConfirmInvoicePageState extends State<ConfirmInvoicePage> {
                   ),
                 ),
               ],
-            ):Row(
+            ): OrientationSwitcher(
+              orientation: Responsive.isMobile(context)?'Column':'Row',
               children: [
                 InkWell(
                   onTap: () async {

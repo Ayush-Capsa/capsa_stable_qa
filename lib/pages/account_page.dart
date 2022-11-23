@@ -478,29 +478,31 @@ class _AccountPageState extends State<AccountPage> {
                           _tmpTransactionDetails.where((element) {
                         var isDate = false;
                         var isType = false;
-                        if (_selectedDate != null) {
-                          DateTime createdOn =
-                              DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-                                  .parse(element.created_on);
-                          isDate = createdOn.isSameDate(DateTime.now());
-                        }
+                        // if (_selectedDate != null) {
+                        //   DateTime createdOn =
+                        //       DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                        //           .parse(element.created_on);
+                        //   isDate = createdOn.isSameDate(DateTime.now());
+                        // }
 
                         if (_type != "All transactions") {
                           isType = false;
-                          if (_type == "Deposit") if (num.parse(
-                                  element.deposit_amt) >
-                              0) {
-                            isType = true;
-                          }
-                          if (_type == "Deposit") if (num.parse(
-                                  element.blocked_amt) >
-                              0) {
-                            if (element.narration == "DPST") isType = true;
-                          }
-                          if (_type == "Withdrawal") if (num.parse(
-                                  element.withdrawl_amt) >
-                              0) {
-                            isType = true;
+                          if (_type == "Deposit") {
+                            if (num.parse(element.deposit_amt) > 0  || ((element.status == 'PENDING' && element.reference != '' && num.parse(element.blocked_amt)>0))) {
+                              isType = true;
+                            }
+                            if (num.parse(element.blocked_amt) > 0) {
+                              if (element.narration == "DPST")
+                                isType = true;
+                            }
+                          } else if (_type == "Withdrawal") {
+                            if ((element.status == 'FAILED' ||
+                                element.status == 'PENDING') && !((element.status == 'PENDING' && element.reference != '' && num.parse(element.blocked_amt)>0))) {
+                              isType = true;
+                            } else if (num.parse(element.withdrawl_amt) >
+                                0) {
+                              isType = true;
+                            }
                           }
                         } else {
                           isType = true;
@@ -511,23 +513,28 @@ class _AccountPageState extends State<AccountPage> {
                         return isType;
                       }).toList();
 
-                      if (_selectedDate != null && _selectedDate2 != null)
+                      if (_selectedDate != null && _selectedDate2 != null) {
+                        capsaPrint('pAss 1');
                         _transactionDetails =
                             _transactionDetails.where((element) {
-                          var isDate = false;
-                          if (_selectedDate2 != null) {
-                            DateTime createdOn =
+                              var isDate = false;
+                              if (_selectedDate2 != null) {
+                                DateTime createdOn =
                                 DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
                                     .parse(element.created_on);
-                            // isDate = createdOn.isSameDate(_selectedDate);
-                            if (_selectedDate.isBefore(createdOn) &&
-                                _selectedDate2.isAfter(createdOn)) {
-                              isDate = true;
-                            }
-                          }
+                                // isDate = createdOn.isSameDate(_selectedDate);
+                                if ((_selectedDate.isBefore(createdOn) || _selectedDate.isSameDate(createdOn)) &&
+                                    (_selectedDate2.isAfter(createdOn) || _selectedDate2.isSameDate(createdOn))) {
+                                  capsaPrint('created on : ${DateFormat('yyyy MM dd').format(createdOn)}');
+                                  isDate = true;
+                                }
+                              }
 
-                          return isDate;
-                        }).toList();
+                              return isDate;
+                            }).toList();
+                      }
+
+                      //capsaPrint('\n\npAss 2 transaction details : ${_transactionDetails.length}');
 
                       // _tmpTransactionDetails.forEach((element) {
                       //   transactionDetails.add(value)
@@ -1250,7 +1257,7 @@ class _AccountPageState extends State<AccountPage> {
                                     //     ],
                                     //   ),
                                     for (TransactionDetails transaction
-                                        in _profileProvider.transactionDetails)
+                                        in _transactionDetails)
                                       DataRow(
                                         cells: <DataCell>[
                                           DataCell(Text(

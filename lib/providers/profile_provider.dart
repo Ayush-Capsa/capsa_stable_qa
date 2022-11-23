@@ -110,7 +110,7 @@ class ProfileProvider extends ChangeNotifier {
       if (data['res'] == 'success') {
         var _data = data['data'];
 
-        for (var vendor in _data['vendorList']) {
+        for (var vendor in _data['anchorList']) {
           VendorListPortfolio _vendorListPortfolio = VendorListPortfolio(
             companyPan: vendor['company_pan'],
             lastInvestment: vendor['lastInvestment'],
@@ -244,6 +244,7 @@ class ProfileProvider extends ChangeNotifier {
             marker: _data['marker'],
             x_axis: _data['x_axis'],
             y_axis: _data['y_axis'],
+            y_axis_gain_per: _data['y_axis_gain_per'],
             up_pymt: upPmt,
             account_no: _data['account_no'],
             retPer: retPer,
@@ -666,6 +667,7 @@ class ProfileProvider extends ChangeNotifier {
                         ? element['failed_amt'].toString()
                         : element['withdrawl_amt'].toString()
                 : '',
+            reference: element['reference'] != null ? element['reference'] : '',
           );
           _transactionDetails.add(_tmptransactionDetails);
         });
@@ -855,6 +857,93 @@ class ProfileProvider extends ChangeNotifier {
       // if (data['res'] == 'success') {
       //
       //
+      // }
+      return data;
+    }
+    return null;
+  }
+
+  Future<Object> getUserEmailPreference() async {
+    // capsaPrint('here 1');
+    if (box.get('isAuthenticated', defaultValue: false)) {
+      var userData = Map<String, dynamic>.from(box.get('userData'));
+      var _body = {};
+      var _role = userData['role'];
+      _body['panNumber'] = userData['panNumber'];
+      // _body['panNumber'] = userData['panNumber'];
+      _body['role'] = userData['role'];
+      if(_body['role'] == 'COMPANY'){
+        _body['role'] = 'VENDOR';
+      }else if(_body['role'] == 'BUYER'){
+        _body['role'] = 'ANCHOR';
+      }
+      dynamic _uri;
+      // if (_role == 'INVESTOR')
+      //   _uri = apiUrl + 'dashboard/i/profile';
+      // else
+      _uri = apiUrl + 'dashboard/r/getUserEmailPreferences';
+
+      _uri = Uri.parse(_uri);
+      var response = await http.post(_uri,
+          headers: <String, String>{
+            'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+          },
+          body: _body);
+      var data = jsonDecode(response.body);
+
+      //capsaPrint('Body : $_bankList')
+
+      // if (data['res'] == 'success') {
+      //   var _data = data['data'];
+      //   // capsaPrint('_data');
+      //   // capsaPrint(_data);
+      //
+      //   var bankDetails = _data['bankDetails'];
+      //   List<ProfileModel> _profileModel = [];
+      //
+      //   _bidHistoryDataList.addAll(_profileModel);
+      //   notifyListeners();
+      // }
+      return data;
+    }
+    return null;
+  }
+
+  Future<Object> setUserEmailPreference(dynamic _body) async {
+    // capsaPrint('here 1');
+    if (box.get('isAuthenticated', defaultValue: false)) {
+      var userData = Map<String, dynamic>.from(box.get('userData'));
+      var _role = userData['role'];
+      capsaPrint('PanNumber : ${userData['panNumber']} ');
+      _body['panNumber'] = userData['panNumber'];
+      // _body['panNumber'] = userData['panNumber'];
+      _body['role'] = userData['role'];
+      dynamic _uri;
+      // if (_role == 'INVESTOR')
+      //   _uri = apiUrl + 'dashboard/i/profile';
+      // else
+      _uri = apiUrl + 'dashboard/r/setUserEmailPreferences';
+
+      _uri = Uri.parse(_uri);
+      var response = await http.post(_uri,
+          headers: <String, String>{
+            'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+          },
+          body: _body);
+      var data = jsonDecode(response.body);
+
+      //capsaPrint('Body : $_bankList')
+
+      // if (data['res'] == 'success') {
+      //   var _data = data['data'];
+      //   // capsaPrint('_data');
+      //   // capsaPrint(_data);
+      //
+      //   var bankDetails = _data['bankDetails'];
+      //   List<ProfileModel> _profileModel = [];
+      //
+      //   _bidHistoryDataList.addAll(_profileModel);
+      //   notifyListeners();
       // }
       return data;
     }

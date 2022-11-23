@@ -87,6 +87,8 @@ dependencies:
   universal_io:
   responsive_framework:
   responsive:
+  pdf: ## add this
+  printing: ## also add this
 
 dev_dependencies:
   flutter_test:

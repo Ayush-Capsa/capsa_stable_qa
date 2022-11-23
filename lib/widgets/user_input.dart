@@ -1,4 +1,5 @@
 import 'package:capsa/anchor/Invoice/invoices.dart';
+import 'package:capsa/common/responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:capsa/functions/custom_print.dart';
 import 'package:flutter/services.dart';
@@ -26,6 +27,11 @@ class UserTextFormField extends StatelessWidget {
   final Widget prefixIcon;
   final String action;
   final String note;
+  final String info;
+  final bool showBorder;
+  final bool expand;
+  final double inputFieldHeight;
+  final double fontSize;
 
   final Widget suffixIcon;
 
@@ -35,6 +41,7 @@ class UserTextFormField extends StatelessWidget {
   final fillColor;
   final int maxLength;
   final maxLengthEnforcement;
+  final double borderRadius;
 
   // final  Widget pre ;
 
@@ -67,6 +74,12 @@ class UserTextFormField extends StatelessWidget {
     this.action: '',
     this.obscureText: false,
     this.note = "",
+    this.showBorder = false,
+    this.expand = false,
+    this.inputFieldHeight = 20,
+    this.borderRadius,
+    this.fontSize,
+    this.info,
     Key key,
   }) : super(key: key);
 
@@ -90,7 +103,7 @@ class UserTextFormField extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+        //mainAxisSize: MainAxisSize.min,
         children: [
           if (label != '')
             InkWell(
@@ -102,7 +115,7 @@ class UserTextFormField extends StatelessWidget {
                     color: Color.fromRGBO(51, 51, 51, 1),
                     fontSize: 14,
                     letterSpacing:
-                        0 /*percentages not used in flutter. defaulting to zero*/,
+                    0 /*percentages not used in flutter. defaulting to zero*/,
                     fontWeight: FontWeight.normal,
                     height: 1),
               ),
@@ -112,99 +125,125 @@ class UserTextFormField extends StatelessWidget {
           ),
           (textFormField != null)
               ? textFormField
-              : TextFormField(
-                  inputFormatters: (inputFormatters != null)
-                      ? inputFormatters
-                      : <TextInputFormatter>[],
-                  controller: controller,
-                  validator: _validator,
-                  focusNode: _focusNode,
-                  keyboardType: keyboardType,
-                  onTap: onTap,
-                  minLines: minLines,
-                  maxLength: maxLength,
-                  maxLines: maxLines,
-                  readOnly: readOnly,
-                  onChanged: onChanged,
-                  obscureText: obscureText,
-                  onSaved: onSaved,
-                  maxLengthEnforcement: maxLengthEnforcement,
-                  textInputAction: textInputAction,
-                  autovalidateMode: autovalidateMode,
-                  style: TextStyle(
-                      fontSize: isMobile ? 14 : 16.0, color: Color(0xff525252)),
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    suffixIcon: suffixIcon,
+              : Container(
+            decoration: BoxDecoration(
+                border: Border.all(
+                    color:
+                    showBorder ? Colors.black : Colors.transparent)),
+            height: expand ? inputFieldHeight : null,
+            child: TextFormField(
+              expands: expand,
+              inputFormatters: (inputFormatters != null)
+                  ? inputFormatters
+                  : <TextInputFormatter>[],
+              controller: controller,
+              validator: _validator,
+              focusNode: _focusNode,
+              keyboardType: keyboardType,
+              onTap: onTap,
+              minLines: expand ? null : minLines,
+              maxLength: maxLength,
+              maxLines: expand ? null : maxLines,
+              readOnly: readOnly,
+              onChanged: onChanged,
+              obscureText: obscureText,
+              onSaved: onSaved,
+              maxLengthEnforcement: maxLengthEnforcement,
+              textInputAction: textInputAction,
+              autovalidateMode: autovalidateMode,
+              style: TextStyle(
+                  fontSize: fontSize == null
+                      ? isMobile
+                      ? 14
+                      : 16.0
+                      : fontSize,
+                  color: Color(0xff525252)),
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                suffixIcon: suffixIcon,
 
-                    prefixIcon: prefixIcon,
-                    filled: true,
-                    fillColor: fillColor,
-                    //errorText : errorText,
-                    hintText: hintText,
-                    hintStyle: TextStyle(
-                        color: Color.fromRGBO(130, 130, 130, 1),
-                        fontSize: 15,
-                        letterSpacing:
-                            0 /*percentages not used in flutter. defaulting to zero*/,
-                        fontWeight: FontWeight.normal,
-                        height: 1.2),
-                    contentPadding: EdgeInsets.only(
-                        left: isMobile ? 4.0 : 8.0,
-                        bottom: isMobile ? 6.0 : 12.0,
-                        top: isMobile ? 6.0 : 12.0),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: fillColor),
-                      borderRadius: BorderRadius.circular(15.7),
-                    ),
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: fillColor),
-                      borderRadius: BorderRadius.circular(15.7),
-                    ),
-                  ),
+                prefixIcon: prefixIcon,
+                filled: true,
+                fillColor: fillColor,
+                //errorText : errorText,
+                hintText: hintText,
+                hintStyle: TextStyle(
+                    color: Color.fromRGBO(130, 130, 130, 1),
+                    fontSize: fontSize == null ? 15 : fontSize,
+                    letterSpacing:
+                    0 /*percentages not used in flutter. defaulting to zero*/,
+                    fontWeight: FontWeight.normal,
+                    height: 1.2),
+                contentPadding: EdgeInsets.only(
+                    left: isMobile ? 4.0 : 8.0,
+                    bottom: isMobile ? 6.0 : 12.0,
+                    top: isMobile ? 6.0 : 12.0),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: fillColor),
+                  borderRadius:
+                  BorderRadius.circular(borderRadius ?? 15.7),
                 ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: fillColor),
+                  borderRadius:
+                  BorderRadius.circular(borderRadius ?? 15.7),
+                ),
+              ),
+            ),
+          ),
           errorText != ''
               ? SizedBox(
-                  height: 5,
-                )
+            height: 5,
+          )
               : SizedBox(
-                  height: 0,
-                ),
+            height: 0,
+          ),
           errorText != ''
               ? Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      errorText,
-                      style: TextStyle(
-                          color: Colors.red, fontSize: isMobile ? 10 : 18),
-                    ),
-                    InkWell(
-                        onTap: onActionTap,
-                        child: Text(
-                          action,
-                          style: TextStyle(
-                              color: Colors.blue, fontSize: isMobile ? 10 : 22),
-                        )),
-                  ],
-                )
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                errorText,
+                style: TextStyle(
+                    color: Colors.red, fontSize: isMobile ? 10 : 18),
+              ),
+              InkWell(
+                  onTap: onActionTap,
+                  child: Text(
+                    action,
+                    style: TextStyle(
+                        color: Colors.blue, fontSize: isMobile ? 10 : 22),
+                  )),
+            ],
+          )
               : Container(),
           note != ""
               ? SizedBox(
-                  height: 5,
-                )
+            height: 5,
+          )
               : Container(),
           note != ""
               ? Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-                  Text(
-                    'Note: ',
-                    style: TextStyle(color: Colors.red, fontSize: isMobile ? 10 : 18),
-                  ),
-                  Text(
-                    note,
-                    style: TextStyle(color: Colors.black, fontSize: isMobile ? 10 : 18),
-                  ),
-                ])
+            Text(
+              'Note: ',
+              style: TextStyle(
+                  color: Colors.red, fontSize: isMobile ? 10 : 18),
+            ),
+            Text(
+              note,
+              style: TextStyle(
+                  color: Colors.black, fontSize: isMobile ? 10 : 18),
+            ),
+          ])
+              : Container(),
+          (info != "" && info != null)
+              ? Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+            Text(
+              info,
+              style: TextStyle(
+                  color: Colors.black, fontSize: !Responsive.isMobile(context) ? 18 : 8),
+            ),
+          ])
               : Container(),
         ],
       ),

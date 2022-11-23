@@ -21,6 +21,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
+import 'edit_email_preferences_admin/email_preference_investor_admin_page.dart';
+import 'edit_email_preferences_admin/email_preference_vendor_admin_page.dart';
+
 class EditAccountScreen extends StatefulWidget {
   final String title;
 
@@ -355,7 +358,7 @@ class _EditAccountState extends State<EditAccountScreen> {
                                   fontWeight: FontWeight.normal,
                                   color: HexColor("#333333")),
                             )),
-                            DataCell(PopupMenuButton(
+                            DataCell(dropdownvalue!='ANCHOR'?PopupMenuButton(
                               icon: const Icon(Icons.more_vert),
                               itemBuilder: (context) => [
                                 dropdownvalue!='ANCHOR'?PopupMenuItem(
@@ -386,8 +389,47 @@ class _EditAccountState extends State<EditAccountScreen> {
                                     ),
                                   ),
                                 ):null,
+
+                                dropdownvalue!='ANCHOR'?PopupMenuItem(
+
+                                  child: InkWell(
+                                    onTap: (){
+                                      Navigator.pop(context);
+                                      capsaPrint('PanNumber : ${data[i].panNumber}');
+                                      dropdownvalue =='VENDOR'?Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) =>ChangeNotifierProvider(
+                                                create: (context) => ProfileProvider(),
+                                                child:EmailPreferenceVendorAdminPage(
+                                                  data: data[i],)),
+                                          )):Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) =>ChangeNotifierProvider(
+                                                create: (context) => ProfileProvider(),
+                                                child:EmailPreferenceInvestorAdminPage(
+                                                    data: data[i])),
+                                          ));
+                                    },
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.edit),
+                                        RichText(
+                                          text: const TextSpan(
+                                            text: 'Edit Email Preferences',
+                                            style: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w400,
+                                                color: Color.fromRGBO(
+                                                    51, 51, 51, 1)),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ):null
+
                               ],
-                            ))
+                            ):null)
                           ])
                       ],
                     ),

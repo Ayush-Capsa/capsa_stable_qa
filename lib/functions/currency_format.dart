@@ -1,7 +1,21 @@
 
 import 'package:intl/intl.dart';
 
-String formatCurrency(dynamic value,{ withIcon : false }) {
+String getCurrencyIcon(String currency) {
+
+  currency = currency == ""?'NGN':currency;
+
+  return
+    currency == 'NGN'
+        ? '₦'
+        : currency == 'USD'
+        ? '\$'
+        : currency == 'GBP'
+        ? '£'
+        : currency == 'EUR' ? '€' : '₦';
+}
+
+String formatCurrency(dynamic value,{ withIcon = false, withCurrencyName = false }) {
   if(value == null) return '';
   try {
     value = num.tryParse(value.toString());
@@ -20,6 +34,7 @@ String formatCurrency(dynamic value,{ withIcon : false }) {
 
   final numberFormat = NumberFormat.currency(locale: "en_US", symbol: "", decimalDigits: _decimalDigits);
   if(withIcon)  return '₦ ${numberFormat.format(value)}';
+  if(withCurrencyName) return '${numberFormat.format(value)} NGN';
   return '${numberFormat.format(value)}';
 }
 

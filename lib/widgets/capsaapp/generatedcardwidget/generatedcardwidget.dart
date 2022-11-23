@@ -48,7 +48,8 @@ class GeneratedCardWidget extends StatelessWidget {
         ],
         gradient: RadialGradient(
           center: Alignment(-1.0, -1.0),
-          stops: [0.0, 1.0],
+          radius: 2,
+          //stops: [0.0, 1.0],
           colors: [Color.fromARGB(193, 200, 248, 255), Color.fromARGB(0, 196, 196, 196)],
         ),
       ),
