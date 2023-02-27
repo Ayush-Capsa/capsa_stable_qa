@@ -144,7 +144,7 @@ class _AnchorHomePageState extends State<AnchorHomePage> {
                                 : DataTable(
                               dataRowHeight: 60,
                               columns: dataTableColumn(
-                                  ["S/N", "Invoice no", "Vendor Name", "Issue Date", "Invoice\nAmount", "Due Date", "Tenure", "Action"]),
+                                  ["S/N", "Invoice No", "Vendor Name", "Issue Date", "Invoice\nAmount", "Due Date", "Tenure", "Action"]),
                               rows: <DataRow>[
                                 for (var invoice in _data)
                                   DataRow(

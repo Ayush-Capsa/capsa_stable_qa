@@ -3,19 +3,26 @@ import 'package:capsa/common/MyCustomScrollBehavior.dart';
 import 'package:capsa/common/app_theme.dart';
 import 'package:capsa/common/responsive.dart';
 import 'package:capsa/functions/hexcolor.dart';
+import 'package:capsa/signup/pages/account-letter/account_letter_download.dart';
+import 'package:capsa/signup/pages/account-letter/account_letter_upload.dart';
+import 'package:capsa/signup/pages/account-letter/account_letter_upload_success.dart';
 import 'package:capsa/signup/pages/capsa_account_generation.dart';
-import 'package:capsa/signup/pages/enter-address-pge.dart';
-import 'package:capsa/signup/pages/enter-details-page.dart';
-import 'package:capsa/signup/pages/enter-information-page.dart';
+import 'package:capsa/signup/pages/enter_address_page.dart';
+import 'package:capsa/signup/pages/enter_details_page.dart';
+import 'package:capsa/signup/pages/enter_information_page.dart';
 import 'package:capsa/signup/pages/forget_password.dart';
-import 'package:capsa/signup/pages/last-success-page.dart';
-import 'package:capsa/signup/pages/onboard-page.dart';
-import 'package:capsa/signup/pages/otp-verify.dart';
-import 'package:capsa/signup/pages/password-set-page.dart';
-import 'package:capsa/signup/pages/select-account-type.dart';
-import 'package:capsa/signup/pages/select-country.dart';
+import 'package:capsa/signup/pages/last_success_page.dart';
+import 'package:capsa/signup/pages/onboard_page.dart';
+import 'package:capsa/signup/pages/otp_verify.dart';
+import 'package:capsa/signup/pages/password_set_page.dart';
+import 'package:capsa/signup/pages/registration_complete_screen.dart';
+import 'package:capsa/signup/pages/resubmit-documents/resubmit_document_page.dart';
+import 'package:capsa/signup/pages/resubmit-documents/resubmit_document_success_page.dart';
+import 'package:capsa/signup/pages/select_account_type.dart';
+import 'package:capsa/signup/pages/select_country.dart';
 import 'package:capsa/signup/pages/signin.dart';
-import 'package:capsa/signup/pages/terms-and-condition.dart';
+import 'package:capsa/signup/pages/terms_and_condition.dart';
+import 'package:capsa/signup/pages/resubmit-documents/verification_unsuccessful_page.dart';
 import 'package:capsa/signup/provider/action_provider.dart';
 import 'package:flutter/material.dart';import 'package:capsa/functions/custom_print.dart';
 import 'package:provider/provider.dart';
@@ -192,6 +199,44 @@ class _SignupState extends State<Signup> {
                               body: EnterAddressPage()),
                         );
                       },
+                      '/reupload-document-page': (context, state, data) {
+                        return BeamPage(
+                          key: ValueKey('Reupload-Document-Page'),
+                          title: 'Reupload Document',
+                          // popToNamed: 'on,
+                          child: RegistrationMain(
+                              pageUrl: "/reupload-document-page",
+                              mobileTitle: 'Reupload Document',
+                              title: 'Reupload Document',
+                              body: ReUploadDocumentPage()),
+                        );
+                      },
+                      '/verification-unsuccessful': (context, state, data) {
+                        return BeamPage(
+                          key: ValueKey('verification-unsuccessful'),
+                          title: 'Verification Unsuccessful',
+                          // popToNamed: '/',
+                          type: BeamPageType.fadeTransition,
+                          child: RegistrationMain(
+                              pageUrl: "/verification-unsuccessful",
+                              mobileTitle: 'Verification Unsuccessful',
+                              title: 'Verification Unsuccessful',
+                              body: VerificationUnsuccessful()),
+                        );
+                      },
+                      '/resubmit-document-success-page': (context, state, data) {
+                        return BeamPage(
+                          key: ValueKey('resubmit-document-success-page'),
+                          title: 'Reupload Document Success',
+                          // popToNamed: '/',
+                          type: BeamPageType.fadeTransition,
+                          child: RegistrationMain(
+                              pageUrl: "/verification-unsuccessful",
+                              mobileTitle: 'Reupload Document Success',
+                              title: 'Reupload Document Success',
+                              body: ResubmitDocumentSuccessPage()),
+                        );
+                      },
                       '/forgot-password': (context, state, data) {
                         return BeamPage(
                           key: ValueKey('forget_password'),
@@ -228,6 +273,18 @@ class _SignupState extends State<Signup> {
                               body: LastSuccessPage()),
                         );
                       },
+                      '/registration-complete': (context, state, data) {
+                        return BeamPage(
+                          key: ValueKey('registration'),
+                          title: 'Registration Complete',
+                          type: BeamPageType.fadeTransition,
+                          child: RegistrationMain(
+                              pageUrl: "/registration-complete",
+                              mobileTitle: 'Registration Complete',
+                              title: 'Registration Complete',
+                              body: RegistrationCompletePage()),
+                        );
+                      },
                       '/account-generation': (context, state, data) {
                         return BeamPage(
                           key: ValueKey('CapsaAccountGeneration'),
@@ -238,6 +295,44 @@ class _SignupState extends State<Signup> {
                               mobileTitle: 'Account Generation',
                               title: 'Account Generation',
                               body: CapsaAccountGeneration()),
+                        );
+                      },
+                      '/account-letter-download': (context, state, data) {
+                        return BeamPage(
+                          key: ValueKey('CapsaAccountLetterDownload'),
+                          title: 'Capsa Account Letter Download',
+                          type: BeamPageType.fadeTransition,
+                          child: RegistrationMain(
+                              pageUrl: "/account-letter-download",
+                              mobileTitle: 'Account Letter Download',
+                              title: 'Account Letter Download',
+                              body: AccountLetterDownload()),
+                        );
+                      },
+                      '/account-letter-upload/:encryptedList': (context, state, data) {
+                        final id = state.pathParameters['encryptedList'];
+                        return BeamPage(
+                          key: ValueKey(id + '-CapsaAccountLetterUpload'),
+                          title: id.toUpperCase() + ' Details',
+                          // popToNamed: '/',
+                          type: BeamPageType.fadeTransition,
+                          child: RegistrationMain(
+                              pageUrl: '/account-letter-upload/'+id,
+                              mobileTitle: 'Account Letter Upload',
+                              title: 'Account Letter Upload',
+                              body: AccountLetterUpload(selectedList: id,)),
+                        );
+                      },
+                      '/account-letter-upload-success': (context, state, data) {
+                        return BeamPage(
+                          key: ValueKey('CapsaAccountLetterUploadSucess'),
+                          title: 'Capsa Account Letter Upload',
+                          type: BeamPageType.fadeTransition,
+                          child: RegistrationMain(
+                              pageUrl: "/account-letter-upload-success",
+                              mobileTitle: 'Account Letter Upload',
+                              title: 'Account Letter Upload',
+                              body: AccountLetterUploadSuccessPage()),
                         );
                       },
                     },

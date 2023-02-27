@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:capsa/common/responsive.dart';
 import 'package:capsa/functions/call_api.dart';
 import 'package:capsa/functions/currency_format.dart';
@@ -23,13 +25,19 @@ import 'package:capsa/widgets/withdraw_amt.dart';
 import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
 import 'package:capsa/functions/custom_print.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:beamer/beamer.dart';
+import 'package:printing/printing.dart' as pr;
+import 'package:pdf/widgets.dart' as pw;
 
 import 'package:clipboard/clipboard.dart';
+
+import 'dialog_box/account_statement_dialog_box.dart';
+import 'package:capsa/pages/dialog_box/transaction_details_pdf_builder.dart';
 
 class AccountPage extends StatefulWidget {
   AccountPage({Key key}) : super(key: key);
@@ -268,12 +276,89 @@ class _AccountPageState extends State<AccountPage> {
         if (addnewbene)
           InkWell(
             onTap: () async {
-              showAddBeneficiaryDialog(
-                context,
-                _getBankDetails,
-                _profileProvider.bankList,
-                _profileProvider,
-              );
+
+              showDialog(
+                // barrierColor: Colors.transparent,
+                  context: context,
+                  builder:
+                      (BuildContext context) {
+                    functionBack() {
+                      Navigator.pop(context);
+                    }
+
+                    return AlertDialog(
+                        backgroundColor:
+                        Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                            borderRadius:
+                            BorderRadius.all(
+                                Radius.circular(
+                                    32.0))),
+                        content: Container(
+                          width: !Responsive.isMobile(context)?MediaQuery.of(context).size.width * 0.55:MediaQuery.of(context).size.width * 0.6,
+                          height: !Responsive.isMobile(context)?MediaQuery.of(context).size.height * 0.6:MediaQuery.of(context).size.height * 0.6,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20), color: HexColor('#F5FBFF')),
+                          child: Padding(
+                            padding: EdgeInsets.all(!Responsive.isMobile(context)?16:8,),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+
+                                Image.asset(
+                                  'assets/icons/warning.png',
+                                ),
+
+                                Text(
+                                  'Account name should not contain special characters',
+                                  style: GoogleFonts.poppins(
+                                      fontSize: !Responsive.isMobile(context)?22:16, fontWeight: FontWeight.w600, color: Colors.black),
+                                ),
+                                Text(
+                                    ' Special Characters such as: ` ~! @ # \$ % ^ & * ( ) _ + | } { “ : ? > < [ ] \\ ; \' , . / - = should not be included in the Company Name. For example: replace "&" with AND or "-" with a blank space',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.poppins(
+                                        fontSize: !Responsive.isMobile(context)?18:12,
+                                        fontWeight: FontWeight.w400,
+                                        color: HexColor('#333333'))),
+
+                                InkWell(
+                                  onTap: () {
+                                      Navigator.pop(context);
+                                    },
+                                  child: Container(
+                                    height: !Responsive.isMobile(context)?49:38,
+                                    width: !Responsive.isMobile(context)?134:MediaQuery.of(context).size.width * 0.25,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: HexColor('#0098DB')),
+                                    child: Center(
+                                      child: Text(
+                                        'Okay',
+                                        style: GoogleFonts.poppins(
+                                            fontSize: !Responsive.isMobile(context)?14:10,
+                                            fontWeight: FontWeight.w500,
+                                            color: Colors.white),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ));
+                  }).then((value) {
+                showAddBeneficiaryDialog(
+                  context,
+                  _getBankDetails,
+                  _profileProvider.bankList,
+                  _profileProvider,
+                );
+              });
+
+
             },
             child: Container(
                 width: Responsive.isMobile(context) ? 260 : 260,
@@ -379,13 +464,14 @@ class _AccountPageState extends State<AccountPage> {
             //
             // },
             child: Container(
-                width: Responsive.isMobile(context) ? 260 : 200,
+                width: Responsive.isMobile(context) ? MediaQuery.of(context).size.width * 0.9 : 200,
                 height: Responsive.isMobile(context) ? 60 : 40,
                 child: Stack(children: <Widget>[
                   Positioned(
                       top: 0,
                       left: 0,
                       child: Container(
+                        width: Responsive.isMobile(context) ? MediaQuery.of(context).size.width * 0.9 : 120,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.only(
                             topLeft: Radius.circular(15),
@@ -802,15 +888,22 @@ class _AccountPageState extends State<AccountPage> {
                                                                 ?.account_number ??
                                                             "",
                                                       ).then((value) =>
-                                                          capsaPrint('copied'));
+                                                          showToast('Copied to Clipboard', context));
+
                                                     },
                                                     child: Column(
                                                       mainAxisSize:
                                                           MainAxisSize.min,
-                                                      children: <Widget>[
+                                                      children: const <Widget>[
                                                         Icon(
-                                                          Icons.copy,
+                                                          Icons.content_paste,
                                                           size: 16,
+                                                          color: Color
+                                                              .fromRGBO(
+                                                              0,
+                                                              152,
+                                                              219,
+                                                              1),
                                                         ),
                                                         SizedBox(height: 6),
                                                         Text(
@@ -843,7 +936,8 @@ class _AccountPageState extends State<AccountPage> {
                                         ),
                                         SizedBox(height: 10),
                                         Container(
-                                          decoration: BoxDecoration(
+                                          //width: MediaQuery.of(context).size.width * 0.8,
+                                          decoration: const BoxDecoration(
                                             borderRadius: BorderRadius.only(
                                               topLeft: Radius.circular(10),
                                               topRight: Radius.circular(10),
@@ -853,27 +947,32 @@ class _AccountPageState extends State<AccountPage> {
                                             color: Color.fromRGBO(
                                                 245, 251, 255, 1),
                                           ),
-                                          padding: EdgeInsets.symmetric(
+                                          padding: const EdgeInsets.symmetric(
                                               horizontal: 4, vertical: 4),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: <Widget>[
-                                              Text(
-                                                'You can fund your Capsa account above by making \na transfer from any bank in Nigeria',
-                                                textAlign: TextAlign.center,
-                                                maxLines: 2,
-                                                style: TextStyle(
-                                                    color: Color.fromRGBO(
-                                                        51, 51, 51, 1),
-                                                    // fontFamily: 'Poppins',
-                                                    fontSize: 10,
-                                                    letterSpacing:
-                                                        0 /*percentages not used in flutter. defaulting to zero*/,
-                                                    fontWeight:
-                                                        FontWeight.normal,
-                                                    height: 1),
-                                              ),
-                                            ],
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 4, vertical: 4),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: const <Widget>[
+                                                Text(
+                                                  'Make a transfer to the above account to fund your wallet',
+                                                  textAlign: TextAlign.center,
+                                                  maxLines: 2,
+                                                  style: TextStyle(
+                                                      color: Color.fromRGBO(
+                                                          51, 51, 51, 1),
+                                                      // fontFamily: 'Poppins',
+                                                      fontSize: 12,
+                                                      letterSpacing:
+                                                          0 /*percentages not used in flutter. defaulting to zero*/,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      height: 1),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
                                         SizedBox(height: 6),
@@ -883,7 +982,83 @@ class _AccountPageState extends State<AccountPage> {
                               ],
                             ),
                             SizedBox(
-                              height: (!Responsive.isMobile(context)) ? 20 : 10,
+                              height:
+                              (!Responsive.isMobile(context)) ? 40 : 10,
+                            ),
+
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                InkWell(
+                                  onTap: () async{
+                                    Uint8List bytes = (await rootBundle.load('capsa_logo_blue.png')).buffer.asUint8List();
+                                    dynamic leadImage = await pr.networkImage('https://storage.googleapis.com/download/storage/v1/b/fir-anchor-creditassessment.appspot.com/o/2022-12-16_capsa_logo_blue.jpg?generation=1671182470802288&alt=media');
+                                    //dynamic leadImage = pw.MemoryImage(bytes);
+                                    dynamic sealImage = await pr.networkImage('https://storage.googleapis.com/download/storage/v1/b/fir-anchor-creditassessment.appspot.com/o/2022-12-15_seal.jpg?generation=1671114082119590&alt=media');
+                                    transactionDetailsPdfBuilder.transactionPrintDoc(_profileProvider,_transactionDetails, leadImage, sealImage);
+                                    // !Responsive.isMobile(context)?showDialog(
+                                    //   // barrierColor: Colors.transparent,
+                                    //     context: context,
+                                    //     //barrierDismissible: false,
+                                    //     builder: (BuildContext context1) {
+                                    //       return AlertDialog(
+                                    //           backgroundColor: Colors
+                                    //               .transparent,
+                                    //           contentPadding:
+                                    //           const EdgeInsets
+                                    //               .fromLTRB(12.0,
+                                    //               12.0, 12.0, 12.0),
+                                    //           // shape: RoundedRectangleBorder(
+                                    //           //     borderRadius:
+                                    //           //     BorderRadius.all(
+                                    //           //         Radius.circular(
+                                    //           //             32.0))),
+                                    //           elevation: 0,
+                                    //           content: AccountStatementViewer(profileProvider: _profileProvider, transactionDetails: _transactionDetails,));
+                                    //     }):
+                                  },
+                                  child: Container(
+                                    width: !Responsive.isMobile(context)?320:MediaQuery.of(context).size.width * 0.65,
+                                    height: !Responsive.isMobile(context)?73:45,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(15)),
+                                      border: Border.all(
+                                          color: HexColor('#0098DB'),
+                                          width: 3),
+                                    ),
+                                    child: Row(
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.download,
+                                            size: !Responsive.isMobile(context)?20:12,
+                                            color: HexColor('#0098DB'),
+                                          ),
+                                          SizedBox(
+                                            width: 8,
+                                          ),
+                                          Text(
+                                            'Download Account Statement',
+                                            style: GoogleFonts.poppins(
+                                                fontWeight:
+                                                FontWeight.w700,
+                                                color:
+                                                HexColor('#0098DB'),
+                                                fontSize: !Responsive.isMobile(context)?18:12),
+                                          )
+                                        ]),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            SizedBox(
+                              height:
+                              (!Responsive.isMobile(context)) ? 20 : 10,
                             ),
                             if (!Responsive.isMobile(context))
                               Container(
@@ -1260,15 +1435,18 @@ class _AccountPageState extends State<AccountPage> {
                                         in _transactionDetails)
                                       DataRow(
                                         cells: <DataCell>[
-                                          DataCell(Text(
-                                            // transaction.created_on,
-                                            DateFormat('d MMM, y')
-                                                .format(DateFormat(
-                                                        "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-                                                    .parse(
-                                                        transaction.created_on))
-                                                .toString(),
-                                            style: dataTableBodyTextStyle,
+                                          DataCell(Container(
+                                            width: 120,
+                                            child: Text(
+                                              // transaction.created_on,
+                                              DateFormat('d MMM, y')
+                                                  .format(DateFormat(
+                                                          "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                                                      .parse(
+                                                          transaction.created_on))
+                                                  .toString(),
+                                              style: dataTableBodyTextStyle,
+                                            ),
                                           )),
                                           DataCell(Text(
                                             transaction.narration,
@@ -1439,78 +1617,95 @@ class _AccountPageState extends State<AccountPage> {
                                                 CrossAxisAlignment.start,
                                             mainAxisSize: MainAxisSize.min,
                                             children: <Widget>[
+                                              Container(
+                                                width: MediaQuery.of(context).size.width * 0.48,
+                                                child: Text(
+                                                  transaction.narration,
+                                                  textAlign: TextAlign.left,
+                                                  style: TextStyle(
+                                                      color: Color.fromRGBO(
+                                                          51, 51, 51, 1),
+                                                      // fontFamily: 'Poppins',
+                                                      fontSize: 14,
+                                                      letterSpacing:
+                                                          0 /*percentages not used in flutter. defaulting to zero*/,
+                                                      fontWeight:
+                                                          FontWeight.normal,
+                                                      height: 1),
+                                                ),
+                                              ),
+                                              SizedBox(height: 6),
                                               Text(
-                                                transactionType(transaction),
+                                                transaction.order_number,
                                                 textAlign: TextAlign.left,
-                                                style: TextStyle(
+                                                style: const TextStyle(
                                                     color: Color.fromRGBO(
                                                         51, 51, 51, 1),
                                                     // fontFamily: 'Poppins',
                                                     fontSize: 14,
                                                     letterSpacing:
-                                                        0 /*percentages not used in flutter. defaulting to zero*/,
+                                                    0 /*percentages not used in flutter. defaulting to zero*/,
                                                     fontWeight:
-                                                        FontWeight.normal,
+                                                    FontWeight.normal,
                                                     height: 1),
                                               ),
-                                              SizedBox(height: 3),
-                                              Container(
-                                                decoration: BoxDecoration(),
-                                                padding: EdgeInsets.symmetric(
-                                                    horizontal: 0, vertical: 0),
-                                                child: Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.center,
-                                                  children: <Widget>[
-                                                    Text(
-                                                      transaction.order_number,
-                                                      textAlign: TextAlign.left,
-                                                      style: TextStyle(
-                                                          color: Color.fromRGBO(
-                                                              51, 51, 51, 1),
-                                                          // fontFamily: 'Poppins',
-                                                          fontSize: 12,
-                                                          letterSpacing:
-                                                              0 /*percentages not used in flutter. defaulting to zero*/,
-                                                          fontWeight:
-                                                              FontWeight.normal,
-                                                          height: 1),
-                                                    ),
-                                                    SizedBox(width: 16),
-                                                    Text(
-                                                      (num.parse(transaction
-                                                                  .blocked_amt) >
-                                                              0)
-                                                          ? "Blocked"
-                                                          : 'Successful',
-                                                      textAlign: TextAlign.left,
-                                                      style: TextStyle(
-                                                          color: (num.parse(
-                                                                      transaction
-                                                                          .blocked_amt) >
-                                                                  0)
-                                                              ? Colors.red
-                                                              : Color.fromRGBO(
-                                                                  33,
-                                                                  150,
-                                                                  83,
-                                                                  1),
-                                                          // fontFamily: 'Poppins',
-                                                          fontSize: 12,
-                                                          letterSpacing:
-                                                              0 /*percentages not used in flutter. defaulting to zero*/,
-                                                          fontWeight:
-                                                              FontWeight.normal,
-                                                          height: 1),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
+                                              // Container(
+                                              //   decoration: BoxDecoration(),
+                                              //   padding: EdgeInsets.symmetric(
+                                              //       horizontal: 0, vertical: 0),
+                                              //   child: Row(
+                                              //     mainAxisSize:
+                                              //         MainAxisSize.min,
+                                              //     mainAxisAlignment:
+                                              //         MainAxisAlignment
+                                              //             .spaceBetween,
+                                              //     crossAxisAlignment:
+                                              //         CrossAxisAlignment.center,
+                                              //     children: <Widget>[
+                                              //       Text(
+                                              //         transaction.order_number,
+                                              //         textAlign: TextAlign.left,
+                                              //         style: TextStyle(
+                                              //             color: Color.fromRGBO(
+                                              //                 51, 51, 51, 1),
+                                              //             // fontFamily: 'Poppins',
+                                              //             fontSize: 12,
+                                              //             letterSpacing:
+                                              //                 0 /*percentages not used in flutter. defaulting to zero*/,
+                                              //             fontWeight:
+                                              //                 FontWeight.normal,
+                                              //             height: 1),
+                                              //       ),
+                                              //       // SizedBox(width: 16),
+                                              //       // Text(
+                                              //       //   (num.parse(transaction
+                                              //       //               .blocked_amt) >
+                                              //       //           0)
+                                              //       //       ? "Blocked"
+                                              //       //       : 'Successful',
+                                              //       //   textAlign: TextAlign.left,
+                                              //       //   style: TextStyle(
+                                              //       //       color: (num.parse(
+                                              //       //                   transaction
+                                              //       //                       .blocked_amt) >
+                                              //       //               0)
+                                              //       //           ? Colors.red
+                                              //       //           : Color.fromRGBO(
+                                              //       //               33,
+                                              //       //               150,
+                                              //       //               83,
+                                              //       //               1),
+                                              //       //       // fontFamily: 'Poppins',
+                                              //       //       fontSize: 12,
+                                              //       //       letterSpacing:
+                                              //       //           0 /*percentages not used in flutter. defaulting to zero*/,
+                                              //       //       fontWeight:
+                                              //       //           FontWeight.normal,
+                                              //       //       height: 1),
+                                              //       // ),
+                                              //     ],
+                                              //   ),
+                                              // ),
                                             ],
                                           ),
                                         ),

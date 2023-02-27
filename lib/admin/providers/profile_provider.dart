@@ -7,6 +7,8 @@ import 'package:capsa/functions/custom_print.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:intl/intl.dart';
 // import 'package:intl/intl.dart';
 
 class ProfileProvider extends ChangeNotifier {
@@ -57,7 +59,7 @@ class ProfileProvider extends ChangeNotifier {
 
   //get withdrawResponse => null;
 
-  Future<Object> reconcileApi() async {
+  Future<Object> reconcilePlatformBalanceApi() async {
     // capsaPrint(amount);
     // capsaPrint(desc);
     // capsaPrint(accountNo);
@@ -68,7 +70,7 @@ class ProfileProvider extends ChangeNotifier {
       // _body['panNumber'] = userData['panNumber'];
 
       dynamic _uri;
-      _uri = apiUrl + '/admin/reconcilationAPI';
+      _uri = apiUrl + '/admin/reconcilationPlatformBalance';
       _uri = Uri.parse(_uri);
 
       // capsaPrint('_body');
@@ -85,12 +87,128 @@ class ProfileProvider extends ChangeNotifier {
 
         return data;
       } catch (e) {
-
-        return {"message" : "failed"};
-
+        return {"message": "failed"};
       }
+    }
+    return null;
+  }
 
+  Future<Object> reconcilePoolBalanceApi() async {
+    // capsaPrint(amount);
+    // capsaPrint(desc);
+    // capsaPrint(accountNo);
+    if (box.get('isAuthenticated', defaultValue: false)) {
+      var userData = Map<String, dynamic>.from(box.get('userData'));
+      var _body = {};
+      _body['panNumber'] = userData['panNumber'];
+      // _body['panNumber'] = userData['panNumber'];
 
+      dynamic _uri;
+      _uri = apiUrl + '/admin/reconcilationPoolBalance';
+      _uri = Uri.parse(_uri);
+
+      // capsaPrint('_body');
+      // capsaPrint(_body);
+
+      try {
+        var response = await http
+            .post(_uri,
+                headers: <String, String>{
+                  'Authorization':
+                      'Basic ' + box.get('token', defaultValue: '0')
+                },
+                body: _body)
+            .timeout(
+          const Duration(seconds: 20),
+          onTimeout: () {
+            // Time has run out, do what you wanted to do.
+            var response1 = {
+              "message": "failed",
+            };
+            return http.Response(jsonEncode(response1), 408);
+            // Request Timeout response status code
+          },
+        );
+        capsaPrint('Response recociliation api ${response.body}');
+        var data = jsonDecode(response.body);
+
+        return data;
+      } catch (e) {
+        return {"message": "failed"};
+      }
+    }
+    return null;
+  }
+
+  Future<Object> closingBalanceList() async {
+    // capsaPrint(amount);
+    // capsaPrint(desc);
+    // capsaPrint(accountNo);
+    if (box.get('isAuthenticated', defaultValue: false)) {
+      var userData = Map<String, dynamic>.from(box.get('userData'));
+      var _body = {};
+      _body['panNumber'] = userData['panNumber'];
+      // _body['panNumber'] = userData['panNumber'];
+
+      dynamic _uri;
+      _uri = apiUrl + '/admin/allClosingBalance';
+      _uri = Uri.parse(_uri);
+
+      Map<String, String> panNumber = {};
+      Map<String, String> name = {};
+
+      // capsaPrint('_body');
+      // capsaPrint(_body);
+
+      try {
+        var response = await http.post(_uri,
+            headers: <String, String>{
+              'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+            },
+            body: _body);
+        //capsaPrint('Response recociliation api ${response.body}');
+        var data = jsonDecode(response.body);
+
+        //capsaPrint('Pass 1 closing balance list');
+
+        //capsaPrint('All Closing Balance response: \n $data');
+
+        dynamic details = data['data']['details'];
+        dynamic closingBalances = data['data']['balances'];
+
+        //capsaPrint('Pass 2 closing balance list ${details.length} ${closingBalances.length}');
+
+        List<ClosingBalanceModel> models = [];
+
+        for (int i = 0; i < details.length; i++) {
+          dynamic e = details[i];
+          //capsaPrint('$i ${e['account_number']} ${e['PAN_NO']} ${e['NAME']}');
+          panNumber[e['account_number'].toString()] = e['PAN_NO'].toString();
+          name[e['account_number'].toString()] = e['NAME'].toString();
+        }
+
+        //capsaPrint('Pass 3 closing balance list');
+
+        for (int i = 0; i < closingBalances.length; i++) {
+          dynamic e = closingBalances[i];
+          models.add(ClosingBalanceModel(
+              closingBalance: e['closing_balance'].toString(),
+              accountNumber: e['account_number'].toString(),
+              panNumber: panNumber[e['account_number']],
+              name: name[e['account_number']]));
+
+          //capsaPrint('Pass 4 closing balance list');
+
+        }
+
+        return models;
+
+        //return data;
+      } catch (e) {
+        capsaPrint(e);
+
+        return {"message": "failed"};
+      }
     }
     return null;
   }
@@ -570,6 +688,149 @@ class ProfileProvider extends ChangeNotifier {
     return null;
   }
 
+  Future<Object> fetchPendingAccountList(String role,
+      {String search = "", String statusFilter = 'All', String datesFilter = 'Latest First'}) async {
+    // capsaPrint(amount);
+    // capsaPrint(desc);
+    // capsaPrint(accountNo);
+    //capsaPrint('Pass 1');
+    if (box.get('isAuthenticated', defaultValue: false)) {
+      var userData = Map<String, dynamic>.from(box.get('userData'));
+      var _body = {};
+      _body['panNumber'] = userData['panNumber'];
+      _body['role'] = role;
+      // _body['panNumber'] = userData['panNumber'];
+
+      //capsaPrint('Pending account\n\n');
+
+      dynamic _uri;
+      _uri = apiUrl + '/admin/newUsersList';
+      _uri = Uri.parse(_uri);
+
+      // capsaPrint('_body');
+      // capsaPrint(_body);
+
+      var response = await http.post(_uri,
+          headers: <String, String>{
+            'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+          },
+          body: _body);
+      //capsaPrint('Pass 2');
+      //capsaPrint('Pending account Response ${response.body}');
+      var data = jsonDecode(response.body);
+
+      List<PendingAccountData> accounts = [];
+
+      int i = 0;
+
+      data['data']?.forEach((element) {
+        if (i < 10) {
+          if (i == 0) {
+            capsaPrint(element);
+          }
+          capsaPrint(
+              '${element['user_id']} ${element['modified_at']} ${element['file_extensions_CACFORM7']}');
+          capsaPrint('\n');
+          i++;
+        }
+        if (search == "" ||
+            element['PAN_NO']
+                .toString()
+                .toLowerCase()
+                .contains(search.toLowerCase()) ||
+            element['NAME']
+                .toString()
+                .toLowerCase()
+                .contains(search.toLowerCase())) {
+          bool allow = false;
+          if(statusFilter == 'Pending'){
+            if(element['isApproved'].toString() == '0' || !notNull(element['isApproved'].toString())) {
+              allow = true;
+            }
+          }else if(statusFilter == 'Approved'){
+            if(element['isApproved'].toString() == '1') {
+              allow = true;
+            }
+          }else{
+            allow = true;
+          }
+          if(allow) {
+            accounts.add(PendingAccountData(
+              panNumber: notNull(element['PAN_NO'].toString())
+                  ? element['PAN_NO'].toString()
+                  : '',
+              role: notNull(element['ROLE']) ? element['ROLE'].toString() : '',
+              role2:
+              notNull(element['ROLE2']) ? element['ROLE2'].toString() : '',
+              name: notNull(element['NAME']) ? element['NAME'].toString() : '',
+              userId: notNull(element['user_id'].toString())
+                  ? element['user_id'].toString()
+                  : '',
+              isApproved: notNull(element['isApproved'].toString())
+                  ? element['isApproved'].toString()
+                  : '0',
+              cacCertificate: notNull(element['CAC_Certificate_URL'].toString())
+                  ? element['CAC_Certificate_URL'].toString()
+                  : '',
+              cacForm: notNull(element['CAC_Form_7'].toString())
+                  ? element['CAC_Form_7'].toString()
+                  : '',
+              validId: notNull(element['valid_id_URL'].toString())
+                  ? element['valid_id_URL'].toString()
+                  : '',
+              contact: notNull(element['CONTACT'].toString())
+                  ? element['CONTACT'].toString()
+                  : '',
+              validIdExt: notNull(element['file_extensions_id'].toString())
+                  ? element['file_extensions_id'].toString()
+                  : '',
+              cacCertificateExt:
+              notNull(element['file_extensions_CACfile'].toString())
+                  ? element['file_extensions_CACfile'].toString()
+                  : '',
+              cacFormExt:
+              notNull(element['file_extensions_CACFORM7'].toString())
+                  ? element['file_extensions_CACFORM7'].toString()
+                  : '',
+              email: notNull(element['EMAIL'].toString())
+                  ? element['EMAIL'].toString()
+                  : '',
+              createdDate: notNull(element['modified_at'].toString())
+                  ?  DateFormat('yMMMd').format(DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(element['modified_at'].toString())).toString()
+                  : '',
+              // isBlackListed: element['isBlacklisted'] != null
+              //     ? element['isBlacklisted'] == '1'
+              //     ? true
+              //     : false
+              //     : false,
+              // isRestricted: element['isAllowed'] != null
+              //     ? element['isAllowed'] == 'p'
+              //     ? true
+              //     : false
+              //     : false,
+            ));
+          }
+        }
+        // accounts.sort((a, b) {
+        //   String aDate = a.name;
+        //   String bDate = b.name;
+        //   return aDate.compareTo(bDate);
+        // });
+      });
+
+      // if (data['res'] == 'success') {
+      //
+      //
+      // }
+      if(datesFilter == 'Oldest First'){
+        List<PendingAccountData> reversedList = List.from(accounts.reversed);
+        accounts = reversedList;
+      }
+      return accounts;
+    }
+    return null;
+  }
+
   Future<Object> getInvoicesByInvoiceNumber({String search = ''}) async {
     // capsaPrint(amount);
     // capsaPrint(desc);
@@ -663,6 +924,88 @@ class ProfileProvider extends ChangeNotifier {
       }
 
       return invoices;
+    }
+    return null;
+  }
+
+  Future<Object> fetchAccountLetter(String panNumber) async {
+    // capsaPrint(amount);
+    // capsaPrint(desc);
+    // capsaPrint(accountNo);
+    if (box.get('isAuthenticated', defaultValue: false)) {
+      var userData = Map<String, dynamic>.from(box.get('userData'));
+      var _body = {};
+      _body['panNumber'] = panNumber;
+      // _body['panNumber'] = userData['panNumber'];
+
+      dynamic _uri;
+      _uri = apiUrl + '/admin/showAccountLetters';
+      _uri = Uri.parse(_uri);
+
+      // capsaPrint('_body');
+      // capsaPrint(_body);
+
+      var response = await http.post(_uri,
+          headers: <String, String>{
+            'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+          },
+          body: _body);
+      capsaPrint('Account letter Response ${response.body}');
+      var data = jsonDecode(response.body);
+
+      List<AccountLetterModel> model = [];
+
+      if (data['msg'] == 'success') {
+        for (int i = 0; i < data['data'].length; i++) {
+          dynamic element = data['data'][i];
+
+          model.add(AccountLetterModel(
+            anchorName: element['company_name'],
+            accountLetterUrl: element['account_letter_url'],
+            companyPan: element['companyPan'],
+            customerPan: element['customerPan'],
+            fileExtension: element['account_letter_ext'],
+            approved: element['approved'].toString() == '1' ? true : false,
+            uploaded: element['uploaded'].toString() == '1' ? true : false,
+            isApproved : element['approved'].toString()
+          ));
+        }
+      }
+
+      return model;
+    }
+    return null;
+  }
+
+  Future<Object> actionAccountLetter(
+      AccountLetterModel model, String action) async {
+    // capsaPrint(amount);
+    // capsaPrint(desc);
+    // capsaPrint(accountNo);
+    if (box.get('isAuthenticated', defaultValue: false)) {
+      var userData = Map<String, dynamic>.from(box.get('userData'));
+      var _body = {};
+      _body['vendorPan'] = model.companyPan;
+      _body['anchorPan'] = model.customerPan;
+      _body['action'] = action;
+      // _body['panNumber'] = userData['panNumber'];
+
+      dynamic _uri;
+      _uri = apiUrl + '/admin/accountLetterActions';
+      _uri = Uri.parse(_uri);
+
+      // capsaPrint('_body');
+      // capsaPrint(_body);
+
+      var response = await http.post(_uri,
+          headers: <String, String>{
+            'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+          },
+          body: _body);
+      capsaPrint('Action Response ${response.body}');
+      var data = jsonDecode(response.body);
+
+      return data;
     }
     return null;
   }
@@ -797,9 +1140,9 @@ class ProfileProvider extends ChangeNotifier {
       _body['panNumber'] = panNumber ?? userData['panNumber'];
       // _body['panNumber'] = userData['panNumber'];
       _body['role'] = role ?? userData['role'];
-      if(_body['role'] == 'COMPANY'){
+      if (_body['role'] == 'COMPANY') {
         _body['role'] = 'VENDOR';
-      }else if(_body['role'] == 'BUYER'){
+      } else if (_body['role'] == 'BUYER') {
         _body['role'] = 'ANCHOR';
       }
       dynamic _uri;
@@ -834,7 +1177,8 @@ class ProfileProvider extends ChangeNotifier {
     return null;
   }
 
-  Future<Object> setUserEmailPreference(dynamic _body,{panNumber = null, role = null}) async {
+  Future<Object> setUserEmailPreference(dynamic _body,
+      {panNumber = null, role = null}) async {
     // capsaPrint('here 1');
     if (box.get('isAuthenticated', defaultValue: false)) {
       var userData = Map<String, dynamic>.from(box.get('userData'));
@@ -875,5 +1219,167 @@ class ProfileProvider extends ChangeNotifier {
     }
     return null;
   }
+
+  Future<Object> setPendingAccountKycStatus(dynamic _body,
+      {panNumber = null, role = null}) async {
+    // capsaPrint('here 1');
+    if (box.get('isAuthenticated', defaultValue: false)) {
+      var userData = Map<String, dynamic>.from(box.get('userData'));
+      // _body['panNumber'] = userData['panNumber'];
+      dynamic _uri;
+      capsaPrint('SEt KYC status $_body');
+      // if (_role == 'INVESTOR')
+      //   _uri = apiUrl + 'dashboard/i/profile';
+      // else
+      _uri = apiUrl + '/admin/approveDocs';
+
+      _uri = Uri.parse(_uri);
+      var response = await http.post(_uri,
+          headers: <String, String>{
+            'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+          },
+          body: _body);
+      var data = jsonDecode(response.body);
+
+      capsaPrint('Set KYC status response : $data');
+
+      // if (data['res'] == 'success') {
+      //   var _data = data['data'];
+      //   // capsaPrint('_data');
+      //   // capsaPrint(_data);
+      //
+      //   var bankDetails = _data['bankDetails'];
+      //   List<ProfileModel> _profileModel = [];
+      //
+      //   _bidHistoryDataList.addAll(_profileModel);
+      //   notifyListeners();
+      // }
+      return data;
+    }
+    return null;
+  }
+
+  Future<Object> checkDocumentStatus(dynamic _body,
+      {panNumber = null, role = null}) async {
+    // capsaPrint('here 1');
+    if (box.get('isAuthenticated', defaultValue: false)) {
+      var userData = Map<String, dynamic>.from(box.get('userData'));
+      // _body['panNumber'] = userData['panNumber'];
+      dynamic _uri;
+      capsaPrint('SEt KYC status $_body');
+      // if (_role == 'INVESTOR')
+      //   _uri = apiUrl + 'dashboard/i/profile';
+      // else
+      _uri = apiUrl + '/admin/getKycStatus';
+
+      _uri = Uri.parse(_uri);
+      var response = await http.post(_uri,
+          headers: <String, String>{
+            'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+          },
+          body: _body);
+      var data = jsonDecode(response.body);
+
+      capsaPrint('fetch Kyc Status response : $data');
+
+      // if (data['res'] == 'success') {
+      //   var _data = data['data'];
+      //   // capsaPrint('_data');
+      //   // capsaPrint(_data);
+      //
+      //   var bankDetails = _data['bankDetails'];
+      //   List<ProfileModel> _profileModel = [];
+      //
+      //   _bidHistoryDataList.addAll(_profileModel);
+      //   notifyListeners();
+      // }
+      return data;
+    }
+    return null;
+  }
+
+  Future<Object> createAccount(PendingAccountData data,
+      {panNumber = null, role = null}) async {
+    var _body = {};
+
+    _body['panNumber'] = data.panNumber;
+    _body['role'] = data.role == 'COMPANY' ? 'VENDOR' : data.role;
+    _body['contact'] = data.contact;
+    _body['name'] = data.name;
+    _body['email'] = data.email;
+
+    // capsaPrint(_body);
+
+    dynamic _uri;
+
+    if (data.role == 'COMPANY' || data.role == 'VENDOR') {
+      _uri = 'admin/racccreate';
+    } else {
+      _uri = 'admin/lacccreate';
+    }
+
+    //_uri = Uri.parse(_uri);
+    capsaPrint('Pass 2 $_uri $_body');
+    try {
+      // var response = await http.post(_uri, body: _body);
+      // capsaPrint(response);
+      capsaPrint('Pass 3');
+      var data = await callApi(_uri, body: _body);
+      capsaPrint('Pass 4');
+      capsaPrint('Response : $data');
+      // return null;
+      await Future.delayed(Duration(seconds: 1));
+      //notifyListeners();
+      return data;
+    } catch (e) {
+      capsaPrint(e);
+      await Future.delayed(Duration(seconds: 1));
+      notifyListeners();
+      return null;
+    }
+    return null;
+  }
+
+  Future<Object> fetchAdminAccountPermissions() async {
+    if (box.get('isAuthenticated', defaultValue: false)) {
+      capsaPrint('api initiated pass 1');
+      dynamic _body = {};
+      var userData = Map<String, dynamic>.from(box.get('userData'));
+      capsaPrint('api initiated pass 2');
+      _body['panNumber'] = userData['panNumber'];
+      capsaPrint('api initiated pass 3');
+      dynamic _uri;
+      capsaPrint('admin Account Permissions $_body');
+      // if (_role == 'INVESTOR')
+      //   _uri = apiUrl + 'dashboard/i/profile';
+      // else
+      _uri = apiUrl + '/admin/fetchadminroles';
+
+      _uri = Uri.parse(_uri);
+      var response = await http.post(_uri,
+          headers: <String, String>{
+            'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+          },
+          body: _body);
+      var data = jsonDecode(response.body);
+
+      capsaPrint('fetch Account permissions response : \n$data');
+
+      // if (data['res'] == 'success') {
+      //   var _data = data['data'];
+      //   // capsaPrint('_data');
+      //   // capsaPrint(_data);
+      //
+      //   var bankDetails = _data['bankDetails'];
+      //   List<ProfileModel> _profileModel = [];
+      //
+      //   _bidHistoryDataList.addAll(_profileModel);
+      //   notifyListeners();
+      // }
+      return data;
+    }
+    return null;
+  }
+
 
 }

@@ -89,6 +89,9 @@ dependencies:
   responsive:
   pdf: ## add this
   printing: ## also add this
+  getwidget: ^1.2.4
+  native_pdf_view:
+  internet_file:
 
 dev_dependencies:
   flutter_test:

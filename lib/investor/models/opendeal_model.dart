@@ -46,6 +46,7 @@ class OpenDealModel {
       ask_rate,
       totalDiscount,
       alcptdy,
+  prop_amt,
       isSplit;
 
   // final Uint8List img;
@@ -98,6 +99,7 @@ class OpenDealModel {
     this.totalDiscount,
     this.alcptdy,
     this.isSplit = '0',
+    this.prop_amt
 
   });
 }

@@ -418,7 +418,8 @@ Widget bidDetailsFrameTopInfo(BuildContext context, OpenDealModel openInvoices,
                   child: Row(
                     children: <Widget>[
                       Text(
-                        openInvoices.eff_due_date,
+                        //openInvoices.eff_due_date,
+                        DateFormat('yMMMd').format(DateFormat("yyyy-MM-dd HH:mm:ss.SSS").parse(openInvoices.eff_due_date)).toString(),
                         textAlign: TextAlign.left,
                         style: TextStyle(
                             color: Color.fromRGBO(0, 152, 219, 1),
@@ -454,14 +455,15 @@ Widget bidDetailsFrameTopInfo(BuildContext context, OpenDealModel openInvoices,
                       height: 1),
                 ),
                 SizedBox(height: 16),
-                if (num.parse(openInvoices.companySafePercentage) > 0)
+                //if (num.parse(openInvoices.companySafePercentage) > 0)
                   Container(
                     decoration: BoxDecoration(),
                     padding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
                     child: Row(
                       children: <Widget>[
                         Text(
-                          openInvoices.companySafePercentage + " Days",
+                          openInvoices.companySafePercentage + ' Days',
+                          // DateFormat("yyyy-MM-dd").parse(openInvoices.due_date).difference(DateFormat("yyyy-MM-dd").parse(openInvoices.start_date)).inDays.toString() + " Days",
                           textAlign: TextAlign.left,
                           style: TextStyle(
                               color: Color.fromRGBO(0, 152, 219, 1),
@@ -475,27 +477,27 @@ Widget bidDetailsFrameTopInfo(BuildContext context, OpenDealModel openInvoices,
                       ],
                     ),
                   )
-                else
-                  Container(
-                    decoration: BoxDecoration(),
-                    padding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-                    child: Row(
-                      children: <Widget>[
-                        Text(
-                          "Over",
-                          textAlign: TextAlign.left,
-                          style: TextStyle(
-                              color: Color.fromRGBO(0, 152, 219, 1),
-                              fontFamily: 'Poppins',
-                              fontSize: Responsive.isMobile(context) ? 15 : 18,
-                              letterSpacing:
-                                  0 /*percentages not used in flutter. defaulting to zero*/,
-                              fontWeight: FontWeight.normal,
-                              height: 1),
-                        ),
-                      ],
-                    ),
-                  ),
+                // else
+                //   Container(
+                //     decoration: BoxDecoration(),
+                //     padding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                //     child: Row(
+                //       children: <Widget>[
+                //         Text(
+                //           "Over",
+                //           textAlign: TextAlign.left,
+                //           style: TextStyle(
+                //               color: Color.fromRGBO(0, 152, 219, 1),
+                //               fontFamily: 'Poppins',
+                //               fontSize: Responsive.isMobile(context) ? 15 : 18,
+                //               letterSpacing:
+                //                   0 /*percentages not used in flutter. defaulting to zero*/,
+                //               fontWeight: FontWeight.normal,
+                //               height: 1),
+                //         ),
+                //       ],
+                //     ),
+                //   ),
               ],
             ),
           ),

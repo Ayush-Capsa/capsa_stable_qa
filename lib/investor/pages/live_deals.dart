@@ -17,6 +17,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';import 'package:capsa/functions/custom_print.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class LiveDealsPage extends StatefulWidget {
@@ -39,6 +40,7 @@ class _LiveDealsPageState extends State<LiveDealsPage> {
   @override
   void initState() {
     super.initState();
+    Provider.of<ProfileProvider>(context, listen: false).queryPortfolioData2();
   }
 
   @override
@@ -46,6 +48,7 @@ class _LiveDealsPageState extends State<LiveDealsPage> {
     // Future.delayed(Duration(milliseconds: 3000));
     // capsaPrint(Responsive.isMobile(context));
     ProfileProvider _profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+    _profileProvider.queryPortfolioData2();
     return Container(
       height: MediaQuery.of(context).size.height,
       padding: EdgeInsets.all(Responsive.isMobile(context) ? 15 : 25.0),
@@ -96,29 +99,32 @@ class _LiveDealsPageState extends State<LiveDealsPage> {
 
                               SizedBox(height: 10,),
 
-                              Container(
-                                height: MediaQuery.of(context).size.height,
-                                child: StaggeredGridView.countBuilder(
-                                    crossAxisCount:
-                                        Responsive.isMobile(context) ? 1 : 3,
-                                    crossAxisSpacing:
-                                        Responsive.isMobile(context) ? 20 : 30,
-                                    mainAxisSpacing:
-                                        Responsive.isMobile(context) ? 20 : 30,
-                                    padding: EdgeInsets.all(5),
-                                    staggeredTileBuilder: (int index) =>
-                                        StaggeredTile.fit(1),
-                                    // shrinkWrap: true,
-                                    itemCount: _openDealProvider.invoicesCount,
-                                    itemBuilder: (BuildContext ctx, index) {
-                                      return LiveBibsCard(
-                                          _openDealProvider.openInvoices[index],
-                                          index,
-                                          _openDealProvider,_profileProvider,);
-                                    }),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Container(
+                                  height: MediaQuery.of(context).size.height * 0.76,
+                                  child: StaggeredGridView.countBuilder(
+                                      crossAxisCount:
+                                          Responsive.isMobile(context) ? 1 : 3,
+                                      crossAxisSpacing:
+                                          Responsive.isMobile(context) ? 20 : 30,
+                                      mainAxisSpacing:
+                                          Responsive.isMobile(context) ? 20 : 30,
+                                      padding: EdgeInsets.all(5),
+                                      staggeredTileBuilder: (int index) =>
+                                          StaggeredTile.fit(1),
+                                      // shrinkWrap: true,
+                                      itemCount: _openDealProvider.invoicesCount,
+                                      itemBuilder: (BuildContext ctx, index) {
+                                        return LiveBibsCard(
+                                            _openDealProvider.openInvoices[index],
+                                            index,
+                                            _openDealProvider,_profileProvider,);
+                                      }),
+                                ),
                               ),
 
-                              SizedBox(height: 50,),
+                              SizedBox(height: 100,),
                             ],
                           ),
                         ),
@@ -138,7 +144,7 @@ class LiveBibsCard extends StatelessWidget {
   final OpenDealProvider openDealProvider;
   final ProfileProvider _profileProvider;
   bool showViewDeals = false;
-
+  //BuildContext context;
   LiveBibsCard(this.openInvoices, this.index, this.openDealProvider, this._profileProvider,{Key key})
       : super(key: key);
   final double width = 360;
@@ -415,6 +421,7 @@ class LiveBibsCard extends StatelessWidget {
                               children: <Widget>[
                                 Text(
                                   openInvoices.companySafePercentage + ' Days',
+                                  //DateFormat("yyyy-MM-dd").parse(openInvoices.due_date).difference(DateFormat("yyyy-MM-dd").parse(openInvoices.start_date)).inDays.toString() + ' Days',
                                   textAlign: TextAlign.left,
                                   style: TextStyle(
                                       color: Color.fromRGBO(51, 51, 51, 1),
@@ -650,13 +657,18 @@ class LiveBibsCard extends StatelessWidget {
                     children: <Widget>[
                       InkWell(
                         onTap: () async{
+                          capsaPrint('Place bid pass 1');
                           var userData = Map<String, dynamic>.from(box.get('userData'));
                           // print('User Data $userData');
+                          capsaPrint('Place bid pass 2');
 
                           int isBlackListed = int.parse(userData['isBlacklisted']);
 
+                          capsaPrint('Place bid pass 3');
+
 
                           if(isBlackListed == 1){
+                            capsaPrint('Place bid pass 4');
                             showDialog(
                                 context: context,
                                 builder: (BuildContext context) => AlertDialog(
@@ -718,17 +730,17 @@ class LiveBibsCard extends StatelessWidget {
                                 ));
                             return;
                           }
+                          capsaPrint('Place bid pass 5');
                           if (kycErrorCondition(
                               context, _profileProvider)) {
+                            capsaPrint('Place bid pass 6');
                             showKycError(
                                 context, _profileProvider);
                             return;
                           }
+                          capsaPrint('SHow Bid Dialog passwd');
 
                           showBidDialog(context, index, openDealProvider);
-
-
-
 
 
                         },
@@ -775,11 +787,12 @@ class LiveBibsCard extends StatelessWidget {
                   child: Row(
                     children: <Widget>[
                       InkWell(
-                        onTap: () {
-                          showPayDialog(
+                        onTap: () async{
+                          await showPayDialog(
                               context,
                               openDealProvider.openInvoices[index],
                               openDealProvider);
+
                         },
                         child: Container(
                           decoration: BoxDecoration(

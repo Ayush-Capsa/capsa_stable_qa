@@ -2190,12 +2190,12 @@ class _InvoiceBuilderEditPageState extends State<InvoiceBuilderEditPage> {
                                   child: file != null
                                       ? Image.memory(
                                     file.bytes,
-                                    fit: BoxFit.cover,
+                                    fit: BoxFit.contain,
                                   )
                                       : vendorDataPresent
                                       ? Image.network(
                                     imageUrl,
-                                    fit: BoxFit.cover,
+                                    fit: BoxFit.contain,
                                   )
                                       : Center(
                                       child: Text(
@@ -3164,6 +3164,158 @@ class _InvoiceBuilderEditPageState extends State<InvoiceBuilderEditPage> {
                         mainAxisAlignment:
                         MainAxisAlignment.spaceEvenly,
                         children: [
+                          InkWell(
+                            onTap: () async {
+                              // if (_formKey.currentState.validate()) {
+                              if (true) {
+                                var userData =
+                                Map<String, dynamic>.from(
+                                    box.get('userData'));
+
+                                // dynamic res;
+                                // if (vendorDataPresent == false) {
+                                //   res = await _invoiceBuilderProvider
+                                //       .saveVendorInvoiceDetails(
+                                //       vendorController.text, file);
+                                //
+                                //   capsaPrint('Response x $res');
+                                // }
+                                //
+                                // var map = invoiceBuilderModel.map((e) {
+                                //   return e.toJson();
+                                // }).toList(); //convert to map
+                                // String itemsList = json.encode(map);
+
+                                InvoiceBuilderModel builderModel =
+                                InvoiceBuilderModel(
+                                  vendor: vendorController.text,
+                                  anchor:
+                                  anchorNameController.text,
+                                  invNo: invoiceNumberController
+                                      .text,
+                                  invDate: dateCont.text != ''
+                                      ? DateFormat(
+                                      "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                                      .format(_selectedDate)
+                                      : '',
+                                  invDueDate: dueDateCont
+                                      .text !=
+                                      ''
+                                      ? DateFormat(
+                                      "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                                      .format(
+                                      _selectedDueDate)
+                                      : '',
+                                  tenure: tenureController.text,
+                                  poNo: poNumberController.text,
+                                  descriptions:
+                                  invoiceBuilderModel,
+                                  total: totalController.text,
+                                  subTotal:
+                                  subTotalController.text,
+                                  tax: taxController.text,
+                                  paid:
+                                  amountPaidController.text,
+                                  balanceDue:
+                                  dueController.text,
+                                  currency: selectedCurrency,
+                                  customerCin: customer_cin,
+                                  notes: notesController.text,
+                                  discount:
+                                  discountController.text,
+                                );
+
+                                showDialog(
+                                  // barrierColor: Colors.transparent,
+                                    context: context,
+                                    //barrierDismissible: false,
+                                    builder: (BuildContext context1) {
+                                      return AlertDialog(
+                                          backgroundColor: Colors
+                                              .transparent,
+                                          contentPadding:
+                                          const EdgeInsets
+                                              .fromLTRB(12.0,
+                                              12.0, 12.0, 12.0),
+                                          // shape: RoundedRectangleBorder(
+                                          //     borderRadius:
+                                          //     BorderRadius.all(
+                                          //         Radius.circular(
+                                          //             32.0))),
+                                          elevation: 0,
+                                          content: vendorDataPresent
+                                              ? InvoiceViewer(
+                                            model: builderModel,
+                                            imageFromUrl: true,
+                                            imageUrl: imageUrl,
+                                          )
+                                              : InvoiceViewer(
+                                            model: builderModel,
+                                            imageFromUrl: false,
+                                            image: file,
+                                          ));
+                                    });
+
+                                // var _body = {
+                                //   "panNumber": userData['panNumber'],
+                                //   "logo": imageUrl,
+                                //   "invoice_number":
+                                //   invoiceNumberController.text,
+                                //   "invoice_date": DateFormat('yyyy-MM-dd')
+                                //       .format(_selectedDate),
+                                //   "due_date": DateFormat('yyyy-MM-dd')
+                                //       .format(_selectedDueDate),
+                                //   "tenure": tenureController.text,
+                                //   "po_num": poNumberController.text,
+                                //   "vendor_name": vendorController.text,
+                                //   "anchor_name": anchorController.text,
+                                //   "lineItems": itemsList,
+                                //   "notes": notesController.text,
+                                //   "subtotal": subTotalController.text,
+                                //   "discount": discountController.text,
+                                //   "tax": taxController.text,
+                                //   "total": totalController.text,
+                                //   "amount_paid":
+                                //   amountPaidController.text,
+                                //   "balance_due": dueController.text,
+                                //   "currency": selectedCurrency,
+                                //   "discount_type":
+                                //   discountTypeController.text
+                                // };
+                                //
+                                // dynamic saveInvoiceResponse =
+                                // await _invoiceBuilderProvider
+                                //     .saveInvoiceDate(_body);
+                                // showToast(
+                                //     saveInvoiceResponse['msg'], context);
+                                // _formKey.currentState.reset();
+                                // resetData();
+                                // setState(() {});
+                                // getData();
+                              }
+                            },
+                            child: false
+                                ? CircularProgressIndicator()
+                                : Container(
+                              height: 40,
+                              width: MediaQuery.of(context)
+                                  .size
+                                  .width *
+                                  0.3,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.all(
+                                    Radius.circular(8)),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'Download Invoice',
+                                  style: GoogleFonts.poppins(
+                                      color: HexColor('#0098DB'),
+                                      fontSize: 12),
+                                ),
+                              ),
+                            ),
+                          ),
                           InkWell(
                             onTap: () async {
                               if (_formKey.currentState.validate()) {

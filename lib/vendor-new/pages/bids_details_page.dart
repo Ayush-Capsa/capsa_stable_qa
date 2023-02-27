@@ -94,7 +94,7 @@ class _StateBidsDetailsPage extends State<BidsDetailsPage> {
                     int i = 0;
                     return Column(
                       mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: Responsive.isMobile(context)?CrossAxisAlignment.center:CrossAxisAlignment.start,
                       children: [
                         if (!Responsive.isMobile(context))
                           SizedBox(
@@ -167,7 +167,7 @@ class _StateBidsDetailsPage extends State<BidsDetailsPage> {
                                               ),
                                               SizedBox(width: 4),
                                               Text(
-                                                _bidsModel[0].invoice_value,
+                                                formatCurrency(_bidsModel[0].invoice_value),
                                                 textAlign: TextAlign.left,
                                                 style: TextStyle(
                                                     color: Color.fromRGBO(0, 152, 219, 1),
@@ -259,7 +259,7 @@ class _StateBidsDetailsPage extends State<BidsDetailsPage> {
                                               ),
                                               SizedBox(width: 4),
                                               Text(
-                                                _bidsModel[0].highBid,
+                                                formatCurrency(_bidsModel[0].highBid),
                                                 textAlign: TextAlign.left,
                                                 style: TextStyle(
                                                     color: Color.fromRGBO(0, 152, 219, 1),
@@ -288,7 +288,7 @@ class _StateBidsDetailsPage extends State<BidsDetailsPage> {
                                       mainAxisSize: MainAxisSize.min,
                                       children: <Widget>[
                                         Text(
-                                          'Invoice no',
+                                          'Invoice No',
                                           textAlign: TextAlign.left,
                                           style: TextStyle(
                                               color: Color.fromRGBO(51, 51, 51, 1),
@@ -332,7 +332,7 @@ class _StateBidsDetailsPage extends State<BidsDetailsPage> {
                           height: 22,
                         ),
                         if (Responsive.isMobile(context))
-                          bidDetailsCardWidget(context, _bidsModel)
+                          bidDetailsCardWidget(context, _bidsModel, widget.invoiceNum)
                         else
                           Container(
                             width: MediaQuery.of(context).size.width,
@@ -398,7 +398,7 @@ class _StateBidsDetailsPage extends State<BidsDetailsPage> {
                                           style: dataTableBodyTextStyle,
                                         );
                                       })),
-                                      DataCell(ButtonAction(bids, justCallSetState)),
+                                      DataCell(ButtonAction(bids, justCallSetState, widget.invoiceNum)),
                                     ],
                                   ),
                               ],
@@ -424,7 +424,7 @@ class _StateBidsDetailsPage extends State<BidsDetailsPage> {
     );
   }
 
-  Widget bidDetailsCardWidget(BuildContext context, List<BidsModel> bidsModel) {
+  Widget bidDetailsCardWidget(BuildContext context, List<BidsModel> bidsModel, String invoiceNum) {
     return Column(
       children: [
         for (BidsModel bids in bidsModel)
@@ -497,10 +497,11 @@ class _StateBidsDetailsPage extends State<BidsDetailsPage> {
                     SizedBox(
                       height: 15,
                     ),
-                    Flexible(child: ButtonAction(bids, justCallSetState))
+                    Flexible(child: ButtonAction(bids, justCallSetState, invoiceNum))
                   ],
                 ),
               ),
+              title: 'Investor',
             ),
           ),
       ],
@@ -511,8 +512,9 @@ class _StateBidsDetailsPage extends State<BidsDetailsPage> {
 class ButtonAction extends StatefulWidget {
   final BidsModel bids;
   final Function justCallSetState;
+  final String invoiceNum;
 
-  const ButtonAction(this.bids, this.justCallSetState, {Key key}) : super(key: key);
+  const ButtonAction(this.bids, this.justCallSetState, this.invoiceNum, {Key key}) : super(key: key);
 
   @override
   _ButtonAcceptState createState() => _ButtonAcceptState();
@@ -558,7 +560,7 @@ class _ButtonAcceptState extends State<ButtonAction> {
                   context: context,
                   barrierDismissible: true,
                   builder: (BuildContext context) {
-                    return new AlertDialog(
+                    return AlertDialog(
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(32.0))),
                       backgroundColor: Color.fromRGBO(245, 251, 255, 1),
                       content: Container(
@@ -714,8 +716,12 @@ class _ButtonAcceptState extends State<ButtonAction> {
 
                                                                                     showToast('Bid Successfully accepted.', context);
 
-                                                                                    Navigator.of(context, rootNavigator: true).pop();
                                                                                     widget.justCallSetState();
+
+                                                                                    actionProvider..bidProposalDetails(Uri.decodeComponent(widget.invoiceNum));
+
+                                                                                    Navigator.of(context, rootNavigator: true).pop();
+
                                                                                   }
 
                                                                                   return null;
@@ -870,7 +876,7 @@ class _ButtonAcceptState extends State<ButtonAction> {
                   context: context,
                   barrierDismissible: true,
                   builder: (BuildContext context) {
-                    return new AlertDialog(
+                    return AlertDialog(
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(32.0))),
                       backgroundColor: Color.fromRGBO(245, 251, 255, 1),
                       content: Container(
@@ -911,8 +917,10 @@ class _ButtonAcceptState extends State<ButtonAction> {
 
                                       showToast('Rejected! We will try to bring better deal next time.', context);
                                       // capsaPrint("Yes");
-                                      Navigator.of(context, rootNavigator: true).pop();
                                       widget.justCallSetState();
+                                      actionProvider..bidProposalDetails(Uri.decodeComponent(widget.invoiceNum));
+                                      Navigator.of(context, rootNavigator: true).pop();
+
                                     },
                                     child: Text(
                                       'Yes',

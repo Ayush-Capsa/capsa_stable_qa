@@ -316,16 +316,16 @@ class _SignInState extends State<SignIn> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    SizedBox(width: 10),
+                    //SizedBox(width: 10),
                     Text(
                       'Welcome back to',
                       textAlign: TextAlign.left,
                       style: TextStyle(
                           color: Color.fromRGBO(51, 51, 51, 1),
-                          fontSize: 14,
+                          fontSize: 16,
                           letterSpacing:
-                              0 /*percentages not used in flutter. defaulting to zero*/,
-                          fontWeight: FontWeight.normal,
+                          0 /*percentages not used in flutter. defaulting to zero*/,
+                          fontWeight: FontWeight.w600,
                           height: 1),
                     ),
                     SizedBox(width: 4),
@@ -334,10 +334,10 @@ class _SignInState extends State<SignIn> {
                       textAlign: TextAlign.left,
                       style: TextStyle(
                           color: Color.fromRGBO(0, 152, 219, 1),
-                          fontSize: 16,
+                          fontSize: 18,
                           letterSpacing:
-                              0 /*percentages not used in flutter. defaulting to zero*/,
-                          fontWeight: FontWeight.normal,
+                          0 /*percentages not used in flutter. defaulting to zero*/,
+                          fontWeight: FontWeight.w600,
                           height: 1),
                     ),
                   ],
@@ -557,7 +557,7 @@ class _SignInState extends State<SignIn> {
                     ? MainAxisAlignment.center
                     : MainAxisAlignment.end,
                 children: [
-                  Text("New to Capsa?"),
+                  Text("New to Capsa?", style: TextStyle(fontWeight: FontWeight.w600,), ),
                   SizedBox(
                     width: 3,
                   ),
@@ -565,10 +565,11 @@ class _SignInState extends State<SignIn> {
                     onTap: () {
                       // sign_in
                       Beamer.of(context).beamToNamed('/signup');
+                      //Beamer.of(context).beamToNamed('/registration-complete');
                     },
                     child: Text(
                       'Sign Up for free',
-                      style: TextStyle(color: Theme.of(context).primaryColor),
+                      style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.w600,),
                     ),
                   )
                 ],

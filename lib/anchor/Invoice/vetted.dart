@@ -42,7 +42,7 @@
 //       ),
 //       Container(
 //         padding: const EdgeInsets.only(top: 8, bottom: 8),
-//         child: Text('Invoice no',
+//         child: Text('Invoice No',
 //             style: TextStyle(
 //               fontSize: 18,
 //               fontWeight: FontWeight.w600,
@@ -309,7 +309,7 @@
 //         ),
 //         Container(
 //           padding: const EdgeInsets.only(top: 8, bottom: 8),
-//           child: Text('Invoice no',
+//           child: Text('Invoice No',
 //               style: TextStyle(
 //                 fontSize: 18,
 //                 fontWeight: FontWeight.w600,
@@ -519,7 +519,7 @@
 //         ),
 //         Container(
 //           padding: const EdgeInsets.only(top: 8, bottom: 8),
-//           child: Text('Invoice no',
+//           child: Text('Invoice No',
 //               style: TextStyle(
 //                 fontSize: 18,
 //                 fontWeight: FontWeight.w600,

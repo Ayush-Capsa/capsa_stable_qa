@@ -25,10 +25,13 @@ import 'package:beamer/beamer.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
+import 'edit_pending_invoice.dart';
+import 'invoice_details.dart';
+
 class InvoiceListPage extends StatefulWidget {
   final String type;
 
-  InvoiceListPage(this.type, {Key key}) : super(key: key);
+  const InvoiceListPage(this.type, {Key key}) : super(key: key);
 
   @override
   State<InvoiceListPage> createState() => _InvoiceListPageState();
@@ -43,7 +46,6 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
 
   InvoiceProvider invoiceProvider;
 
-
   List<TableRow> rows = [];
   bool dataLoaded = false;
   String search = "";
@@ -53,7 +55,7 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
   int total_pages = 1;
   bool presentingInvoice = false;
   String _url = apiUrl + 'dashboard/r/';
-
+  List<Widget> mobileCards = [];
   String title = "";
 
   List<bool> expand = [
@@ -69,6 +71,14 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
     false
   ];
 
+  Map<String, String> noInvoiceMessage = {
+    'live': 'Invoices you have live\nwill appear here.',
+    'pending': 'Invoices you have pending\nwill appear here.',
+    'sold': 'Invoices you have sold\nwill appear here.',
+    'notPresented': 'Invoices you have sold\nwill appear here.',
+    'all': '',
+  };
+
   Text status(int status, String discountStatus) {
     String s = status == 1
         ? 'Not Presented'
@@ -80,7 +90,9 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
     Color c = status == 1
         ? HexColor('#828282')
         : status == 2
-            ? Colors.yellow
+            ? !Responsive.isMobile(context)
+                ? Colors.yellow
+                : HexColor('#F2994A')
             : status == 3
                 ? HexColor('#219653')
                 : HexColor('#EB5757');
@@ -93,7 +105,9 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
     return Text(
       s,
       style: GoogleFonts.poppins(
-          fontSize: 18, fontWeight: FontWeight.w400, color: c),
+          fontSize: Responsive.isMobile(context) ? 14 : 18,
+          fontWeight: FontWeight.w400,
+          color: c),
     );
   }
 
@@ -170,7 +184,10 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
     }
   }
 
-  List<dynamic> searchData(List<dynamic> table, String search,) {
+  List<dynamic> searchData(
+    List<dynamic> table,
+    String search,
+  ) {
     capsaPrint('Search Data called');
     List<dynamic> result = [];
 
@@ -190,11 +207,9 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
         result.add(element);
       }
     });
-    if(result.isEmpty){
+    if (result.isEmpty) {
       result = table;
     }
-
-
 
     if (result.isEmpty) {
       showToast('No Data Found', context, type: "warning");
@@ -203,15 +218,15 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
     return result;
   }
 
-  void getData(String type, int page, ) async {
-    capsaPrint('get data called');
+  void getData(String type, int page, {bool reload = false}) async {
+    capsaPrint('get data called ${widget.type}');
     rows = [];
+    mobileCards = [];
     InvoiceProvider _invoiceProvider =
         Provider.of<InvoiceProvider>(context, listen: false);
     Map<dynamic, dynamic> _data = {};
-    if(fetchedData == null){
+    if (fetchedData == null || reload == true) {
       fetchedData = await _invoiceProvider.queryInvoiceList(type);
-
     }
     // fetchedData == null
     //     ?
@@ -222,9 +237,11 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
     //
     // fetchedData == null?_data = await _invoiceProvider.getCurrencies():_data = _data;
 
-
     capsaPrint('Pass 1');
-    data = searchData(fetchedData['data']['invoicelist'], search,);
+    data = searchData(
+      fetchedData['data']['invoicelist'],
+      search,
+    );
     capsaPrint('Pass 2');
     total_pages =
         data.length % 10 == 0 ? (data.length ~/ 10) : ((data.length ~/ 10) + 1);
@@ -245,6 +262,212 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
     //   }
     //   y++;
     // }
+    //data = [];
+    if (data.length > 0) {
+      mobileCards.add(Container());
+      for (var invoices in data) {
+        mobileCards.add(
+          Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            width: MediaQuery.of(context).size.width,
+            height: 90,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+                bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20),
+              ),
+              //border: Border.all(color: HexColor('#DBDBDB')),
+              color: HexColor('#F5FBFF'),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+            child: InkWell(
+              onTap: () {
+                Navigator.of(context)
+                    .push(MaterialPageRoute(
+                  builder: (context) => InvoiceDetails(
+                      invVoiceNumber: invoices['invoice_number'],
+                      data: invoices,
+                      type: widget.type),
+                  // VendorMain(
+                  //   pageUrl: "/viewInvoice/" + invoices['invoice_number'],
+                  //   menuList: false,
+                  //   mobileTitle: 'Invoice Details',
+                  //   body: InvoiceDetails(invVoiceNumber: invoices['invoice_number'],),
+                  //   backButton: true,
+                  // ),
+                  // MultiProvider(
+                  //   providers: [
+                  //     ChangeNotifierProvider<ProfileProvider>(
+                  //       create: (_) => ProfileProvider(),
+                  //     ),
+                  //     ChangeNotifierProvider<VendorInvoiceProvider>(
+                  //       create: (_) => VendorInvoiceProvider(),
+                  //     ),
+                  //     ChangeNotifierProvider<VendorActionProvider>(
+                  //       create: (_) => VendorActionProvider(),
+                  //     ),
+                  //   ],
+                  //   child:   VendorMain(
+                  //     pageUrl: "/viewInvoice/" + invoices.invNo,
+                  //     menuList: false,
+                  //     mobileTitle: 'Invoice Details',
+                  //     body: ConfirmInvoice(invVoiceNumber: invoices.invNo),
+                  //     backButton: true,
+                  //   ),
+                  // ),
+                ))
+                    .then((value) {
+                  setState(() {
+                    dataLoaded = false;
+                  });
+                  initialise();
+                });
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Expanded(
+                    child: Container(
+                      decoration: const BoxDecoration(),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 0, vertical: 0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Text(
+                            invoices['invoice_number'],
+                            textAlign: TextAlign.left,
+                            style: const TextStyle(
+                                color: Color.fromRGBO(51, 51, 51, 1),
+                                // fontFamily: 'roboto',
+                                fontSize: 14,
+                                letterSpacing:
+                                    0 /*percentages not used in flutter. defaulting to zero*/,
+                                fontWeight: FontWeight.normal,
+                                height: 1),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            invoices['customer_name'],
+                            textAlign: TextAlign.left,
+                            style: const TextStyle(
+                                color: Color.fromRGBO(51, 51, 51, 1),
+                                // fontFamily: 'roboto',
+                                fontSize: 14,
+                                letterSpacing:
+                                    0 /*percentages not used in flutter. defaulting to zero*/,
+                                fontWeight: FontWeight.normal,
+                                height: 1),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Container(
+                      decoration: const BoxDecoration(),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 0, vertical: 0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Text(
+                            formatCurrency(
+                              invoices['invoice_value'],
+                              withIcon: false,
+                            ),
+                            textAlign: TextAlign.right,
+                            style: const TextStyle(
+                                color: Color.fromRGBO(51, 51, 51, 1),
+                                fontFamily: 'roboto',
+                                fontSize: 14,
+                                letterSpacing:
+                                    0 /*percentages not used in flutter. defaulting to zero*/,
+                                fontWeight: FontWeight.w600,
+                                height: 1),
+                          ),
+                          const SizedBox(height: 8),
+                          invoices['status'] == null
+                              ? Text('')
+                              : status(
+                                  int.parse(invoices['status'].toString()),
+                                  invoices['discount_status'] == null
+                                      ? ' '
+                                      : invoices['discount_status'].toString()),
+                          // Text(
+                          //   // invoices.invDate,
+                          //   statusShow(invoices),
+                          //   textAlign: TextAlign.right,
+                          //   style: TextStyle(
+                          //       color: Color.fromRGBO(33, 150, 83, 1),
+                          //       // fontFamily: 'roboto',
+                          //       fontSize: 14,
+                          //       letterSpacing: 0 /*percentages not used in flutter. defaulting to zero*/,
+                          //       fontWeight: FontWeight.normal,
+                          //       height: 1),
+                          // ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+    } else {
+      capsaPrint('pass 2.1');
+
+      mobileCards.add(Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          children: [
+            SizedBox(
+              height: 24,
+            ),
+            Container(
+                child: Image.asset(
+              'assets/icons/No Bids Placed.png',
+              height: 229,
+              width: 178,
+            )),
+            SizedBox(
+              height: 24,
+            ),
+            Text(
+              'No Invoices',
+              style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: HexColor('#333333')),
+            ),
+            SizedBox(
+              height: 12,
+            ),
+            Text(
+              noInvoiceMessage[widget.type],
+              style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: HexColor('#828282')),
+              textAlign: TextAlign.center,
+            )
+          ],
+        ),
+      ));
+    }
+
+    capsaPrint('pass 3');
 
     rows.add(TableRow(children: [
       Container(
@@ -267,7 +490,7 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
       ),
       Container(
         padding: const EdgeInsets.only(top: 8, bottom: 8),
-        child: Text('Invoice no',
+        child: Text('Invoice No',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -338,7 +561,7 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
       //print('$i $limit ${data[i]}\n\n');
       print('pass  xx $i');
 
-      if(i == 0){
+      if (i == 0) {
         print(data[i]);
       }
 
@@ -446,7 +669,8 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
                         : data[i]['discount_status'].toString())),
         Padding(
             padding: const EdgeInsets.only(right: 16, top: 8),
-            child: data[i]['discount_status']!=null?(int.parse(data[i]['status'].toString()) == 1 && data[i]['discount_status'] != 'true')
+            child: (int.parse(data[i]['status'].toString()) == 1 &&
+                    data[i]['discount_status'] != 'true')
                 ? PopupMenuButton(
                     icon: Icon(Icons.more_vert),
                     itemBuilder: (context) => [
@@ -495,54 +719,44 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
                                                 fontWeight: FontWeight.w400)),
                                         SizedBox(height: 30),
                                         Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceEvenly,
-                                                children: [
-                                                  TextButton(
-                                                    style: TextButton.styleFrom(
-                                                      primary: Colors.blue,
-                                                    ),
-                                                    child: Text(
-                                                      "Present",
-                                                      style:
-                                                          GoogleFonts.poppins(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w400,
-                                                              fontSize: 22),
-                                                    ),
-                                                    onPressed: () async {
-                                                      Navigator.of(context,
-                                                              rootNavigator:
-                                                                  true)
-                                                          .pop();
-                                                      await presentInvoice(
-                                                          data[i]);
-                                                    },
-                                                  ),
-                                                  TextButton(
-                                                    style: TextButton.styleFrom(
-                                                      primary: Colors.red,
-                                                    ),
-                                                    child: Text(
-                                                      "Cancel",
-                                                      style:
-                                                          GoogleFonts.poppins(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w400,
-                                                              fontSize: 22),
-                                                    ),
-                                                    onPressed: () {
-                                                      Navigator.of(context,
-                                                              rootNavigator:
-                                                                  true)
-                                                          .pop();
-                                                    },
-                                                  )
-                                                ],
-                                              )
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceEvenly,
+                                          children: [
+                                            TextButton(
+                                              style: TextButton.styleFrom(
+                                                primary: Colors.blue,
+                                              ),
+                                              child: Text(
+                                                "Present",
+                                                style: GoogleFonts.poppins(
+                                                    fontWeight: FontWeight.w400,
+                                                    fontSize: 22),
+                                              ),
+                                              onPressed: () async {
+                                                Navigator.of(context,
+                                                        rootNavigator: true)
+                                                    .pop();
+                                                await presentInvoice(data[i]);
+                                              },
+                                            ),
+                                            TextButton(
+                                              style: TextButton.styleFrom(
+                                                primary: Colors.red,
+                                              ),
+                                              child: Text(
+                                                "Cancel",
+                                                style: GoogleFonts.poppins(
+                                                    fontWeight: FontWeight.w400,
+                                                    fontSize: 22),
+                                              ),
+                                              onPressed: () {
+                                                Navigator.of(context,
+                                                        rootNavigator: true)
+                                                    .pop();
+                                              },
+                                            )
+                                          ],
+                                        )
                                       ],
                                     ),
                                   ),
@@ -614,7 +828,12 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
                                   builder: (context) => EditInvoice(
                                         data: data[i],
                                       )),
-                            );
+                            ).then((value) {
+                              setState(() {
+                                dataLoaded = false;
+                              });
+                              initialise();
+                            });
                           });
                         },
                         child: Row(
@@ -665,36 +884,121 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
                         ),
                       )),
                       PopupMenuItem(
-                          onTap: () {
-                            // capsaPrint('view Tapped');
-                            invoiceProvider.deleteInvoice(
-                                data[i]['invoice_number'],
-                                data[i]['company_pan']);
+                          child: InkWell(
+                        onTap: () {
+                          // capsaPrint('view Tapped');
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.all(
+                                        Radius.circular(32.0))),
+                                backgroundColor: HexColor("#F5FBFF"),
+                                insetPadding: EdgeInsets.symmetric(
+                                    horizontal: 30.0, vertical: 14.0),
+                                contentPadding: EdgeInsets.all(10),
+                                title: Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text("Delete Invoice",
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.poppins(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.w600)),
+                                    ],
+                                  ),
+                                ),
+                                content: Container(
+                                  constraints: BoxConstraints(minWidth: 480),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      SizedBox(height: 30),
+                                      Text(
+                                          "Do you want to delete invoice  ${data[i]['invoice_number']} ?",
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.poppins(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w400)),
+                                      SizedBox(height: 30),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          TextButton(
+                                            style: TextButton.styleFrom(
+                                              primary: Colors.blue,
+                                            ),
+                                            child: Text(
+                                              "Yes",
+                                              style: GoogleFonts.poppins(
+                                                  fontWeight: FontWeight.w400,
+                                                  fontSize: 22),
+                                            ),
+                                            onPressed: () async {
+                                              await invoiceProvider
+                                                  .deleteInvoice(
+                                                      data[i]['invoice_number'],
+                                                      data[i]['company_pan']);
+                                              Navigator.of(context,
+                                                      rootNavigator: true)
+                                                  .pop();
+                                            },
+                                          ),
+                                          TextButton(
+                                            style: TextButton.styleFrom(
+                                              primary: Colors.red,
+                                            ),
+                                            child: Text(
+                                              "Cancel",
+                                              style: GoogleFonts.poppins(
+                                                  fontWeight: FontWeight.w400,
+                                                  fontSize: 22),
+                                            ),
+                                            onPressed: () {
+                                              Navigator.of(context,
+                                                      rootNavigator: true)
+                                                  .pop();
+                                            },
+                                          )
+                                        ],
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ).then((value) {
                             setState(() {
                               dataLoaded = false;
                             });
                             fetchedData = null;
                             getData(widget.type, current_index);
-                          },
-                          child: InkWell(
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete),
-                                SizedBox(
-                                  width: 8,
-                                ),
-                                RichText(
-                                  text: TextSpan(
-                                    text: 'Delete',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w400,
-                                        color: Color.fromRGBO(51, 51, 51, 1)),
-                                  ),
-                                ),
-                              ],
+                          });
+                        },
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete),
+                            SizedBox(
+                              width: 8,
                             ),
-                          )),
+                            RichText(
+                              text: TextSpan(
+                                text: 'Delete',
+                                style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w400,
+                                    color: Color.fromRGBO(51, 51, 51, 1)),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )),
                     ],
                   )
                 : PopupMenuButton(
@@ -704,6 +1008,9 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
                           child: InkWell(
                         onTap: () {
                           // capsaPrint('view Tapped');
+                          Navigator.pop(
+                            context,
+                          );
                           setState(() {
                             showDialog(
                                 context: context,
@@ -729,8 +1036,266 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
                           ],
                         ),
                       )),
+                      if (type == 'pending')
+                        PopupMenuItem(
+                            child: InkWell(
+                          onTap: () {
+                            // capsaPrint('view Tapped');
+
+                            // dialogHelper.showPdf(context,anchorsActions, _acctTable[i].fileName);
+                            Navigator.pop(
+                              context,
+                            );
+
+                            DateTime date = DateFormat("yyyy-MM-dd")
+                                .parse((data[i]['invoice_date']));
+                            DateTime dueDate = DateFormat("yyyy-MM-dd")
+                                .parse((data[i]['invoice_due_date']));
+                            String date0 = DateFormat.yMMMd('en_US').format(
+                                DateFormat("yyyy-MM-dd")
+                                    .parse((data[i]['invoice_date'])));
+                            String dueDate0 = DateFormat.yMMMd('en_US').format(
+                                DateFormat("yyyy-MM-dd")
+                                    .parse((data[i]['invoice_due_date'])));
+
+                            dynamic invoiceFormData = {
+                              "invoiceNo": data[i]['invoice_number'].toString(),
+                              "poNumber": "",
+                              "tenure": data[i]['payment_terms'].toString(),
+                              "invAmt": data[i]['invoice_value'].toString(),
+                              "butAmt": data[i]['ask_amt'].toString(),
+                              "details": data[i]['description'].toString(),
+                              "anchor": null,
+                              "anchorAddress": null,
+                              "dateCont": date0.toString(),
+                              "tenureDaysDiff": '',
+                              "rate": data[i]['ask_rate'].toString(),
+                              "dueDateCont": dueDate0.toString(),
+                              "fileCont": '',
+                              "_selectedDate": date,
+                              "_selectedDueDate": dueDate,
+                              "file": null,
+                              "cuGst": data[i]['customer_gst'].toString(),
+                            };
+
+                            invoiceProvider.setInvoiceFormData(invoiceFormData);
+
+                            capsaPrint(
+                                'Invoice Edit Data : \n${data[i]['isSplit']}');
+                            if (data[i]['isSplit'].toString() != '1') {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => EditPendingInvoice(
+                                          data: data[i],
+                                        )),
+                              ).then((value) {
+                                setState(() {
+                                  dataLoaded = false;
+                                });
+                                initialise();
+                              });
+                            } else {
+                              showToast(
+                                  'This Invoice Cannot be edited', context,
+                                  type: 'warning', toastDuration: 1800);
+                            }
+                          },
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit),
+                              SizedBox(
+                                width: 8,
+                              ),
+                              RichText(
+                                text: TextSpan(
+                                  text: 'Edit Invoice',
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w400,
+                                      color: Color.fromRGBO(51, 51, 51, 1)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )),
+                      if (type == 'pending')
+                        PopupMenuItem(
+                            child: InkWell(
+                          onTap: () {
+                            // capsaPrint('view Tapped');
+                            Navigator.pop(
+                              context,
+                            );
+                            showDialog(
+                                context: context,
+                                barrierDismissible: true,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(32.0))),
+                                    backgroundColor:
+                                        Color.fromRGBO(245, 251, 255, 1),
+                                    content: Container(
+                                      constraints: Responsive.isMobile(context)
+                                          ? BoxConstraints(
+                                              minHeight: 300,
+                                            )
+                                          : BoxConstraints(
+                                              minHeight: 220, minWidth: 350),
+                                      decoration: BoxDecoration(
+                                        color: Color.fromRGBO(245, 251, 255, 1),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                            6, 8, 6, 8),
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            SizedBox(
+                                              height: 8,
+                                            ),
+                                            Image.asset(
+                                                'assets/icons/warning.png'),
+                                            SizedBox(
+                                              height: 22,
+                                            ),
+                                            Text(
+                                                "Do you want to delete invoice\n${data[i]['invoice_number']} ? ",
+                                                textAlign: TextAlign.center),
+                                            SizedBox(
+                                              height: 30,
+                                            ),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceEvenly,
+                                              children: [
+                                                InkWell(
+                                                  onTap: () {
+                                                    Navigator.pop(context);
+                                                  },
+                                                  child: Container(
+                                                      width: 100,
+                                                      height: 49,
+                                                      decoration: BoxDecoration(
+                                                          border: Border.all(
+                                                              width: 2,
+                                                              color: HexColor(
+                                                                  '#0098DB')),
+                                                          borderRadius:
+                                                              BorderRadius.all(
+                                                                  Radius
+                                                                      .circular(
+                                                                          10))),
+                                                      child: Center(
+                                                        child: Text(
+                                                          'NO',
+                                                          style: GoogleFonts
+                                                              .poppins(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w500,
+                                                                  color: HexColor(
+                                                                      '#0098DB'),
+                                                                  fontSize: 18),
+                                                        ),
+                                                      )),
+                                                ),
+                                                InkWell(
+                                                  onTap: () async {
+                                                    showToast(
+                                                        'Please Wait', context,
+                                                        type: 'warning');
+                                                    dynamic response =
+                                                        await invoiceProvider
+                                                            .deletePendingInvoice(
+                                                                data[i][
+                                                                    'invoice_number']);
+                                                    if (response ==
+                                                            'Deleted Successfully!' ||
+                                                        response['msg'] ==
+                                                            'success') {
+                                                      showToast(
+                                                          'Invoice Deleted',
+                                                          context);
+                                                      Navigator.pop(context);
+                                                      setState(() {
+                                                        dataLoaded = false;
+                                                      });
+                                                      initialise();
+                                                      //Navigator.pop(context);
+                                                    } else {
+                                                      showToast(
+                                                          'Some Error Occurred',
+                                                          context,
+                                                          type: 'error');
+                                                      Navigator.pop(context);
+                                                    }
+                                                  },
+                                                  child: Container(
+                                                      width: 100,
+                                                      height: 49,
+                                                      decoration: BoxDecoration(
+                                                          color: HexColor(
+                                                              '#0098DB'),
+                                                          borderRadius:
+                                                              BorderRadius.all(
+                                                                  Radius
+                                                                      .circular(
+                                                                          10))),
+                                                      child: Center(
+                                                        child: Text(
+                                                          'YES',
+                                                          style: GoogleFonts
+                                                              .poppins(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w500,
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontSize: 18),
+                                                        ),
+                                                      )),
+                                                )
+                                              ],
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }).then((value) {
+                              setState(() {
+                                dataLoaded = false;
+                              });
+                              initialise();
+                            });
+                          },
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete),
+                              SizedBox(
+                                width: 8,
+                              ),
+                              RichText(
+                                text: TextSpan(
+                                  text: 'Delete Invoice',
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w400,
+                                      color: Color.fromRGBO(51, 51, 51, 1)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )),
                     ],
-                  ):Container())
+                  ))
       ]));
 
       if (expand[i - begin]) {
@@ -869,7 +1434,9 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
                                         builder: (context) => EditInvoice(
                                               data: data[i],
                                             )),
-                                  );
+                                  ).then((value) {
+                                    setState(() {});
+                                  });
                                 });
                               },
                               child: Row(
@@ -998,6 +1565,14 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
     });
   }
 
+  void initialise() {
+    var _type = widget.type;
+    if (widget.type == 'notPresented') {
+      _type = 'notPresented';
+    }
+    getData(_type, current_index, reload: true);
+  }
+
   @override
   void initState() {
     // TODO: implement initState
@@ -1009,12 +1584,12 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
     invoiceProvider = Provider.of<InvoiceProvider>(context, listen: false);
 
     title = _type == 'all'
-        ? 'All Invoice'
+        ? 'All Invoices'
         : _type == 'pending'
-            ? 'Pending Invoice'
-            : _type == 'not Presenented'
-                ? 'Not Presented Invoice'
-                : 'Sold Invoice';
+            ? 'Pending Invoices'
+            : _type == 'notPresented'
+                ? 'Not Presented Invoices'
+                : 'Sold Invoices';
 
     super.initState();
     getData(_type, current_index);
@@ -1030,7 +1605,7 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
 
     return Container(
       height: MediaQuery.of(context).size.height,
-      padding: EdgeInsets.all(Responsive.isMobile(context) ? 12 : 25.0),
+      padding: EdgeInsets.all(Responsive.isMobile(context) ? 4 : 25.0),
       child: Container(
         child: (dataLoaded && !presentingInvoice)
             ? Padding(
@@ -1041,7 +1616,7 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       SizedBox(
-                        height: 22,
+                        height: !Responsive.isMobile(context) ? 22 : 8,
                       ),
                       Container(
                         margin: EdgeInsets.fromLTRB(29, 0, 36, 0),
@@ -1050,241 +1625,280 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
                       SizedBox(
                         height: (!Responsive.isMobile(context)) ? 8 : 15,
                       ),
-                      Container(
-                        // padding: EdgeInsets.all((!Responsive.isMobile(context)) ? 12 : 1.0),
-                        // color: Colors.white,
-                        //width: MediaQuery.of(context).size.width,
-                        margin: EdgeInsets.fromLTRB(29, 24, 36, 0),
-                        height: 100,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Expanded(
-                              flex: 1,
-                              child: Container(
-                                // width: 200,
-                                height:
-                                    (!Responsive.isMobile(context)) ? 65 : 60,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(15),
-                                    topRight: Radius.circular(15),
-                                    bottomLeft: Radius.circular(15),
-                                    bottomRight: Radius.circular(15),
-                                  ),
-                                  color: Colors.white,
-                                ),
-                                padding: Responsive.isMobile(context)
-                                    ? EdgeInsets.symmetric(
-                                        horizontal: 5, vertical: 2)
-                                    : EdgeInsets.symmetric(
-                                        horizontal: 16, vertical: 16),
-                                child: Center(
-                                  child: TextFormField(
-                                    // autofocus: false,
-                                    onChanged: (v) {
-                                      search = v;
-                                    },
-                                    decoration: InputDecoration(
-                                      border: InputBorder.none,
-                                      // fillColor: Color.fromRGBO(234, 233, 233, 1.0),
-                                      // filled: true,
-                                      focusedBorder: InputBorder.none,
-                                      enabledBorder: InputBorder.none,
-                                      errorBorder: InputBorder.none,
-                                      disabledBorder: InputBorder.none,
+                      rows.length > 1
+                          ? Container(
+                              // padding: EdgeInsets.all((!Responsive.isMobile(context)) ? 12 : 1.0),
+                              // color: Colors.white,
+                              //width: MediaQuery.of(context).size.width,
+                              margin: Responsive.isMobile(context)
+                                  ? EdgeInsets.fromLTRB(6, 6, 6, 0)
+                                  : EdgeInsets.fromLTRB(29, 24, 36, 0),
+                              height: 100,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Expanded(
+                                    flex: 1,
+                                    child: Container(
+                                      // width: 200,
+                                      height: (!Responsive.isMobile(context))
+                                          ? 65
+                                          : 60,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(15),
+                                          topRight: Radius.circular(15),
+                                          bottomLeft: Radius.circular(15),
+                                          bottomRight: Radius.circular(15),
+                                        ),
+                                        color: Colors.white,
+                                      ),
+                                      padding: Responsive.isMobile(context)
+                                          ? EdgeInsets.symmetric(
+                                              horizontal: 5, vertical: 2)
+                                          : EdgeInsets.symmetric(
+                                              horizontal: 16, vertical: 16),
+                                      child: Center(
+                                        child: TextFormField(
+                                          // autofocus: false,
+                                          onChanged: (v) {
+                                            search = v;
+                                          },
+                                          decoration: InputDecoration(
+                                            border: InputBorder.none,
+                                            // fillColor: Color.fromRGBO(234, 233, 233, 1.0),
+                                            // filled: true,
+                                            focusedBorder: InputBorder.none,
+                                            enabledBorder: InputBorder.none,
+                                            errorBorder: InputBorder.none,
+                                            disabledBorder: InputBorder.none,
 
-                                      // contentPadding: new EdgeInsets.symmetric(vertical: 25.0, horizontal: 10.0),
-                                      suffixIcon: IconButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            getData(_type, current_index);
-                                          });
-                                        },
-                                        icon: Icon(Icons.search),
+                                            // contentPadding: new EdgeInsets.symmetric(vertical: 25.0, horizontal: 10.0),
+                                            suffixIcon: IconButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  getData(_type, current_index);
+                                                });
+                                              },
+                                              icon: Icon(Icons.search),
+                                            ),
+                                            // isDense: true,
+                                            // focusedBorder: InputBorder.none,
+                                            // enabledBorder: InputBorder.none,
+                                            // errorBorder: InputBorder.none,
+                                            // disabledBorder: InputBorder.none,
+                                            // contentPadding: EdgeInsets.only(left: 15, bottom: 15, top: 15, right: 15),
+                                            hintStyle: TextStyle(
+                                                color: Color.fromRGBO(
+                                                    130, 130, 130, 1),
+                                                fontFamily: 'Poppins',
+                                                fontSize: (!Responsive.isMobile(
+                                                        context))
+                                                    ? 18
+                                                    : 15,
+                                                letterSpacing:
+                                                    0 /*percentages not used in flutter. defaulting to zero*/,
+                                                fontWeight: FontWeight.normal,
+                                                height: 1),
+                                            hintText: Responsive.isMobile(
+                                                    context)
+                                                ? "Search by invoice number"
+                                                : "Search by invoice number, Anchor name",
+                                          ),
+                                        ),
                                       ),
-                                      // isDense: true,
-                                      // focusedBorder: InputBorder.none,
-                                      // enabledBorder: InputBorder.none,
-                                      // errorBorder: InputBorder.none,
-                                      // disabledBorder: InputBorder.none,
-                                      // contentPadding: EdgeInsets.only(left: 15, bottom: 15, top: 15, right: 15),
-                                      hintStyle: TextStyle(
-                                          color:
-                                              Color.fromRGBO(130, 130, 130, 1),
-                                          fontFamily: 'Poppins',
-                                          fontSize:
-                                              (!Responsive.isMobile(context))
-                                                  ? 18
-                                                  : 15,
-                                          letterSpacing:
-                                              0 /*percentages not used in flutter. defaulting to zero*/,
-                                          fontWeight: FontWeight.normal,
-                                          height: 1),
-                                      hintText: Responsive.isMobile(context)
-                                          ? "Search by invoice number"
-                                          : "Search by invoice number, Anchor name",
                                     ),
                                   ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              width: 40,
-                            ),
-                            // InkWell(
-                            //   onTap: () {
-                            //     context.beamToNamed("/addInvoice");
-                            //   },
-                            //   child: Container(
-                            //     width: 200,
-                            //     height: 59,
-                            //     decoration: BoxDecoration(
-                            //       borderRadius: BorderRadius.circular(15),
-                            //       color: HexColor('#0098DB'),
-                            //     ),
-                            //     child: Center(
-                            //       child: Text(
-                            //         'Add Invoice',
-                            //         style: GoogleFonts.poppins(
-                            //           fontSize: 18,
-                            //           fontWeight: FontWeight.w500,
-                            //           color: Colors.white,
-                            //         ),
-                            //       ),
-                            //     ),
-                            //   ),
-                            // ),
-                          ],
-                        ),
-                      ),
-                      Card(
-                        margin: EdgeInsets.fromLTRB(29, 24, 36, 33),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15)),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Table(
-                                columnWidths: {
-                                  0: FlexColumnWidth(1),
-                                  1: FlexColumnWidth(1.2),
-                                  2: FlexColumnWidth(2.4),
-                                  3: FlexColumnWidth(2.4),
-                                  4: FlexColumnWidth(2.4),
-                                  5: FlexColumnWidth(3.4),
-                                  6: FlexColumnWidth(2.8),
-                                  7: FlexColumnWidth(2.8),
-                                  8: FlexColumnWidth(0.9),
-                                },
-                                border: TableBorder(
-                                    verticalInside: BorderSide.none),
-                                children: rows,
-                              ),
-                            ),
-                            //padding: EdgeInsets.fromLTRB(MediaQuery.of(context).size.width * 0.8, 10, 15, 16),
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Container(
-                                width: 280,
-                                height: 56,
-                                decoration: BoxDecoration(
-                                    color: Color.fromRGBO(245, 251, 255, 1),
-                                    borderRadius: BorderRadius.circular(20)),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.fromLTRB(
-                                          12, 17.5, 24, 17.5),
-                                      child: Text(
-                                        'Page',
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            color:
-                                                Color.fromRGBO(51, 51, 51, 1)),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.fromLTRB(
-                                          0, 17.5, 30, 17.5),
-                                      child: Text(
-                                        '$current_index of $total_pages',
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            color:
-                                                Color.fromRGBO(51, 51, 51, 1)),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.fromLTRB(
-                                          0, 22, 20, 22),
-                                      child: IconButton(
-                                          onPressed: () {
-                                            if (current_index > 1) {
-                                              current_index--;
-                                              expand = [
-                                                false,
-                                                false,
-                                                false,
-                                                false,
-                                                false,
-                                                false,
-                                                false,
-                                                false,
-                                                false,
-                                                false
-                                              ];
-                                              getData(
-                                                  widget.type, current_index);
-                                            }
-                                          },
-                                          icon: Icon(Icons.arrow_back_ios),
-                                          iconSize: 14,
-                                          color:
-                                              Color.fromRGBO(130, 130, 130, 1),
-                                          padding: EdgeInsets.all(0)),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.fromLTRB(
-                                          0, 22, 14, 22),
-                                      child: IconButton(
-                                          onPressed: () {
-                                            if (current_index < total_pages) {
-                                              current_index++;
-                                              expand = [
-                                                false,
-                                                false,
-                                                false,
-                                                false,
-                                                false,
-                                                false,
-                                                false,
-                                                false,
-                                                false,
-                                                false
-                                              ];
-                                              getData(
-                                                  widget.type, current_index);
-                                            }
-                                          },
-                                          icon: Icon(Icons.arrow_forward_ios),
-                                          iconSize: 14,
-                                          color:
-                                              Color.fromRGBO(130, 130, 130, 1),
-                                          padding: EdgeInsets.all(0)),
-                                    )
-                                  ],
-                                ),
+                                  !Responsive.isMobile(context)
+                                      ? SizedBox(
+                                          width: 40,
+                                        )
+                                      : Container(),
+                                  // InkWell(
+                                  //   onTap: () {
+                                  //     context.beamToNamed("/addInvoice");
+                                  //   },
+                                  //   child: Container(
+                                  //     width: 200,
+                                  //     height: 59,
+                                  //     decoration: BoxDecoration(
+                                  //       borderRadius: BorderRadius.circular(15),
+                                  //       color: HexColor('#0098DB'),
+                                  //     ),
+                                  //     child: Center(
+                                  //       child: Text(
+                                  //         'Add Invoice',
+                                  //         style: GoogleFonts.poppins(
+                                  //           fontSize: 18,
+                                  //           fontWeight: FontWeight.w500,
+                                  //           color: Colors.white,
+                                  //         ),
+                                  //       ),
+                                  //     ),
+                                  //   ),
+                                  // ),
+                                ],
                               ),
                             )
-                          ],
-                        ),
-                      ),
+                          : Container(),
+                      Responsive.isMobile(context)
+                          ? Center(
+                              child: mobileCards.length > 1
+                                  ? Card(
+                                      //margin: EdgeInsets.fromLTRB(8, 8, 8, 8),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(15)),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: mobileCards,
+                                        ),
+                                      ),
+                                    )
+                                  : Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: mobileCards,
+                                    ),
+                            )
+                          : Card(
+                              margin: EdgeInsets.fromLTRB(29, 24, 36, 33),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15)),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Table(
+                                      columnWidths: {
+                                        0: FlexColumnWidth(1),
+                                        1: FlexColumnWidth(1.2),
+                                        2: FlexColumnWidth(2.4),
+                                        3: FlexColumnWidth(2.4),
+                                        4: FlexColumnWidth(2.4),
+                                        5: FlexColumnWidth(3.4),
+                                        6: FlexColumnWidth(2.8),
+                                        7: FlexColumnWidth(2.8),
+                                        8: FlexColumnWidth(0.9),
+                                      },
+                                      border: TableBorder(
+                                          verticalInside: BorderSide.none),
+                                      children: rows,
+                                    ),
+                                  ),
+                                  //padding: EdgeInsets.fromLTRB(MediaQuery.of(context).size.width * 0.8, 10, 15, 16),
+                                  Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Container(
+                                      width: 280,
+                                      height: 56,
+                                      decoration: BoxDecoration(
+                                          color:
+                                              Color.fromRGBO(245, 251, 255, 1),
+                                          borderRadius:
+                                              BorderRadius.circular(20)),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.fromLTRB(
+                                                12, 17.5, 24, 17.5),
+                                            child: Text(
+                                              'Page',
+                                              style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Color.fromRGBO(
+                                                      51, 51, 51, 1)),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.fromLTRB(
+                                                0, 17.5, 30, 17.5),
+                                            child: Text(
+                                              '$current_index of $total_pages',
+                                              style: TextStyle(
+                                                  fontSize: 14,
+                                                  color: Color.fromRGBO(
+                                                      51, 51, 51, 1)),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.fromLTRB(
+                                                0, 22, 20, 22),
+                                            child: IconButton(
+                                                onPressed: () {
+                                                  if (current_index > 1) {
+                                                    current_index--;
+                                                    expand = [
+                                                      false,
+                                                      false,
+                                                      false,
+                                                      false,
+                                                      false,
+                                                      false,
+                                                      false,
+                                                      false,
+                                                      false,
+                                                      false
+                                                    ];
+                                                    getData(widget.type,
+                                                        current_index);
+                                                  }
+                                                },
+                                                icon:
+                                                    Icon(Icons.arrow_back_ios),
+                                                iconSize: 14,
+                                                color: Color.fromRGBO(
+                                                    130, 130, 130, 1),
+                                                padding: EdgeInsets.all(0)),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.fromLTRB(
+                                                0, 22, 14, 22),
+                                            child: IconButton(
+                                                onPressed: () {
+                                                  if (current_index <
+                                                      total_pages) {
+                                                    current_index++;
+                                                    expand = [
+                                                      false,
+                                                      false,
+                                                      false,
+                                                      false,
+                                                      false,
+                                                      false,
+                                                      false,
+                                                      false,
+                                                      false,
+                                                      false
+                                                    ];
+                                                    getData(widget.type,
+                                                        current_index);
+                                                  }
+                                                },
+                                                icon: Icon(
+                                                    Icons.arrow_forward_ios),
+                                                iconSize: 14,
+                                                color: Color.fromRGBO(
+                                                    130, 130, 130, 1),
+                                                padding: EdgeInsets.all(0)),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
                     ],
                   ),
                 ),

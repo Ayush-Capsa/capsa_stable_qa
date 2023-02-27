@@ -208,7 +208,7 @@ class _MyBidsPageState extends State<MyBidsPage> {
                             letterSpacing: 0 /*percentages not used in flutter. defaulting to zero*/,
                             fontWeight: FontWeight.normal,
                             height: 1),
-                        hintText: Responsive.isMobile(context) ? "Search by invoice number" : "Search by invoice number, Anchor name",
+                        hintText: Responsive.isMobile(context) ? "Search by Anchor Name, Status" : "Search by invoice number, Anchor name, Status",
                       ),
                     ),
                   ),
@@ -476,6 +476,12 @@ class _MyBidsPageState extends State<MyBidsPage> {
     );
 
   }
+
+  List<String> status = [
+    'Accepted',
+    'Pending',
+    'Rejected'
+  ];
 
   Widget _status(BidHistoryModel bids) {
     // return Text(bids.historyStatus);

@@ -30,6 +30,7 @@ class InvoiceModel {
       payment_status,
       ilcStatus,
       status;
+  List<dynamic> childInvoice;
 
   String noOfCustomer = '0';
   String amtPerCustomer = '0';
@@ -65,6 +66,7 @@ class InvoiceModel {
     this.payment_status,
     this.ilcStatus,
     this.amtPerCustomer,
+    this.childInvoice
 
   });
 

@@ -117,7 +117,10 @@ class _EditInvoiceAdminState extends State<EditInvoiceAdmin> {
     String _url = apiUrl + 'dashboard/r/';
     dynamic _uri = _url + 'getCompanyName';
     _uri = Uri.parse(_uri);
-    var response = await http.post(_uri, headers: <String, String>{'Authorization': 'Basic ' + box.get('token', defaultValue: '0')}, body: {});
+    var _body = {};
+    var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
+    _body['panNumber'] = userData['panNumber'];
+    var response = await http.post(_uri, headers: <String, String>{'Authorization': 'Basic ' + box.get('token', defaultValue: '0')}, body: _body);
     var data = jsonDecode(response.body);
     capsaPrint("Bank Data $data");
     return data;
@@ -571,7 +574,7 @@ class _EditInvoiceAdminState extends State<EditInvoiceAdmin> {
                                                 Flexible(
                                                   child: UserTextFormField(
                                                     label: "Invoice No",
-                                                    hintText: "Invoice umber",
+                                                    hintText: "Invoice Number",
                                                     readOnly: true,
                                                     controller:
                                                         invoiceNoController,

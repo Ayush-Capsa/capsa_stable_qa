@@ -18,8 +18,9 @@ import 'package:capsa/admin/screens/enquiry_list.dart';
 import 'package:capsa/admin/screens/investor_edit.dart';
 import 'package:capsa/admin/screens/investor_list.dart';
 import 'package:capsa/admin/screens/invoices_screen.dart';
+import 'package:capsa/admin/screens/pending-account/pending_account_screen.dart';
 import 'package:capsa/admin/screens/pending_invoice_screen.dart';
-import 'package:capsa/admin/screens/reconciliation_screen.dart';
+import 'package:capsa/admin/screens/reconcilation/reconciliation_screen.dart';
 import 'package:capsa/admin/screens/transaction_ledger.dart';
 import 'package:capsa/admin/screens/vendor_edit.dart';
 import 'package:capsa/admin/screens/vendor_list.dart';
@@ -28,7 +29,7 @@ import 'package:flutter/material.dart';import 'package:capsa/functions/custom_pr
 import 'package:provider/provider.dart';
 
 final desktopWidgetList = <Widget>[
-  EditTabCall(),
+  //EditTabCall(),
   // HomeScreen(),
 
   DashboardPage(title: 'Dashboard'),
@@ -65,13 +66,15 @@ final desktopWidgetList = <Widget>[
 
   EditAccountScreen(),
 
+  PendingAccountScreen(),
+
   BlockAccountScreen(),
 
   EditInvoiceScreen(),
 
   // EditAccountScreen(),
 
-  LogOut(),
+  // LogOut(),
 ];
 
 class EditTabCall extends StatefulWidget {

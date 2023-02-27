@@ -43,7 +43,7 @@ class _AllInvoicesPageState extends State<AllInvoicesPage> {
           ),
           Container(
             padding: const EdgeInsets.only(top: 8, bottom: 8),
-            child: Text('Invoice no', style: TextStyle(
+            child: Text('Invoice No', style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Color.fromRGBO(0, 152, 217, 1),

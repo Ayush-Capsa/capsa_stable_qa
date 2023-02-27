@@ -14,7 +14,7 @@ Future<void> main() async {
   // }
   const String _appTitle = 'Capsa Quality';
   const String _buildFlavour = 'dev';
-  const String _ip = 'https://getcapsa.ml/api/';
+  const String _ip = 'https://getcapsaquality.com/api/';
   // const String _ip = 'http://127.0.0.1:3012/';
   runMain(appTitle: _appTitle, buildFlavour: _buildFlavour, ip: _ip);
 }

@@ -122,7 +122,6 @@ class _CapsaAccountGenerationState extends State<CapsaAccountGeneration> {
 
     _accountResponse = await _actionProvider.createAccount(role);
     await Future.delayed(Duration(seconds: 1));
-    print('Account response $_accountResponse');
 
     if (_accountResponse != null) {
       if (_accountResponse['res'] == 'success') {

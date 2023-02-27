@@ -343,7 +343,7 @@ class _AddInvoiceState extends State<AddInvoice> {
                                         Flexible(
                                           child: UserTextFormField(
                                             label: "Invoice No",
-                                            hintText: "Invoice umber",
+                                            hintText: "Invoice Number",
                                             controller: invoiceNoController,
                                           ),
                                         ),

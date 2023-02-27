@@ -74,7 +74,7 @@ class SplineSeriesChart extends StatelessWidget {
             primaryXAxis: CategoryAxis(
               //isVisible: Responsive.isMobile(context) ? false : true,
               majorGridLines: MajorGridLines(width: 0),
-              labelRotation: Responsive.isMobile(context) ? 24 : 0,
+              //labelRotation: Responsive.isMobile(context) ? 24 : 0,
             ),
             primaryYAxis: CategoryAxis(
               name: 'yAxis2',

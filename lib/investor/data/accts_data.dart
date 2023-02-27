@@ -85,7 +85,7 @@ class AcctTableDataSource extends DataTableSource {
                         padding: EdgeInsets.zero,
                         icon: Icon(Icons.file_download),
                         onPressed: () {
-                          return showDialog(
+                          showDialog(
                             context: context,
                             builder: (BuildContext context) {
                               return AlertDialog(

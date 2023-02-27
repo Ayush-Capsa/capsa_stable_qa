@@ -1,7 +1,8 @@
 import 'package:capsa/common/constants.dart';
 import 'package:capsa/functions/hexcolor.dart';
 import 'package:capsa/models/bid_history_model.dart';
-import 'package:flutter/material.dart';import 'package:capsa/functions/custom_print.dart';
+import 'package:flutter/material.dart';
+import 'package:capsa/functions/custom_print.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -9,7 +10,9 @@ import 'package:intl/intl.dart';
 
 extension DateOnlyCompare on DateTime {
   bool isSameDate(DateTime other) {
-    return this.year == other.year && this.month == other.month && this.day == other.day;
+    return this.year == other.year &&
+        this.month == other.month &&
+        this.day == other.day;
   }
 }
 
@@ -19,7 +22,12 @@ class BidHistoryProvider extends ChangeNotifier {
   List<BidHistoryModel> get bidHistoryDataList => _bidHistoryDataList;
   final box = Hive.box('capsaBox');
 
-  Future<Object> queryBidHistoryList({String search, date, date2, bool isInv: false, String currency = 'All'}) async {
+  Future<Object> queryBidHistoryList(
+      {String search,
+      date,
+      date2,
+      bool isInv: false,
+      String currency = 'All'}) async {
     _bidHistoryDataList = [];
     // capsaPrint('here 1');
     if (box.get('isAuthenticated', defaultValue: false)) {
@@ -41,7 +49,11 @@ class BidHistoryProvider extends ChangeNotifier {
 
       _uri = Uri.parse(_uri);
 
-      var response = await http.post(_uri, headers: <String, String>{'Authorization': 'Basic ' + box.get('token', defaultValue: '0')}, body: _body);
+      var response = await http.post(_uri,
+          headers: <String, String>{
+            'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+          },
+          body: _body);
       var data = jsonDecode(response.body);
       // capsaPrint('History Response $data');
       if (data['res'] == 'success') {
@@ -55,16 +67,16 @@ class BidHistoryProvider extends ChangeNotifier {
         int i = 0;
 
         bidsHistoryList.forEach((element) {
-
-          if(i == 0){
+          if (i == 0) {
             capsaPrint('History bid : ${element}');
           }
           i++;
 
           var hStatus = historyStatus[yy];
 
-
-          var _platForm = ((element['invoice_value'] - element['discount_val']) / 100) * 8.5;
+          var _platForm =
+              ((element['invoice_value'] - element['discount_val']) / 100) *
+                  8.5;
 
           BidHistoryModel _bidHistoryModel = BidHistoryModel(
               discountedDate: DateTime.parse(element['discounted_date']),
@@ -77,7 +89,11 @@ class BidHistoryProvider extends ChangeNotifier {
               companyName: element['company_name'].toString(),
               effectiveDueDate: element['edd'].toString(),
               transactionsStatus: element['transactionStatus'].toString(),
-              address: element['ADD_LINE'].toString() + " " + element['CITY'].toString()  + " " + element['STATE'].toString() ,
+              address: element['ADD_LINE'].toString() +
+                  " " +
+                  element['CITY'].toString() +
+                  " " +
+                  element['STATE'].toString(),
               customerName: element['customer_name'],
               investorName: element['NAME'],
               startDate: element['start_date'].toString(),
@@ -117,11 +133,11 @@ class BidHistoryProvider extends ChangeNotifier {
         }
         _bidHistoryList = _bidHistoryList.where((element) {
           var isCurrency = false;
-          if(currency!='All'){
-            if(currency == element.currency){
+          if (currency != 'All') {
+            if (currency == element.currency) {
               isCurrency = true;
             }
-          }else{
+          } else {
             isCurrency = true;
           }
 
@@ -240,13 +256,12 @@ class BidHistoryProvider extends ChangeNotifier {
       clr = HexColor("#EB5757");
     } else {
       if (bids.discount_status == 'true') {
-
         if (DateFormat("yyyy-MM-ddThh:mm:ss")
             .parse(bids.effectiveDueDate)
-            .isBefore(DateTime.now())){
+            .isBefore(DateTime.now())) {
           _text = 'Overdue';
           clr = HexColor('#F2994A');
-        } else{
+        } else {
           _text = 'Open';
           clr = Colors.green;
         }
@@ -258,15 +273,51 @@ class BidHistoryProvider extends ChangeNotifier {
     return _text;
   }
 
+  String bidStatus(BidHistoryModel bids) {
+    String _text = 'Pending';
+    var clr = Color.fromRGBO(235, 87, 87, 1);
+    if (bids.historyStatus == '0') {
+      _text = 'Pending';
+      clr = HexColor('#F2994A');
+    } else if (bids.historyStatus == '1') {
+      _text = 'Accepted';
+      clr = HexColor("#219653");
+    } else if (bids.historyStatus == '2') {
+      _text = 'Rejected';
+      clr = Color.fromRGBO(235, 87, 87, 1);
+    }
 
+    return _text;
+  }
 
-  Future<Object> myBidHistoryList(
-      {String search,
-        date,
-        date2,
-        bool isonlyAccept: false,
-        String currency = 'All',
-        String status = 'All'}) async {
+  String transactionStatus(BidHistoryModel bids){
+    // return Text(bids.historyStatus);
+    String _text = 'Pending';
+    dynamic clr = HexColor('#F2994A');
+    if (bids.paymentStatus == '1') {
+      _text = 'Closed';
+      clr = HexColor("#EB5757");
+    } else {
+      if (bids.discount_status == 'true') {
+        _text = 'Open';
+        clr = Colors.green;
+      } else {
+        _text = 'Pending';
+        clr = HexColor('#F2994A');
+      }
+    }
+
+    return _text;
+  }
+
+  Future<Object> myBidHistoryList({
+    String search,
+    date,
+    date2,
+    bool isonlyAccept: false,
+    String currency = 'All',
+    String status = 'All',
+  }) async {
     _bidHistoryDataList = [];
 
     if (box.get('isAuthenticated', defaultValue: false)) {
@@ -277,7 +328,14 @@ class BidHistoryProvider extends ChangeNotifier {
 
       _body['userName'] = userData['userName'];
 
-      if (search != null) _body['search'] = search;
+      if (search != null &&
+          search.toLowerCase() != 'pending' &&
+          search.toLowerCase() != 'accepted' &&
+          search.toLowerCase() != 'rejected' &&
+          search.toLowerCase() != 'open' &&
+          search.toLowerCase() != 'closed') {
+        _body['search'] = search;
+      }
 
       if (isonlyAccept) _body['isOnlyAccept'] = isonlyAccept.toString();
 
@@ -304,7 +362,9 @@ class BidHistoryProvider extends ChangeNotifier {
 
         List<BidHistoryModel> _bidHistoryList = [];
         bidsHistoryList.forEach((element) {
-          if (i == 0) capsaPrint('\n\n\n history respones = \n $element \n${element['edd']}');
+          if (i == 0)
+            capsaPrint(
+                '\n\n\n history respones = \n $element \n${element['edd']}');
           i++;
           BidHistoryModel _bidHistoryModel = BidHistoryModel(
             discountedDate: DateTime.parse(element['prop_datetime']),
@@ -334,18 +394,21 @@ class BidHistoryProvider extends ChangeNotifier {
             currency: element['currency'] != null ? element['currency'] : 'NGN',
           );
 
-          if(status.toLowerCase() == '' || status.toLowerCase() == 'all' || status.toLowerCase() == statusString(_bidHistoryModel).toLowerCase() )
+          if (status.toLowerCase() == '' ||
+              status.toLowerCase() == 'all' ||
+              status.toLowerCase() ==
+                  statusString(_bidHistoryModel).toLowerCase())
             _bidHistoryList.add(_bidHistoryModel);
         });
 
         _bidHistoryList.sort((a, b) {
           //DateFormat x =
-          int aDate = DateFormat(
-              "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-              .parse(a.effectiveDueDate).microsecondsSinceEpoch;
-          int bDate = DateFormat(
-              "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-              .parse(b.effectiveDueDate).microsecondsSinceEpoch;
+          int aDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+              .parse(a.effectiveDueDate)
+              .microsecondsSinceEpoch;
+          int bDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+              .parse(b.effectiveDueDate)
+              .microsecondsSinceEpoch;
           return bDate.compareTo(aDate);
         });
 
@@ -378,6 +441,22 @@ class BidHistoryProvider extends ChangeNotifier {
             return true;
           }).toList();
         }
+
+        if (search != null) {
+          _bidHistoryList = _bidHistoryList.where((element) {
+            if (element.invoiceNumber.contains(search) ||
+                element.customerName
+                    .toLowerCase()
+                    .contains(search.toLowerCase()) ||
+                bidStatus(element).toLowerCase() == search.toLowerCase() ||
+                transactionStatus(element).toLowerCase() == search.toLowerCase()) {
+              capsaPrint(
+                  'xx ${bidStatus(element).toLowerCase()} xx ${search.toLowerCase()}');
+              return true;
+            }
+            return false;
+          }).toList();
+        }
         // _bidHistoryList = _bidHistoryList.where((element) {
         //   var isCurrency = false;
         //   if (currency != 'All') {
@@ -400,7 +479,4 @@ class BidHistoryProvider extends ChangeNotifier {
 
     return null;
   }
-
-
-
 }

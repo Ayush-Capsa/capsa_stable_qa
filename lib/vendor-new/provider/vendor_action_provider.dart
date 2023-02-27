@@ -31,10 +31,34 @@ class VendorActionProvider extends ChangeNotifier {
   Future getCompanyName() async {
     dynamic _uri = _url + 'getCompanyName';
     _uri = Uri.parse(_uri);
-    var response = await http.post(_uri, headers: <String, String>{'Authorization': 'Basic ' + box.get('token', defaultValue: '0')}, body: {});
+    var _body = {};
+    var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
+    _body['panNumber'] = userData['panNumber'];
+    var response = await http.post(_uri, headers: <String, String>{'Authorization': 'Basic ' + box.get('token', defaultValue: '0')}, body: _body);
     var data = jsonDecode(response.body);
     capsaPrint(data);
     return data;
+  }
+
+  Future<Object> queryInvoiceData(String invoiceNumber) async {
+    if (box.get('isAuthenticated', defaultValue: false)) {
+      var userData = Map<String, dynamic>.from(box.get('userData'));
+
+      var _body = {};
+
+      // capsaPrint('userData');
+      // capsaPrint(userData);
+      _body['panNumber'] = userData['panNumber'];
+
+      _body['role'] = userData['role'];
+      _body['userName'] = userData['userName'];
+      _body['invoiceNumber'] = (invoiceNumber != null) ? invoiceNumber : '';
+
+      dynamic _uri = 'dashboard/r/invoiceByNumber';
+
+      return callApi(_uri, body: _body);
+    }
+    return null;
   }
 
   Future uploadRevenue(invoice, file) async {

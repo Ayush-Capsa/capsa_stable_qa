@@ -6,7 +6,8 @@ import 'package:capsa/functions/call_api.dart';
 // import 'package:capsa/signup/screens/mobile/m_activate_acct_form.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';import 'package:capsa/functions/custom_print.dart';
+import 'package:flutter/material.dart';
+import 'package:capsa/functions/custom_print.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
@@ -18,9 +19,21 @@ class SignUpActionProvider extends ChangeNotifier {
 
   Map<String, dynamic> loginUser;
 
+  List<dynamic> _anchorsNameList = [];
+
+  Map<String, dynamic> _cinList = {};
+
+  dynamic _fewDataResponse;
+
   dynamic _accountResponse;
 
   bool _accountResponseBool = false;
+
+  dynamic get fewDataResponse => _fewDataResponse;
+
+  List<dynamic> get anchorsNameList => _anchorsNameList;
+
+  Map<String, dynamic> get cinList => _cinList;
 
   bool get accountResponseBool => _accountResponseBool;
 
@@ -50,7 +63,7 @@ class SignUpActionProvider extends ChangeNotifier {
     // var inv = _body['invNo'].replaceAll(new RegExp(r'[^\w\s]+'), '_');
     if (file1 != null)
       request.files.add(http.MultipartFile.fromBytes(
-        'ccFile',
+        'file',
         file1.bytes,
         filename: _body['bvnNo'] +
             '_kyc1' +
@@ -58,12 +71,12 @@ class SignUpActionProvider extends ChangeNotifier {
             DateTime.now().millisecondsSinceEpoch.toString() +
             '.' +
             file1.extension,
-        contentType: MediaType('application', 'octet-stream'),
+        contentType: MediaType('multipart', 'form-data'),
       ));
 
     if (file2 != null)
       request.files.add(http.MultipartFile.fromBytes(
-        'f7File',
+        'file',
         file2.bytes,
         filename: _body['bvnNo'] +
             '_kyc2' +
@@ -71,7 +84,7 @@ class SignUpActionProvider extends ChangeNotifier {
             DateTime.now().millisecondsSinceEpoch.toString() +
             '.' +
             file2.extension,
-        contentType: MediaType('application', 'octet-stream'),
+        contentType: MediaType('multipart', 'form-data'),
       ));
 
     var res = await request.send();
@@ -98,7 +111,7 @@ class SignUpActionProvider extends ChangeNotifier {
     // var inv = _body['invNo'].replaceAll(new RegExp(r'[^\w\s]+'), '_');
     if (file1 != null)
       request.files.add(http.MultipartFile.fromBytes(
-        'idFile',
+        'file',
         file1.bytes,
         filename: _body['bvnNo'] +
             '_kyc3' +
@@ -106,7 +119,7 @@ class SignUpActionProvider extends ChangeNotifier {
             DateTime.now().millisecondsSinceEpoch.toString() +
             '.' +
             file1.extension,
-        contentType: MediaType('application', 'octet-stream'),
+        contentType: MediaType('multipart', 'form-data'),
       ));
 
     var res = await request.send();
@@ -126,14 +139,18 @@ class SignUpActionProvider extends ChangeNotifier {
     request.headers['Authorization'] =
         'Basic ' + box.get('token', defaultValue: '0');
 
+    capsaPrint('save details pass 1');
+
     _body.forEach((key, value) {
       request.fields[key] = value;
     });
 
+    capsaPrint('save details pass 2');
+
     // var inv = _body['invNo'].replaceAll(new RegExp(r'[^\w\s]+'), '_');
     if (file1 != null)
       request.files.add(http.MultipartFile.fromBytes(
-        'idFile',
+        'file',
         file1.bytes,
         filename: _body['bvnNo'] +
             '_kyc1' +
@@ -141,19 +158,108 @@ class SignUpActionProvider extends ChangeNotifier {
             DateTime.now().millisecondsSinceEpoch.toString() +
             '.' +
             file1.extension,
-        contentType: MediaType('application', 'octet-stream'),
+        contentType: MediaType('multipart', 'form-data'),
       ));
+    capsaPrint('save details pass 3');
+
+    var res = await request.send();
+    capsaPrint('save details pass 4');
+    // capsaPrint(res.reasonPhrase);
+    return jsonDecode((await http.Response.fromStream(res)).body);
+  }
+
+  Future<Object> reUploadDocument(
+      body, PlatformFile file1, PlatformFile file2, PlatformFile file3) async {
+    var _body = body;
+
+    capsaPrint('Pass 1');
+
+    dynamic _uri = apiUrl + 'signup/documentsReupload';
+    _uri = Uri.parse(_uri);
+
+    var request = http.MultipartRequest('POST', _uri);
+    request.fields['web'] = kIsWeb.toString();
+
+    request.headers['Authorization'] =
+        'Basic ' + box.get('token', defaultValue: '0');
+
+    capsaPrint('Pass 2');
+
+    _body.forEach((key, value) {
+      request.fields[key] = value;
+    });
+
+    capsaPrint('Pass 3');
+
+    // var inv = _body['invNo'].replaceAll(new RegExp(r'[^\w\s]+'), '_');
+
+    request.files.add(http.MultipartFile.fromBytes(
+      'file',
+      file1 != null
+          ? file1.bytes
+          : file2 != null
+              ? file2.bytes
+              : file3.bytes,
+      filename: _body['panNumber'] +
+          'cacCertificate' +
+          DateTime.now().millisecondsSinceEpoch.toString()
+      // +
+      // '.' +
+      // file1 !=
+      // null
+      // ? file1.extension
+      // : file2 != null
+      // ? file2.extension
+      // : file3.extension
+      ,
+      contentType: MediaType('multipart', 'form-data'),
+    ));
+
+    capsaPrint('Pass 4');
+
+    request.files.add(http.MultipartFile.fromBytes(
+      'file',
+      file2 != null
+          ? file2.bytes
+          : file1 != null
+              ? file1.bytes
+              : file3.bytes,
+      filename: _body['panNumber'] +
+          'cacForm' +
+          DateTime.now().millisecondsSinceEpoch.toString(),
+      contentType: MediaType('multipart', 'form-data'),
+    ));
+
+    capsaPrint('Pass 5');
+
+    request.files.add(http.MultipartFile.fromBytes(
+      'file',
+      file3 != null
+          ? file3.bytes
+          : file2 != null
+              ? file2.bytes
+              : file1.bytes,
+      filename: _body['panNumber'] +
+          'validId' +
+          DateTime.now().millisecondsSinceEpoch.toString(),
+      contentType: MediaType('multipart', 'form-data'),
+    ));
+
+    capsaPrint('Pass 6');
 
     var res = await request.send();
     // capsaPrint(res.reasonPhrase);
+    capsaPrint('Pass 7');
     return jsonDecode((await http.Response.fromStream(res)).body);
   }
 
   Future signIn(_body) async {
     var data = '';
     try {
+      capsaPrint('sign in pass 1');
       var response = await http.get(Uri.parse("https://ipwhois.app/json/"));
-      // capsaPrint(response);
+      capsaPrint('sign in pass 2');
+      capsaPrint(response);
       data = response.body;
     } catch (e) {
       capsaPrint(e);
@@ -242,6 +348,7 @@ class SignUpActionProvider extends ChangeNotifier {
   }
 
   Future verifyEmailOTP(Object _body) async {
+    capsaPrint('Otp body : $_body');
     return await callApi('signup/verifyOtp', body: _body);
   }
 
@@ -358,7 +465,6 @@ class SignUpActionProvider extends ChangeNotifier {
       notifyListeners();
       return;
     }
-    capsaPrint('Pass 1');
 
     // capsaPrint(loginUserData);
 
@@ -375,20 +481,17 @@ class SignUpActionProvider extends ChangeNotifier {
     dynamic _uri;
 
     if (role == 'COMPANY') {
-      _uri = 'signup/racccreate';
+      _uri = _url + 'signup/racccreate';
     } else {
-      _uri = 'signup/lacccreate';
+      _uri = _url + 'signup/lacccreate';
     }
 
-    //_uri = Uri.parse(_uri);
-    capsaPrint('Pass 2 $_uri');
+    _uri = Uri.parse(_uri);
+
     try {
-      // var response = await http.post(_uri, body: _body);
+      var response = await http.post(_uri, body: _body);
       // capsaPrint(response);
-      capsaPrint('Pass 3');
-      var data = await callApi(_uri,body: _body);
-      capsaPrint('Pass 4');
-      capsaPrint('Response : $data');
+      var data = jsonDecode(response.body);
       // return null;
       _accountResponseBool = true;
       _accountResponse = data;
@@ -444,11 +547,7 @@ class SignUpActionProvider extends ChangeNotifier {
     try {
       var response = await http.post(_uri, body: _body);
 
-
-
       var data = jsonDecode(response.body);
-
-      capsaPrint('getAccountNumber response : $data');
 
       return data;
     } catch (e) {
@@ -569,4 +668,221 @@ class SignUpActionProvider extends ChangeNotifier {
 
     return null;
   }
+
+  Future<Object> queryFewData() async {
+    //capsaPrint('few data called $currency');
+    var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
+    var _body = {};
+    _body['panNumber'] = userData['panNumber'];
+    // _body['panNumber'] = userData['panNumber'];
+    _body['userName'] = userData['userName'];
+    //capsaPrint('Body : $_body');
+    //_body['currency'] = currency;
+    dynamic _uri;
+
+    var _role = userData['role'];
+    if (_role == 'INVESTOR')
+      _uri = apiUrl + 'dashboard/i/fewacc';
+    else
+      _uri = apiUrl + 'dashboard/r/fewacc';
+
+    _uri = Uri.parse(_uri);
+    //capsaPrint('Uri : ${_uri} \n Authorization: ${'Basic ' + box.get('token', defaultValue: '0')}\nbody: $_body');
+    var response = await http.post(_uri,
+        headers: <String, String>{
+          'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+        },
+        body: _body);
+    var data = jsonDecode(response.body);
+   //capsaPrint('Few Data $data');
+    // if (data['res'] == 'success') {
+    //   var _data = data['data'];
+    //   // capsaPrint('_data');
+    //   // capsaPrint(_data);
+    //
+    //   List<BankDetails> _bankDetails = [];
+    //
+    //   var tmpBankDetails = _data['bankDetails'];
+    //
+    //   _data['toBal'] = _data['toBal'].toStringAsFixed(2);
+    //
+    //   _totalBalance = double.parse(_data['toBal']);
+    //
+    //   try {
+    //     _totalBalanceToWithDraw =
+    //         double.parse(_data['toWithdrawBal'].toString());
+    //   } catch (e) {}
+    //   _totalDeposits = _data['totDeposit'];
+    //   _totalWithdraw = _data['totwithdrawl'];
+    //
+    //   // capsaPrint(_data);
+    //   // capsaPrint('_totalBalance');
+    //   // capsaPrint(_totalBalance);
+    //
+    //   tmpBankDetails.forEach((element) {
+    //     BankDetails _tmpBankDetails = BankDetails(
+    //       PAN_NO: element['PAN_NO'],
+    //       bank_name: element['bank_name'],
+    //       IBTC: element['IBTC'].toString(),
+    //       ifsc: element['ifsc'].toString(),
+    //       account_number: element['account_number'].toString(),
+    //       bene_account_no: element['bene_account_no'].toString(),
+    //       bene_ifsc: element['bene_ifsc'],
+    //       bene_bank: element['bene_bank'],
+    //       bene_account_holdername: element['bene_account_holdername'],
+    //       bene_bvn: element['bene_bvn'],
+    //       trf_typ_ft: element['trf_typ_ft'].toString(),
+    //       pan_copy: element['pan_copy'],
+    //       chq_copy: element['chq_copy'],
+    //     );
+    //     _bankDetails.add(_tmpBankDetails);
+    //   });
+    //
+    //   bankDetails.addAll(_bankDetails);
+    //
+    //   var tmpUser = _data['user'];
+    //   tmpUser.forEach((element) {
+    //     UserData _user = UserData(
+    //       element['ADD_LINE'],
+    //       element['CITY'],
+    //       element['COUNTRY'],
+    //       element['STATE'],
+    //       element['cc'],
+    //       element['contact'],
+    //       element['email'],
+    //       element['nm'],
+    //     );
+    //     _userDetails.add(_user);
+    //   });
+    //
+    //   notifyListeners();
+    // }
+    _fewDataResponse = data;
+    return data;
+  }
+
+  Future getCompanyName() async {
+    dynamic _uri = _url + 'dashboard/r/' + 'getCompanyName';
+    _uri = Uri.parse(_uri);
+    capsaPrint('company name pass 1');
+    var _body = {};
+    var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
+    _body['panNumber'] = userData['panNumber'];
+    var response = await http.post(_uri, headers: <String, String>{
+      'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+    }, body: _body);
+    capsaPrint('company name pass 2');
+    capsaPrint(response.body);
+    var data = jsonDecode(response.body);
+
+    if (data['res'] == 'success') {
+      for (int i = 0; i < data['data'].length; i++) {
+        _anchorsNameList.add(data['data'][i]['name']);
+        _cinList[data['data'][i]['name']] = data['data'][i]['cu_pan'];
+      }
+    }
+
+    return data;
+  }
+
+  Future getAnchorsList() async {
+    dynamic _uri = _url + 'signup/getAllAnchors';
+    _uri = Uri.parse(_uri);
+    var _body = {};
+    var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
+    _body['panNumber'] = userData['panNumber'];
+    capsaPrint('company name pass 1 anchors list');
+    var response = await http.post(_uri, headers: <String, String>{
+      'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+    }, body: _body);
+    capsaPrint('company name pass 2');
+    capsaPrint(response.body);
+    var data = jsonDecode(response.body);
+
+    if (data['res'] == 'success') {
+      for (int i = 0; i < data['data'].length; i++) {
+        _anchorsNameList.add(data['data'][i]['name']);
+        _cinList[data['data'][i]['name']] = data['data'][i]['cu_pan'];
+      }
+    }
+
+    return data;
+  }
+
+  Future<Object> saveAnchorList(List<dynamic> cuGst) async {
+    var _body = {};
+    var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
+    dynamic _uri;
+    var _role = userData['role'];
+
+    _uri = apiUrl + 'signup/saveAnchors';
+
+    String anchorPan = '';
+    for(int i = 0;i<cuGst.length;i++){
+      if(i == 0){
+        anchorPan += cuGst[i];
+      }else{
+        anchorPan += ' ' + cuGst[i];
+      }
+    }
+
+    _uri = Uri.parse(_uri);
+    _body['vendorPan'] = userData['panNumber'];
+    _body['anchorPan'] = anchorPan;
+
+    _body['bvnNo'] = userData['panNumber'];
+    _body['bvn'] = userData['panNumber'];
+    var response = await http.post(_uri, headers: <String, String>{
+      'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+    }, body: _body);
+    capsaPrint('save anchor $_uri $_body');
+    capsaPrint(response.body);
+    var data = jsonDecode(response.body);
+    return data;
+
+    return null;
+  }
+
+  Future<Object> uploadAccountLetterFile(dynamic body, PlatformFile file1) async {
+    var _body = body;
+    var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
+    dynamic _uri;
+    var _role = userData['role'];
+
+    _uri = apiUrl + 'signup/setActive';
+
+    _uri = Uri.parse(_uri);
+    _body['vendorPan'] = userData['panNumber'];
+    // _body['bvnNo'] = userData['panNumber'];
+    // _body['bvn'] = userData['panNumber'];
+    //
+    // _body['userName'] = userData['userName'];
+    // _body['role'] = userData['role'];
+    capsaPrint('Url: $_uri\n BODY : $_body');
+    var request = http.MultipartRequest('POST', _uri);
+    request.fields['web'] = kIsWeb.toString();
+
+    request.headers['Authorization'] =
+        'Basic ' + box.get('token', defaultValue: '0');
+
+    _body.forEach((key, value) {
+      request.fields[key] = value;
+    });
+    var extension = file1.extension;
+    if (file1 != null) {
+      capsaPrint('Uploading file');
+      request.files.add(http.MultipartFile.fromBytes(
+        'file',
+        file1.bytes,
+        filename: _body['vendorPan'] + '_accLetter.' + extension,
+        contentType: MediaType('multipart', 'form-data'),
+      ));
+    }
+
+    var res = await request.send();
+    return jsonDecode((await http.Response.fromStream(res)).body);
+
+    return null;
+  }
+
 }

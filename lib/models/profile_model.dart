@@ -41,25 +41,27 @@ class BankDetails {
       bene_bvn,
       trf_typ_ft,
       pan_copy,
-      chq_copy;
+      chq_copy,
+      inflow,
+      outflow;
 
-  BankDetails({
-    this.id,
-    this.PAN_NO,
-    this.bank_name,
-    this.IBTC,
-    this.ifsc,
-    this.account_number,
-    this.bene_account_no,
-    this.bene_ifsc,
-    this.bene_bank,
-    this.bene_account_holdername,
-    this.bene_bvn,
-    this.trf_typ_ft,
-    this.pan_copy,
-    this.chq_copy,
-
-  });
+  BankDetails(
+      {this.id,
+      this.PAN_NO,
+      this.bank_name,
+      this.IBTC,
+      this.ifsc,
+      this.account_number,
+      this.bene_account_no,
+      this.bene_ifsc,
+      this.bene_bank,
+      this.bene_account_holdername,
+      this.bene_bvn,
+      this.trf_typ_ft,
+      this.pan_copy,
+      this.chq_copy,
+      this.inflow,
+      this.outflow});
 }
 
 class TransactionDetails {
@@ -77,26 +79,26 @@ class TransactionDetails {
       status,
       trans_hash,
       updated_on,
-      withdrawl_amt,reference;
+      withdrawl_amt,
+      reference;
 
-  TransactionDetails({
-    this.account_number,
-    this.name,
-    this.blocked_amt,
-    this.closing_balance,
-    this.created_on,
-    this.deposit_amt,
-    this.id,
-    this.narration,
-    this.opening_balance,
-    this.order_number,
-    this.stat_txt,
-    this.status,
-    this.trans_hash,
-    this.updated_on,
-    this.withdrawl_amt,
-    this.reference
-  });
+  TransactionDetails(
+      {this.account_number,
+      this.name,
+      this.blocked_amt,
+      this.closing_balance,
+      this.created_on,
+      this.deposit_amt,
+      this.id,
+      this.narration,
+      this.opening_balance,
+      this.order_number,
+      this.stat_txt,
+      this.status,
+      this.trans_hash,
+      this.updated_on,
+      this.withdrawl_amt,
+      this.reference});
 }
 
 class PendingTransactionDetails {
@@ -118,8 +120,6 @@ class PendingTransactionDetails {
     this.updated_on,
   });
 }
-
-
 
 class PortfolioData {
   var totalDiscount,
@@ -220,7 +220,6 @@ class PortfolioData {
   });
 }
 
-
 class VendorListPortfolio {
   var name;
   var percent;
@@ -289,7 +288,7 @@ class UserData {
 
 }
 
-class AccountData{
+class AccountData {
   String panNumber;
   String name;
   String role;
@@ -298,6 +297,68 @@ class AccountData{
   bool isRestricted;
   String email;
 
-  AccountData({this.panNumber, this.name, this.role, this.userId, this.isBlackListed, this.isRestricted, this.email});
+  AccountData(
+      {this.panNumber,
+      this.name,
+      this.role,
+      this.userId,
+      this.isBlackListed,
+      this.isRestricted,
+      this.email});
+}
+
+class PendingAccountData {
+  String panNumber;
+  String name;
+  String role;
+  String role2;
+  String userId;
+  String contact;
+  bool isBlackListed;
+  bool isRestricted;
+  String email;
+  String isApproved;
+  String cacForm;
+  String cacCertificate;
+  String validId;
+  String cacFormExt;
+  String cacCertificateExt;
+  String validIdExt;
+  String createdDate;
+
+
+  PendingAccountData(
+      {this.panNumber,
+      this.name,
+      this.role,
+        this.role2,
+      this.userId,
+      this.isBlackListed,
+      this.isRestricted,
+      this.email,
+      this.isApproved,
+      this.cacCertificate,
+      this.cacForm,
+      this.validId,
+      this.contact,
+      this.cacFormExt,
+      this.validIdExt,
+      this.cacCertificateExt,
+      this.createdDate});
+}
+
+class ClosingBalanceModel{
+
+  String accountNumber;
+  String name;
+  String panNumber;
+  String closingBalance;
+
+  ClosingBalanceModel({
+    this.panNumber,
+    this.accountNumber,
+    this.name,
+    this.closingBalance
+});
 
 }

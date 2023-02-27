@@ -1,4 +1,5 @@
 import 'package:beamer/beamer.dart';
+import 'package:capsa/common/constants.dart';
 import 'package:capsa/functions/currency_format.dart';
 import 'package:capsa/investor/pages/AnchorAnalysisPage/pages/home_page.dart';
 import 'package:capsa/investor/pages/AnchorAnalysisPage/provider/anchor_analysis_provider.dart';
@@ -9,10 +10,10 @@ import 'package:capsa/common/page_bgimage.dart';
 import 'package:capsa/common/responsive.dart';
 import 'package:capsa/functions/hexcolor.dart';
 import 'package:capsa/investor/pages/investor_bid_details_page.dart';
-import 'package:capsa/investor/pages/investor-transaction-details-page.dart';
+import 'package:capsa/investor/pages/investor_transaction_details_page.dart';
 import 'package:capsa/investor/pages/live_deals.dart';
 import 'package:capsa/investor/pages/my_bids.dart';
-import 'package:capsa/investor/pages/my-transaction.dart';
+import 'package:capsa/investor/pages/my_transaction.dart';
 
 import 'package:capsa/investor/pages/portfolio_page/portfolio_page.dart';
 import 'package:capsa/investor/pages/upcoming_payments.dart';
@@ -74,6 +75,7 @@ class _InvestorNewAppState extends State<InvestorNewApp> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    var userData = Map<String, dynamic>.from(box.get('userData'));
     // capsaPrint("VendorNewApp");
     routerDelegate = BeamerDelegate(
       initialPath: '/home',
@@ -96,9 +98,10 @@ class _InvestorNewAppState extends State<InvestorNewApp> {
                           type: BeamPageType.fadeTransition,
                           child: InvestorMain(
                               pageUrl: "/home",
-                              mobileTitle: "👋 Capsa,",
+                              mobileTitle: 'Hello ${userData['name']} 👋',
                               mobileSubTitle:
                                   "Welcome, make money from alternative financing!",
+                              showLogo: true,
                               body: InvestorHomePage()),
                         );
                       },
@@ -110,6 +113,7 @@ class _InvestorNewAppState extends State<InvestorNewApp> {
                           child: InvestorMain(
                               pageUrl: "/my-transactions",
                               backButton: true,
+                              menuList: false,
                               mobileTitle: "My Transactions",
                               body: MyTransactions()),
                         );
@@ -335,6 +339,7 @@ class _InvestorNewAppState extends State<InvestorNewApp> {
                           child: InvestorMain(
                               pageUrl: "/all-transaction-history",
                               backButton: true,
+                              menuList: false,
                               mobileTitle: "Transaction history",
                               body: AllTransactionHistoryPage()),
                         );
@@ -465,6 +470,7 @@ class InvestorMain extends StatelessWidget {
   final bool backButton;
   final String mobileTitle;
   final String mobileSubTitle;
+  final bool showLogo;
   final bool pop;
 
   InvestorMain(
@@ -475,6 +481,7 @@ class InvestorMain extends StatelessWidget {
       this.menuList,
       this.backButton,
         this.pop = false,
+        this.showLogo = false,
       Key key})
       : super(key: key);
 
@@ -572,6 +579,8 @@ class InvestorMain extends StatelessWidget {
 
     // capsaPrint(Responsive.isMobile(context));
 
+    var userData = Map<String, dynamic>.from(box.get('userData'));
+
     return Scaffold(
       bottomNavigationBar: (Responsive.isMobile(context))
           ? Generated_MobileMenuNavigationsVendorWidget(_menuList2)
@@ -582,6 +591,16 @@ class InvestorMain extends StatelessWidget {
               child: AppBar(
                 automaticallyImplyLeading: false,
                 backgroundColor: HexColor("#F5FBFF"),
+                actions: [
+                  showLogo?Padding(
+                    padding: const EdgeInsets.only(top: 12, right: 8),
+                    child: Image.asset(
+                      "assets/images/Ellipse 3.png",
+                      width: 35,
+                      height: 35,
+                    ),
+                  ):Container(),
+                ],
                 title: Column(
                   children: [
                     SizedBox(
@@ -620,7 +639,7 @@ class InvestorMain extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              mobileTitle != null ? mobileTitle : '👋 Capsa,',
+                              mobileTitle != null ? mobileTitle : 'Hello ${userData['name']} 👋',
                               textAlign: TextAlign.left,
                               style: TextStyle(
                                   color: Color.fromRGBO(51, 51, 51, 1),

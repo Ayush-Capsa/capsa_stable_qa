@@ -13,10 +13,12 @@ class AuthProvider extends ChangeNotifier {
 
   Future<Object> tokenId() async {}
 
-  void authChange(bool data, String role) {
+  void authChange(bool data, String role, {bool notify = true}) {
     _isAuthenticated = data;
     _role = role;
-    notifyListeners();
+    if(notify) {
+      notifyListeners();
+    }
   }
 
   void setUserdata(Map<String, dynamic> user) {

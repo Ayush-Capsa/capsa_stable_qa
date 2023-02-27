@@ -18,8 +18,20 @@ Future callApi(url, {body, method: 'POST', header: false}) async {
         headers: <String, String>{
           'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
         },
-        body: body);
-    print('reponse : $_uri ${response.body}');
+        body: body).timeout(
+      const Duration(seconds: 90),
+      onTimeout: () {
+        // Time has run out, do what you wanted to do.
+        var response1 = {
+          'res': 'failed',
+          'messg':
+          'Connection Timed Out'
+        };
+        return http.Response(jsonEncode(response1),
+            408); // Request Timeout response status code
+      },
+    );
+    //print('reponse : $_uri ${response.body}');
     var data = jsonDecode(response.body);
     return data;
   } catch (e) {
@@ -40,7 +52,19 @@ Future callApi2(url, {body, method: 'GET', header: false}) async {
   try {
     var response = await http.get(_uri, headers: <String, String>{
       'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
-    });
+    }).timeout(
+      const Duration(seconds: 90),
+      onTimeout: () {
+        // Time has run out, do what you wanted to do.
+        var response1 = {
+          'res': 'failed',
+          'messg':
+          'Connection Timed Out'
+        };
+        return http.Response(jsonEncode(response1),
+            408); // Request Timeout response status code
+      },
+    );
     var data = jsonDecode(response.body);
     return data;
   } catch (e) {
@@ -63,8 +87,20 @@ Future callApi3(url, {body, method: 'POST', header: false}) async {
         headers: <String, String>{
           'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
         },
-        body: body);
-    capsaPrint('Response ${response.body}');
+        body: body).timeout(
+      const Duration(seconds: 90),
+      onTimeout: () {
+        // Time has run out, do what you wanted to do.
+        var response1 = {
+          'res': 'failed',
+          'messg':
+          'Connection Timed Out'
+        };
+        return http.Response(jsonEncode(response1),
+            408); // Request Timeout response status code
+      },
+    );
+    //capsaPrint('Response ${response.body}');
     var data = jsonDecode(response.body);
 
 

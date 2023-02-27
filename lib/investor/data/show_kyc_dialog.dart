@@ -3,14 +3,15 @@ import 'package:flutter/material.dart';import 'package:capsa/functions/custom_pr
 
 bool kycErrorCondition(context, _profileProvider) {
   var _boolRes = false;
+  capsaPrint('KYC ERROR CONDITIONS : \n${_profileProvider.portfolioData.investorType} \n${_profileProvider.portfolioData.kyc1} \n${_profileProvider.portfolioData.kyc2} \n${_profileProvider.portfolioData.kyc3}\n\n');
   if (_profileProvider.portfolioData.investorType == "individual") {
-    if (_profileProvider.portfolioData.kyc1 != 2) {
+    if (_profileProvider.portfolioData.kyc3 != 2) {
       _boolRes = true;
     }
   } else {
     // if (_profileProvider.portfolioData.kyc1 != 2 || _profileProvider.portfolioData.kyc2 != 2 || _profileProvider.portfolioData.kyc3 != 2) {
-    if (_profileProvider.portfolioData.kyc1 != 2 ||
-        _profileProvider.portfolioData.kyc2 != 2) {
+    if (_profileProvider.portfolioData.kyc1 != 2 &&
+        _profileProvider.portfolioData.kyc2 != 2 && _profileProvider.portfolioData.kyc3 != 2) {
       _boolRes = true;
     }
   }
@@ -21,9 +22,12 @@ void showKycError(context, _profileProvider) {
   void redirect() {
     Beamer.of(context).beamToNamed('/upload-kyc-document');
   }
+  capsaPrint('kyc error pass 1');
 
   if (_profileProvider.portfolioData.newUser) {
+    capsaPrint('kyc error pass 2');
     if (kycErrorCondition(context, _profileProvider)) {
+      capsaPrint('kyc error pass 3');
       showDialog(
           context: context,
           builder: (BuildContext context) => AlertDialog(

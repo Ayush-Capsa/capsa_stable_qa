@@ -14,7 +14,6 @@ import 'package:intl/intl.dart';
 import 'package:universal_html/html.dart' as html;
 
 class InvoiceProvider extends ChangeNotifier {
-
   List<InvoiceModel> _invoices = [];
   String _url = apiUrl + 'dashboard/r/';
 
@@ -48,20 +47,19 @@ class InvoiceProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<Object> splitInvoice(String invoiceNo,String invAmt) async{
-
+  Future<Object> splitInvoice(String invoiceNo, String invAmt) async {
     print('split called');
 
     var _body = {};
     _body['invoice_number'] = invoiceNo;
     _body['invoice_amount'] = invAmt;
-    var data = await callApi3('/dashboard/r/invoiceSplitNum',body: _body);
+    var data = await callApi3('/dashboard/r/invoiceSplitNum', body: _body);
 
     var result = {};
 
-    if(data[0]!=null){
+    if (data[0] != null) {
       result['isSplit'] = 1;
-    }else{
+    } else {
       result['isSplit'] = 0;
     }
 
@@ -70,22 +68,19 @@ class InvoiceProvider extends ChangeNotifier {
     print('Split Data $result');
 
     return result;
-
   }
 
-  Future<Object> deleteInvoice(String invoiceNo,String panNo) async{
-
+  Future<Object> deleteInvoice(String invoiceNo, String panNo) async {
     //print('split called');
 
     var _body = {};
     _body['invoice_number'] = invoiceNo;
     _body['panNumber'] = panNo;
-    var data = await callApi3('/dashboard/r/deleteInvoice',body: _body);
+    var data = await callApi3('/dashboard/r/deleteInvoice', body: _body);
     return data;
-
   }
 
-  Future<Object> updateInvoice(dynamic _body,PlatformFile file) async{
+  Future<Object> updateInvoice(dynamic _body, PlatformFile file) async {
     //return data;
     //_body['year'] = '2022';
     //capsaPrint('Upload Function Called ${_body} ${file.path}');
@@ -101,46 +96,123 @@ class InvoiceProvider extends ChangeNotifier {
     //request.headers['Authorization'] = 'Basic ' + box.get('token', defaultValue: '0');
     request.fields['web'] = kIsWeb.toString();
 
-    //request.headers['Authorization'] = 'Basic ' + box.get('token', defaultValue: '0');
+    request.headers['Authorization'] = 'Basic ' + box.get('token', defaultValue: '0');
 
     _body.forEach((key, value) {
       request.fields[key] = value;
     });
-    request.files.add(http.MultipartFile.fromBytes(
-      'file',
-      file.bytes,
-      filename: 'invoice' + file.extension,
-      contentType: MediaType('multipart', 'form-data'),
-    ));
-    request.headers.addAll({'Content-type':'multipart/form-data'});
+    if (file != null) {
+      request.files.add(http.MultipartFile.fromBytes(
+        'file',
+        file.bytes,
+        filename: _body['bvnNo'] +
+            '_' +
+            _body['invNo'] +
+            '_' +
+            DateTime.now().millisecondsSinceEpoch.toString() +
+            '.' +
+            file.extension,
+        contentType: MediaType('multipart', 'form-data'),
+      ));
+      request.headers.addAll({'Content-type': 'multipart/form-data'});
+    }
+    // request.files.add(http.MultipartFile.fromBytes(
+    //   'file',
+    //   file.bytes,
+    //   filename: 'invoice' + file.extension,
+    //   contentType: MediaType('multipart', 'form-data'),
+    // ));
+    // request.headers.addAll({'Content-type': 'multipart/form-data'});
     var res = await request.send();
     var response = await http.Response.fromStream(res);
-    capsaPrint('Invoice Uploaded File: ${response.body}');
-    return res.reasonPhrase;
-
+    capsaPrint('\n\nInvoice Uploaded File:\n\n ${response.body}\n');
+    return jsonDecode(response.body);
   }
 
+  Future<Object> editPendingInvoice(dynamic _body, PlatformFile file) async {
+    //return data;
+    //_body['year'] = '2022';
+    //capsaPrint('Upload Function Called ${_body} ${file.path}');
+
+    capsaPrint('update invoice body : $_body');
+
+    dynamic _uri;
+    _uri = _url + 'editPendingInvoice';
+    //capsaPrint('URL: $_uri');
+    //_uri = Uri.parse(_uri);
+
+    var request = http.MultipartRequest('POST', Uri.parse(_uri));
+    request.headers['Authorization'] =
+        'Basic ' + box.get('token', defaultValue: '0');
+    request.fields['web'] = kIsWeb.toString();
+
+    capsaPrint('pass 1 update api');
+
+    //request.headers['Authorization'] = 'Basic ' + box.get('token', defaultValue: '0');
+
+    _body.forEach((key, value) {
+      request.fields[key] = value.toString();
+    });
+    capsaPrint('pass 2 update api');
+    if (file != null) {
+      request.files.add(http.MultipartFile.fromBytes(
+        'file',
+        file.bytes,
+        filename: _body['bvnNo'] +
+            '_' +
+            _body['invNo'] +
+            '_' +
+            DateTime.now().millisecondsSinceEpoch.toString() +
+            '.' +
+            file.extension,
+        contentType: MediaType('multipart', 'form-data'),
+      ));
+      request.headers.addAll({'Content-type': 'multipart/form-data'});
+    }
+
+    var res = await request.send();
+    var response = await http.Response.fromStream(res);
+    capsaPrint(
+        'Invoice edit response: ${response.body} ${res.reasonPhrase} \n$_uri');
+    return jsonDecode(response.body);
+  }
 
   getInvoicesFilterCount({String type}) {
-
-var count = 0;
-
-if(type == 'all') return _invoices.length;
+    var count = 0;
+    List<String> invoiceNumbers = [];
+    if (type == 'all') return _invoices.length;
 
     _invoices.forEach((element) {
 
-      if (type == 'pending' && element.invStatus == '2' && element.ilcStatus == '1') {
-        count++;
-      }else if (type == 'live' && element.discount_status == 'false'  && element.payment_status == '0' && element.ilcStatus == '2') {
-        count++;
-      }else if (element.status == '2') {
-
-      }else if (element.status == '2') {
-
-      }
+      if (type == 'pending' &&
+          element.invStatus == '2' &&
+          element.ilcStatus == '1') {
+        //capsaPrint('Pending Invoice 1 - ${element.invNo}');
+        if(!invoiceNumbers.contains(element.invNo.toString())){
+          invoiceNumbers.add(element.invNo.toString());
+        }
+      } else if (type == 'pending' && element.childInvoice.isNotEmpty) {
+        capsaPrint('Child Ilc Status : ${element.childInvoice[0]['ilcStatus']} ${element.childInvoice[0]['invStatus']} \n\n${element.childInvoice[0]}');
+        if (element.childInvoice[0]['ilcStatus'].toString() == '1' && element.childInvoice[0]['invStatus'].toString() == '2') {
+          //capsaPrint('Pending Invoice 2 - ${element.invNo}');
+          if(!invoiceNumbers.contains(element.invNo.toString())){
+            invoiceNumbers.add(element.invNo.toString());
+          }
+        }
+      } else if (type == 'live' &&
+          element.discount_status == 'false' &&
+          element.payment_status == '0' &&
+          element.ilcStatus == '2') {
+        if(!invoiceNumbers.contains(element.invNo.toString())){
+          invoiceNumbers.add(element.invNo.toString());
+        }
+      } else if (element.status == '2') {
+      } else if (element.status == '2') {}
     });
 
-return count;
+    capsaPrint("invoices : $type    $invoiceNumbers");
+
+    return invoiceNumbers.length;
   }
 
   getInvoicesFilter(String type) {
@@ -157,13 +229,15 @@ return count;
       });
     } else if (type == 'live') {
       _invoices.forEach((element) {
-        if (element.discount_status == 'false' && element.payment_status == '0' && element.ilcStatus == '2'  ) {
+        if (element.discount_status == 'false' &&
+            element.payment_status == '0' &&
+            element.ilcStatus == '2') {
           list.add(element);
         }
       });
-    }else if (type == 'sold') {
+    } else if (type == 'sold') {
       _invoices.forEach((element) {
-        if (element.discount_status == 'true'   ) {
+        if (element.discount_status == 'true') {
           list.add(element);
         }
       });
@@ -173,7 +247,7 @@ return count;
           list.add(element);
         }
       });
-    }  else {
+    } else {
       list = _invoices;
     }
     return list;
@@ -191,9 +265,11 @@ return count;
       var _results = _data['data']['invoicelist'];
 
       _results.forEach((element) {
-        DateTime invoiceDate = new DateFormat("yyyy-MM-dd").parse(element['invoice_date']);
+        DateTime invoiceDate =
+            new DateFormat("yyyy-MM-dd").parse(element['invoice_date']);
 
-        DateTime invoiceDueDate = new DateFormat("yyyy-MM-dd").parse(element['invoice_due_date']);
+        DateTime invoiceDueDate =
+            new DateFormat("yyyy-MM-dd").parse(element['invoice_due_date']);
 
         _acctTableData.add(InvoiceModel(
           anchor: element['customer_name'],
@@ -211,10 +287,9 @@ return count;
           invStatus: element['invStatus'].toString(),
           payment_status: element['payment_status'].toString(),
           ilcStatus: element['ilcStatus'].toString(),
-
-
           fileType: element['invoice_file'],
           cuGst: element['customer_gst'],
+          childInvoice: element['isSplit'].toString() == '1' ? element['chileInvoice'] : []
         ));
       });
 
@@ -225,7 +300,7 @@ return count;
     return null;
   }
 
-  Future<Object> queryInvoiceList(String type,{String search}) async {
+  Future<Object> queryInvoiceList(String type, {String search}) async {
     if (box.get('isAuthenticated', defaultValue: false)) {
       var userData = Map<String, dynamic>.from(box.get('userData'));
 
@@ -244,9 +319,13 @@ return count;
       dynamic _uri;
       _uri = _url + 'invoicelist';
       _uri = Uri.parse(_uri);
-      var response = await http.post(_uri, headers: <String, String>{'Authorization': 'Basic ' + box.get('token', defaultValue: '0')}, body: _body);
+      var response = await http.post(_uri,
+          headers: <String, String>{
+            'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+          },
+          body: _body);
       var data = jsonDecode(response.body);
-      //capsaPrint('Invoices : $data');
+      capsaPrint('\n\nInvoices $type\n : $data');
 
       await setInvoiceList(data);
 
@@ -284,10 +363,13 @@ return count;
     _body['isSplit'] = '0';
     _uri = _url + 'requestApproval';
     _uri = Uri.parse(_uri);
-    var response = await http.post(_uri, headers: <String, String>{'Authorization': 'Basic ' + box.get('token', defaultValue: '0')}, body: _body);
+    var response = await http.post(_uri,
+        headers: <String, String>{
+          'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+        },
+        body: _body);
     var data = jsonDecode(response.body);
     return data;
-
   }
 
   Future<Object> updateStatus(invNum) async {
@@ -305,7 +387,7 @@ return count;
     return null;
   }
 
-  Future<Object> downloadFile(String url,{ fName : "Invoice" }) async {
+  Future<Object> downloadFile(String url, {fName: "Invoice"}) async {
     dynamic _uri = Uri.parse(url);
 
     var response = await http.get(_uri);
@@ -321,6 +403,32 @@ return count;
       html.Url.revokeObjectUrl(url);
     }
     return null;
+  }
+
+  Future<Object> deletePendingInvoice(String invoiceNumber) async {
+    // capsaPrint('userData');
+    // capsaPrint(userData);
+
+    dynamic _uri;
+    var userData = Map<String, dynamic>.from(box.get('userData'));
+
+    var _body = {};
+
+    // capsaPrint('userData');
+    // capsaPrint(userData);
+    _body['panNumber'] = userData['panNumber'];
+    _body['invoice_number'] = invoiceNumber;
+    _uri = _url + 'deletePendingInvoice';
+    _uri = Uri.parse(_uri);
+    capsaPrint('Delete invoice body : \n$_uri\n$_body');
+    var response = await http.post(_uri,
+        headers: <String, String>{
+          'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+        },
+        body: _body);
+    capsaPrint('Delete Invoice response : \n${response.body}');
+    var data = jsonDecode(response.body);
+    return data;
   }
 
   // Future<Object> getCurrencies() async {

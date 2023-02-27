@@ -64,7 +64,7 @@ class _approvedScreenState extends State<approvedScreen> {
           ),
           Container(
             padding: const EdgeInsets.only(top: 8, bottom: 8),
-            child: Text('Invoice no', style: TextStyle(
+            child: Text('Invoice No', style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: Color.fromRGBO(0, 152, 217, 1),
@@ -275,7 +275,7 @@ class _approvedScreenState extends State<approvedScreen> {
             ),
             Container(
               padding: const EdgeInsets.only(top: 8, bottom: 8),
-              child: Text('Invoice no', style: TextStyle(
+              child: Text('Invoice No', style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: Color.fromRGBO(0, 152, 217, 1),
@@ -470,7 +470,7 @@ class _approvedScreenState extends State<approvedScreen> {
             ),
             Container(
               padding: const EdgeInsets.only(top: 8, bottom: 8),
-              child: Text('Invoice no', style: TextStyle(
+              child: Text('Invoice No', style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: Color.fromRGBO(0, 152, 217, 1),

@@ -55,4 +55,23 @@ bool validateEmail(String value) {
   return (!regex.hasMatch(value)) ? false : true;
 }
 
+String formatPanNumber(String s){
+  String result = '';
+  for(int i = 0;i<s.length;i++){
+    if(s[i]!='-'){
+      result += s[i];
+    }else{
+      return result;
+    }
+  }
+  return result;
+}
+
+bool notNull(String s){
+  if(s == '' || s == null || s == 'null') {
+    return false;
+  }
+  return true;
+}
+
 

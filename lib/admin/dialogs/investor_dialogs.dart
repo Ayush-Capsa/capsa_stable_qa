@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:capsa/common/constants.dart';
 import 'package:capsa/investor/provider/proposal_provider.dart';
 import 'package:capsa/admin/charts.dart';
 import 'package:capsa/admin/currency_icon_icons.dart';
@@ -13,8 +16,11 @@ import 'package:capsa/widgets/orientation_switcher.dart';
 import 'package:capsa/widgets/user_input.dart';
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';import 'package:capsa/functions/custom_print.dart';
+import 'package:flutter/material.dart';
+import 'package:capsa/functions/custom_print.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
@@ -24,6 +30,7 @@ import 'package:capsa/functions/show_toast.dart';
 import 'package:line_awesome_icons/line_awesome_icons.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:http/http.dart' as http;
 
 const titleStyle = TextStyle(
   color: Colors.green,
@@ -34,6 +41,8 @@ const titleStyle = TextStyle(
 final lableStyle = TextStyle(
   color: Colors.grey[600],
 );
+
+bool bidDeleted = false;
 
 // showBidBottomSheet(context, int index, OpenDealProvider openDealProvider) {
 //   return showModalBottomSheet(
@@ -61,7 +70,197 @@ final lableStyle = TextStyle(
 //       });
 // }
 
+// showEditBidDialog(
+//     BuildContext context, int index, OpenDealProvider openDealProvider,
+//     {buyNow = false}) {
+//   return showDialog(
+//     context: context,
+//     builder: (BuildContext context) {
+//       OpenDealModel openInvoice = openDealProvider.openInvoices[index];
+//       return AlertDialog(
+//         shape: RoundedRectangleBorder(
+//             borderRadius: BorderRadius.all(Radius.circular(32.0))),
+//         backgroundColor: HexColor("#F5FBFF"),
+//         title: Row(
+//           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Text(
+//               buyNow ? "Buy Now" : 'Place Bid',
+//               textAlign: TextAlign.left,
+//               style: TextStyle(
+//                   color: Color.fromRGBO(33, 150, 83, 1),
+//                   fontFamily: 'Poppins',
+//                   fontSize: 24,
+//                   letterSpacing:
+//                   0 /*percentages not used in flutter. defaulting to zero*/,
+//                   fontWeight: FontWeight.normal,
+//                   height: 1),
+//             ),
+//             SizedBox(
+//               width: 10,
+//             ),
+//             Column(
+//               crossAxisAlignment: CrossAxisAlignment.start,
+//               mainAxisAlignment: MainAxisAlignment.start,
+//               children: [
+//                 Text(
+//                   'Invoice Value',
+//                   textAlign: TextAlign.left,
+//                   style: TextStyle(
+//                       color: Color.fromRGBO(51, 51, 51, 1),
+//                       // fontFamily: 'Poppins',
+//                       fontSize: 14,
+//                       letterSpacing:
+//                       0 /*percentages not used in flutter. defaulting to zero*/,
+//                       fontWeight: FontWeight.normal,
+//                       height: 1),
+//                 ),
+//
+//                 SizedBox(
+//                   height: 10,
+//                 ),
+//                 // Figma Flutter Generator AmountWidget - FRAME - HORIZONTAL
+//                 Container(
+//                   decoration: BoxDecoration(),
+//                   padding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+//                   child: Row(
+//                     mainAxisSize: MainAxisSize.min,
+//                     children: <Widget>[
+//                       Text(
+//                         '₦',
+//                         textAlign: TextAlign.left,
+//                         style: TextStyle(
+//                             color: Color.fromRGBO(0, 152, 219, 1),
+//                             fontFamily: 'Poppins',
+//                             fontSize: 18,
+//                             letterSpacing:
+//                             0 /*percentages not used in flutter. defaulting to zero*/,
+//                             fontWeight: FontWeight.normal,
+//                             height: 1),
+//                       ),
+//                       SizedBox(width: 4),
+//                       Text(
+//                         formatCurrency(openInvoice.invoice_value),
+//                         textAlign: TextAlign.left,
+//                         style: TextStyle(
+//                             color: Color.fromRGBO(0, 152, 219, 1),
+//                             fontFamily: 'Poppins',
+//                             fontSize: 18,
+//                             letterSpacing:
+//                             0 /*percentages not used in flutter. defaulting to zero*/,
+//                             fontWeight: FontWeight.normal,
+//                             height: 1),
+//                       ),
+//                     ],
+//                   ),
+//                 )
+//               ],
+//             )
+//           ],
+//         ),
+//         content: ShowBidContentMyClass(index, buyNow, openDealProvider),
+//       );
+//     },
+//   );
+// }
+
 showBidDialog(
+    BuildContext context, int index, OpenDealProvider openDealProvider,
+    {buyNow = false}) {
+  return showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      OpenDealModel openInvoice = openDealProvider.openInvoices[index];
+      return AlertDialog(
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(32.0))),
+        backgroundColor: HexColor("#F5FBFF"),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              buyNow ? "Buy Now" : 'Place Bid',
+              textAlign: TextAlign.left,
+              style: TextStyle(
+                  color: Color.fromRGBO(33, 150, 83, 1),
+                  fontFamily: 'Poppins',
+                  fontSize: 24,
+                  letterSpacing:
+                      0 /*percentages not used in flutter. defaulting to zero*/,
+                  fontWeight: FontWeight.normal,
+                  height: 1),
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  'Invoice Value',
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                      color: Color.fromRGBO(51, 51, 51, 1),
+                      // fontFamily: 'Poppins',
+                      fontSize: 14,
+                      letterSpacing:
+                          0 /*percentages not used in flutter. defaulting to zero*/,
+                      fontWeight: FontWeight.normal,
+                      height: 1),
+                ),
+
+                SizedBox(
+                  height: 10,
+                ),
+                // Figma Flutter Generator AmountWidget - FRAME - HORIZONTAL
+                Container(
+                  decoration: BoxDecoration(),
+                  padding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Text(
+                        '₦',
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                            color: Color.fromRGBO(0, 152, 219, 1),
+                            fontFamily: 'Poppins',
+                            fontSize: 18,
+                            letterSpacing:
+                                0 /*percentages not used in flutter. defaulting to zero*/,
+                            fontWeight: FontWeight.normal,
+                            height: 1),
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        formatCurrency(openInvoice.invoice_value),
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                            color: Color.fromRGBO(0, 152, 219, 1),
+                            fontFamily: 'Poppins',
+                            fontSize: 18,
+                            letterSpacing:
+                                0 /*percentages not used in flutter. defaulting to zero*/,
+                            fontWeight: FontWeight.normal,
+                            height: 1),
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            )
+          ],
+        ),
+        content: ShowBidContentMyClass(index, buyNow, openDealProvider),
+      );
+    },
+  );
+}
+
+showEditInvoiceDialog(
     BuildContext context, int index, OpenDealProvider openDealProvider,
     {buyNow = false}) {
   return showDialog(
@@ -235,8 +434,13 @@ class _ShowBidContentMyClassState extends State<ShowBidContentMyClass> {
         (1 / invoicedays) * (payableamount / purchaseprice - 1) * invoicedays;
     termRate = termRate * 100;
 
-    var rate = (1 / invoicedays) * (payableamount / purchaseprice - 1) * 360;
-    rate = rate * 100;
+    // var rate = (1 / invoicedays) * (payableamount / purchaseprice - 1) * 360;
+    var rate = ((payableamount - purchaseprice) / purchaseprice) *
+        0.9 *
+        100 *
+        (365 / invoicedays);
+    capsaPrint('$payableamount $purchaseprice $invoicedays');
+    //rate = rate * 100;
 
     myController.text = rate.toStringAsFixed(2);
     myController2.text = termRate.toStringAsFixed(2);
@@ -427,8 +631,9 @@ class _ShowBidContentMyClassState extends State<ShowBidContentMyClass> {
                   });
                   // return;
                   if (widget.buyNow)
-                    await widget.openDealProvider
-                        .bidActionCall(context, openInvoice, 1, widget.index, buyNow: widget.buyNow);
+                    await widget.openDealProvider.bidActionCall(
+                        context, openInvoice, 1, widget.index,
+                        buyNow: widget.buyNow);
                   else
                     await widget.openDealProvider.bidActionCall(
                         context, openInvoice, 0, widget.index,
@@ -472,30 +677,35 @@ class _ShowBidContentMyClassState extends State<ShowBidContentMyClass> {
   }
 }
 
-showEditBidDialog(BuildContext context, ProposalModel data,
-    OpenDealProvider openDealProvider, ProposalProvider proposalProvider) {
+showEditBidDialog(
+  BuildContext context,
+  OpenDealModel data,
+  String amt,
+) {
   return showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Text(
-          "Update Bid ( #" + data.invoice_number + " )",
-          style: titleStyle,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(32.0))),
+        backgroundColor: HexColor("#F5FBFF"),
+        content: ShowEditBidContentMyClass(
+          data,
+          amt,
         ),
-        content:
-            ShowEditBidContentMyClass(data, openDealProvider, proposalProvider),
       );
     },
-  );
+  ).then((value) {});
 }
 
 class ShowEditBidContentMyClass extends StatefulWidget {
-  final OpenDealProvider openDealProvider;
-  final ProposalModel data;
-  final ProposalProvider proposalProvider;
+  final OpenDealModel data;
+  String amt;
 
   ShowEditBidContentMyClass(
-      this.data, this.openDealProvider, this.proposalProvider);
+    this.data,
+    this.amt,
+  );
 
   @override
   _ShowEditBidContentMyClassState createState() =>
@@ -508,15 +718,18 @@ class _ShowEditBidContentMyClassState extends State<ShowEditBidContentMyClass> {
   final myController2 = TextEditingController(text: '');
   final myController3 = TextEditingController(text: '');
   final myController0 = TextEditingController(text: '');
+  final myController4 = TextEditingController(text: '');
+  final myController5 = TextEditingController(text: '');
   String _message =
       '\nYour Excepted Return Calculated ad follow\n\nBid Amount : ₦ 0\nPlatform Fee : ₦ 0\n,Excepted Return : ₦ 0\n';
 
   bool _loading = false;
+  bool bidUpdated = false;
 
   @override
   void initState() {
     super.initState();
-    amount = widget.data.prop_amt;
+    amount = widget.amt;
     myController0.text = amount;
     // amount = widget.data.prop_amt;
 
@@ -524,7 +737,7 @@ class _ShowEditBidContentMyClassState extends State<ShowEditBidContentMyClass> {
   }
 
   calCul() {
-    return;
+    //return;
     // OpenDealModel openInvoice = widget.openDealProvider.openInvoices[widget.index];
     var invoicedays = 0;
 
@@ -581,7 +794,11 @@ class _ShowEditBidContentMyClassState extends State<ShowEditBidContentMyClass> {
 
     num pfee = ((payableamount - _amt) / 100) * 5;
     num rValue = payableamount;
+    var netreturn = rValue - pfee;
     myController3.text = rValue.toStringAsFixed(2);
+    myController4.text = pfee.toStringAsFixed(2);
+    myController5.text = netreturn.toStringAsFixed(2);
+
     setState(() {
       _message =
           '\nYour Excepted Return Calculated ad follow\n\nBid Amount : ₦ ' +
@@ -594,263 +811,897 @@ class _ShowEditBidContentMyClassState extends State<ShowEditBidContentMyClass> {
     });
   }
 
+  Future<Object> bidEdit(OpenDealModel invoice,
+      {String rate, String amt, String tRate}) async {
+    if (box.get('isAuthenticated', defaultValue: false)) {
+      var userData = Map<String, dynamic>.from(box.get('userData'));
+
+      // var invoicedays = 0;
+      //
+      // var payableamount = double.parse(invoice.invoice_value);
+      // var purchaseprice;
+      // if (amt != null) {
+      //   double _amt = double.parse(amt);
+      //   purchaseprice = _amt;
+      // } else {
+      //   purchaseprice = double.parse(invoice.ask_amt);
+      // }
+      //
+      // DateTime invoiceDate =
+      //     new DateFormat("yyyy-MM-dd").parse(invoice.start_date);
+      //
+      // DateTime invoiceDueDate =
+      //     new DateFormat("yyyy-MM-dd").parse(invoice.due_date);
+      //
+      // // invoice.invDate = DateFormat.yMMMd('en_US').format(invoiceDate);
+      // // invoice.invDueDate = DateFormat.yMMMd('en_US').format(invoiceDueDate);
+      // invoicedays = invoiceDueDate.difference(invoiceDate).inDays;
+      //
+      // var termRate =
+      //     (1 / invoicedays) * (payableamount / purchaseprice - 1) * invoicedays;
+      // termRate = termRate * 100;
+      // termRate = termRate.toPrecision(2);
+      //
+      // var rate = (1 / invoicedays) * (payableamount / purchaseprice - 1) * 360;
+      // rate = rate * 100;
+      // rate = rate.toPrecision(2);
+
+      // return null;
+
+      var _body = {};
+
+      _body['investor_pan'] = userData['panNumber'];
+      _body['userName'] = userData['userName'];
+      _body['role'] = userData['role'];
+      _body['new_prop_amt'] = amt.toString();
+      _body['discount_per'] = rate.toString();
+
+      _body['pay_amt'] = '';
+      // _body['discount_val'] = openInvoice.;
+      _body['plt_fee'] = '';
+      _body['pay_amt'] = '';
+      _body['from_popup'] = '1';
+      // _body['comp_pan'] = invoice.comp_pan;
+      // _body['cust_pan'] = invoice.cust_pan;
+      // _body['prop_amt'] = invoice.prop_amt;
+      // _body['discper1'] = openInvoice.discper;
+      // _body['childcontract1'] = openInvoice.childcontract;
+      _body['duedate1'] = invoice.due_date;
+      _body['inv_number'] = invoice.invoice_number;
+      _body['invval1'] = invoice.invoice_value;
+      _body['start_date'] = invoice.start_date;
+      _body['due_date'] = invoice.due_date;
+      // _body['click_type'] = clickType.toString();
+
+      //_body['diffDays'] = invoicedays.toString();
+
+      // capsaPrint(_body);
+      // return null;
+      String _url = apiUrl;
+
+      dynamic _uri;
+      _uri = _url + 'dashboard/i/editbid';
+      _uri = Uri.parse(_uri);
+      var response = await http.post(_uri,
+          headers: <String, String>{
+            'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+          },
+          body: _body);
+      var data = jsonDecode(response.body);
+
+      capsaPrint('Edit response : $data');
+
+      // if (data['res'] == 'success') {
+      //   var _data = data['data'];
+      //
+      //   notifyListeners();
+      // }
+
+      return data;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
-    // OpenDealModel openInvoice = widget.openDealProvider.openInvoices[widget.index];
-    return Container(
-      constraints: BoxConstraints(minWidth: 450),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Amount',
-              style: lableStyle,
-            ),
-          ),
-          SizedBox(
-            height: 12,
-          ),
-          TextFormField(
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            controller: myController0,
-            // initialValue: '',
-            validator: (value) {
-              if (value.trim().isEmpty) {
-                return 'Value cannot be empty';
-              }
-              return null;
-            },
-            onChanged: (v) {
-              amount = v;
-              calCul();
-            },
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              prefixIcon: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  '₦',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              helperText: '',
-              hintText: 'Enter Amount',
-            ),
-          ),
-          IntrinsicHeight(
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
+    //OpenDealProvider openDealProvider = Provider.of<OpenDealProvider>(context, listen: false);
+    return SingleChildScrollView(
+      child: Container(
+        //width: 420,
+        constraints: BoxConstraints(maxWidth: 500, minWidth: 360),
+        child: !bidUpdated
+            ? Column(
+                children: [
+                  // !Responsive.isMobile(context)
+                  //     ? Row(
+                  //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //         crossAxisAlignment: CrossAxisAlignment.start,
+                  //         children: [
+                  //           if (!Responsive.isMobile(context))
+                  //             Column(
+                  //               crossAxisAlignment: CrossAxisAlignment.start,
+                  //               children: [
+                  //                 Text(
+                  //                   'Edit Bid',
+                  //                   style: GoogleFonts.poppins(
+                  //                       fontSize: Responsive.isMobile(context)
+                  //                           ? 14
+                  //                           : 18,
+                  //                       color: HexColor('#219653'),
+                  //                       fontWeight: FontWeight.w400),
+                  //                 ),
+                  //                 SizedBox(
+                  //                   height: 4,
+                  //                 ),
+                  //                 Text(
+                  //                   widget.data.invoice_number,
+                  //                   style: GoogleFonts.poppins(
+                  //                       fontSize: 24,
+                  //                       color: HexColor('#219653'),
+                  //                       fontWeight: FontWeight.w400),
+                  //                 ),
+                  //               ],
+                  //             ),
+                  //           if (!Responsive.isMobile(context))
+                  //             Column(
+                  //               crossAxisAlignment: CrossAxisAlignment.start,
+                  //               children: [
+                  //                 Text(
+                  //                   'Invoice Value ',
+                  //                   style: GoogleFonts.poppins(
+                  //                       fontSize: 18,
+                  //                       fontWeight: FontWeight.w400),
+                  //                 ),
+                  //                 SizedBox(
+                  //                   height: 4,
+                  //                 ),
+                  //                 Text(
+                  //                   formatCurrency(widget.data.invoice_value,
+                  //                       withIcon: true),
+                  //                   style: GoogleFonts.poppins(
+                  //                       fontSize: 24,
+                  //                       color: HexColor('#0098DB'),
+                  //                       fontWeight: FontWeight.w600),
+                  //                 ),
+                  //               ],
+                  //             ),
+                  //         ],
+                  //       )
+                  //     : Row(
+                  //         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //         crossAxisAlignment: CrossAxisAlignment.start,
+                  //         children: [
+                  //           Text(
+                  //             'Invoice Value ',
+                  //             style: GoogleFonts.poppins(
+                  //                 fontSize: 16,
+                  //                 color: HexColor('#333333'),
+                  //                 fontWeight: FontWeight.w400),
+                  //           ),
+                  //           Text(
+                  //             formatCurrency(widget.data.invoice_value,
+                  //                 withIcon: true),
+                  //             style: GoogleFonts.roboto(
+                  //                 fontSize: 18,
+                  //                 color: HexColor('#0098DB'),
+                  //                 fontWeight: FontWeight.w600),
+                  //           ),
+                  //         ],
+                  //       ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Discount Rate(Per Annum)',
-                        style: lableStyle,
+                        'Edit Bid',
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                            color: Color.fromRGBO(33, 150, 83, 1),
+                            fontFamily: 'Poppins',
+                            fontSize: 24,
+                            letterSpacing:
+                            0 /*percentages not used in flutter. defaulting to zero*/,
+                            fontWeight: FontWeight.normal,
+                            height: 1),
                       ),
                       SizedBox(
-                        height: 12,
+                        width: 10,
                       ),
-                      TextFormField(
-                        controller: myController,
-                        readOnly: true,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly
-                        ],
-                        validator: (value) {
-                          if (value.trim().isEmpty) {
-                            return 'Value cannot be empty';
-                          }
-                          return null;
-                        },
-                        onChanged: (v) {
-                          rate = v;
-                        },
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          suffixIcon: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              '%',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Invoice Value',
+                            textAlign: TextAlign.left,
+                            style: TextStyle(
+                                color: Color.fromRGBO(51, 51, 51, 1),
+                                // fontFamily: 'Poppins',
+                                fontSize: 14,
+                                letterSpacing:
+                                0 /*percentages not used in flutter. defaulting to zero*/,
+                                fontWeight: FontWeight.normal,
+                                height: 1),
                           ),
-                          helperText: '',
-                          hintText: 'Enter interest rate p.a',
+
+                          SizedBox(
+                            height: 10,
+                          ),
+                          // Figma Flutter Generator AmountWidget - FRAME - HORIZONTAL
+                          Container(
+                            decoration: BoxDecoration(),
+                            padding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Text(
+                                  '₦',
+                                  textAlign: TextAlign.left,
+                                  style: TextStyle(
+                                      color: Color.fromRGBO(0, 152, 219, 1),
+                                      fontFamily: 'Poppins',
+                                      fontSize: 18,
+                                      letterSpacing:
+                                      0 /*percentages not used in flutter. defaulting to zero*/,
+                                      fontWeight: FontWeight.normal,
+                                      height: 1),
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  formatCurrency(widget.data.invoice_value),
+                                  textAlign: TextAlign.left,
+                                  style: TextStyle(
+                                      color: Color.fromRGBO(0, 152, 219, 1),
+                                      fontFamily: 'Poppins',
+                                      fontSize: 18,
+                                      letterSpacing:
+                                      0 /*percentages not used in flutter. defaulting to zero*/,
+                                      fontWeight: FontWeight.normal,
+                                      height: 1),
+                                ),
+                              ],
+                            ),
+                          )
+                        ],
+                      )
+                    ],
+                  ),
+                  SizedBox(
+                    height: 8,
+                  ),
+                  UserTextFormField(
+                    label: 'Enter Amount',
+                    prefixIcon: Image.asset("assets/images/currency.png"),
+                    hintText: '0',
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    controller: myController0,
+                    fillColor: Colors.grey[100],
+                    //readOnly: widget.buyNow,
+                    // initialValue: '',
+                    validator: (value) {
+                      if (value.trim().isEmpty) {
+                        return 'Value cannot be empty';
+                      }
+                      return null;
+                    },
+                    onChanged: (v) {
+                      amount = v;
+                      calCul();
+                    },
+                    keyboardType: TextInputType.number,
+                  ),
+                  OrientationSwitcher(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Flexible(
+                        child: UserTextFormField(
+                          label: "Discount Rate p.a.",
+                          suffixIcon: Image.asset("assets/images/%.png"),
+                          hintText: "Rate p.a.",
+                          controller: myController,
+                          fillColor: Colors.grey[100],
+                          readOnly: true,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly
+                          ],
+                          validator: (value) {
+                            if (value.trim().isEmpty) {
+                              return 'Value cannot be empty';
+                            }
+                            return null;
+                          },
+                          onChanged: (v) {
+                            rate = v;
+                          },
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                      // Flexible(
+                      //   child: UserTextFormField(
+                      //     readOnly: true,
+                      //     suffixIcon: Image.asset("assets/images/%.png"),
+                      //     label: "Term Rate",
+                      //     hintText: "Term Interest",
+                      //     controller: myController2,
+                      //     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      //     validator: (value) {
+                      //       if (value.trim().isEmpty) {
+                      //         return 'Value cannot be empty';
+                      //       }
+                      //       return null;
+                      //     },
+                      //     onChanged: (v) {
+                      //       tRate = v;
+                      //     },
+                      //     keyboardType: TextInputType.number,
+                      //   ),
+                      // ),
+                    ],
+                  ),
+                  UserTextFormField(
+                    controller: myController3,
+                    // initialValue: myController3.text,
+                    readOnly: true,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    validator: (value) {
+                      if (value.trim().isEmpty) {
+                        return 'Value cannot be empty';
+                      }
+                      return null;
+                    },
+                    onChanged: (v) {},
+                    keyboardType: TextInputType.number,
+                    label: "Gross Returns",
+                    fillColor: Colors.grey[100],
+                    prefixIcon: Image.asset("assets/images/currency.png"),
+                    hintText: "0",
+                  ),
+                  OrientationSwitcher(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Flexible(
+                        child: UserTextFormField(
+                          readOnly: true,
+                          controller: myController4,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly
+                          ],
+                          validator: (value) {
+                            if (value.trim().isEmpty) {
+                              return 'Value cannot be empty';
+                            }
+                            return null;
+                          },
+                          onChanged: (v) {},
+                          keyboardType: TextInputType.number,
+                          fillColor: Colors.grey[100],
+                          label: "Platform charges",
+                          hintText: "0",
+                        ),
+                      ),
+                      Flexible(
+                        child: UserTextFormField(
+                          controller: myController5,
+                          readOnly: true,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly
+                          ],
+                          validator: (value) {
+                            if (value.trim().isEmpty) {
+                              return 'Value cannot be empty';
+                            }
+                            return null;
+                          },
+                          onChanged: (v) {},
+                          keyboardType: TextInputType.number,
+                          fillColor: Colors.grey[100],
+                          label: "Net Returns",
+                          prefixIcon: Image.asset("assets/images/currency.png"),
+                          hintText: "0",
                         ),
                       ),
                     ],
                   ),
-                ),
-                SizedBox(
-                  width: 15,
-                ),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Term Rate',
-                        style: lableStyle,
-                      ),
-                      SizedBox(
-                        height: 12,
-                      ),
-                      TextFormField(
-                        readOnly: true,
-                        controller: myController2,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly
-                        ],
-                        validator: (value) {
-                          if (value.trim().isEmpty) {
-                            return 'Value cannot be empty';
-                          }
-                          return null;
-                        },
-                        onChanged: (v) {
-                          tRate = v;
-                        },
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          suffixIcon: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text(
-                              '%',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
+                  SizedBox(
+                    height: 15,
+                  ),
+                  if (!_loading)
+                    if (!_loading)
+                      Align(
+                        alignment: Alignment.center,
+                        child: Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width,
+                            child: InkWell(
+                              onTap: () async {
+                                // capsaPrint(rate);
+                                // capsaPrint(tRate);
+                                // capsaPrint(amount);
+                                setState(() {
+                                  _loading = true;
+                                });
+
+                                if (amount.trim() == '') return;
+                                dynamic response = await bidEdit(widget.data,
+                                    amt: amount, rate: rate);
+                                capsaPrint('Edit Invoice Response : $response');
+
+                                setState(() {
+                                  _loading = false;
+                                });
+
+                                if (response['msg'] == 'success') {
+                                  showToast(
+                                      'Bid Editted Successfully', context);
+                                  bidUpdated = true;
+                                  setState(() {});
+                                  //Navigator.pop(context);
+                                  //context.beamBack();
+                                }
+
+                                // return;
+                                // await widget.openDealProvider.bidEditCall(context, widget.data, widget.proposalProvider, tRate: tRate, rate: rate, amt: amount);
+                              },
+                              child: Container(
+                                width: double.infinity,
+                                height: 49,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: Radius.circular(15),
+                                    topRight: Radius.circular(15),
+                                    bottomLeft: Radius.circular(15),
+                                    bottomRight: Radius.circular(15),
+                                  ),
+                                  color: Color.fromRGBO(0, 152, 219, 1),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 10),
+                                child: Center(
+                                  child: Text(
+                                    'Edit Bid',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                        color: Color.fromRGBO(242, 242, 242, 1),
+                                        fontFamily: 'Poppins',
+                                        fontSize: 16,
+                                        letterSpacing:
+                                            0 /*percentages not used in flutter. defaulting to zero*/,
+                                        fontWeight: FontWeight.normal,
+                                        height: 1),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                          helperText: '',
-                          hintText: 'Enter Term Interest',
+                        ),
+                      )
+                    else
+                      Align(
+                          alignment: Alignment.centerRight,
+                          child: CircularProgressIndicator()),
+                ],
+              )
+            : Column(
+                //mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  // SizedBox(
+                  //   height: Responsive.isMobile(context)?4 : 8,
+                  // ),
+                  Image.asset('assets/icons/check.png', height: 80,),
+                  SizedBox(
+                    height: Responsive.isMobile(context)?14 : 20,
+                  ),
+                  Text(
+                    'Bid Updated',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        color: HexColor('#333333'),
+                        fontWeight: FontWeight.w600),
+                  ),
+                  SizedBox(
+                    height: Responsive.isMobile(context)?14 : 20,
+                  ),
+                  Container(
+                    width: Responsive.isMobile(context)?220 : 328,
+                    child: Text(
+                      'The  vendor will review your bid and take action on it. You will be notified as soon as this happens.',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: HexColor('#333333'),
+                          fontWeight: FontWeight.w400),
+                    ),
+                  ),
+                  SizedBox(
+                    height: Responsive.isMobile(context)?14 : 20,
+                  ),
+                  InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      height: 49,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(15),
+                          topRight: Radius.circular(15),
+                          bottomLeft: Radius.circular(15),
+                          bottomRight: Radius.circular(15),
+                        ),
+                        color: Color.fromRGBO(0, 152, 219, 1),
+                      ),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                      child: Center(
+                        child: Text(
+                          'Back To Bid Details',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              color: Color.fromRGBO(242, 242, 242, 1),
+                              fontFamily: 'Poppins',
+                              fontSize: 16,
+                              letterSpacing:
+                                  0 /*percentages not used in flutter. defaulting to zero*/,
+                              fontWeight: FontWeight.normal,
+                              height: 1),
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(
-            height: 12,
-          ),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Row(
-              children: [
-                Text(
-                  'Expected Returns', //  Expected Net Returns
-                  style: lableStyle,
-                ),
-                SizedBox(
-                  width: 20,
-                ),
-                Tooltip(
-                  decoration: BoxDecoration(color: Colors.black87),
-                  margin: EdgeInsets.symmetric(horizontal: 2.0, vertical: 2.0),
-                  preferBelow: false,
-                  textStyle: TextStyle(fontSize: 12, color: Colors.white),
-                  message: _message,
-                  child: Icon(LineAwesomeIcons.info_circle),
-
-                  // onTap: () {
-                  //   capsaPrint('dsds');
-                  // },
-                ),
-              ],
-            ),
-            // child:  ListTile(
-            //   trailing:  Icon(LineAwesomeIcons.info_circle),
-            //   contentPadding: EdgeInsets.symmetric(horizontal: 2.0,vertical: 0.0),
-            //   onTap: (){
-            //
-            //   },
-            // title: Text(
-            //   'Expected Returns', //  Expected Net Returns
-            //   style: TextStyle(),
-            // ),
-            // ),
-          ),
-          SizedBox(
-            height: 12,
-          ),
-          TextFormField(
-            controller: myController3,
-            // initialValue: myController3.text,
-            readOnly: true,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-            validator: (value) {
-              if (value.trim().isEmpty) {
-                return 'Value cannot be empty';
-              }
-              return null;
-            },
-            onChanged: (v) {},
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              prefixIcon: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  '₦',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                ],
               ),
-              helperText: '',
-              hintText: 'Expected Returns',
-            ),
-          ),
-          SizedBox(
-            height: 15,
-          ),
-          if (!_loading)
-            Align(
-              alignment: Alignment.centerRight,
-              child: MaterialButton(
-                color: const Color(0xFF7889d5),
-                child: Text(
-                  'Submit',
-                  style: TextStyle(color: Colors.white),
-                ),
-                onPressed: () async {
-                  // capsaPrint(rate);
-                  // capsaPrint(tRate);
-                  // capsaPrint(amount);
-
-                  if (amount.trim() == '') return;
-                  setState(() {
-                    _loading = true;
-                  });
-                  // return;
-                  // await widget.openDealProvider.bidEditCall(context, widget.data, widget.proposalProvider, tRate: tRate, rate: rate, amt: amount);
-                },
-              ),
-            )
-          else
-            Align(
-                alignment: Alignment.centerRight,
-                child: CircularProgressIndicator()),
-        ],
       ),
+    );
+  }
+}
+
+showDeleteBidDialog(
+  BuildContext context,
+  OpenDealModel data,
+  String amt,
+) {
+  return showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(32.0))),
+        backgroundColor: HexColor("#F5FBFF"),
+        content: ShowDeleteBidContentMyClass(data, amt, context),
+      );
+    },
+  ).then((value) {
+    if (bidDeleted) {
+      bidDeleted = false;
+      context.beamBack();
+    }
+  });
+}
+
+class ShowDeleteBidContentMyClass extends StatefulWidget {
+  final OpenDealModel data;
+  String amt;
+  BuildContext context1;
+
+  ShowDeleteBidContentMyClass(this.data, this.amt, this.context1);
+
+  @override
+  _ShowDeleteBidContentMyClassState createState() =>
+      _ShowDeleteBidContentMyClassState();
+}
+
+class _ShowDeleteBidContentMyClassState
+    extends State<ShowDeleteBidContentMyClass> {
+  bool _loading = false;
+  bool bidDeletedSuccessfully = false;
+
+  Future<Object> deleteBid(OpenDealModel invoice,
+      {String rate, String amt, String tRate}) async {
+    if (box.get('isAuthenticated', defaultValue: false)) {
+      var userData = Map<String, dynamic>.from(box.get('userData'));
+
+      // var invoicedays = 0;
+      //
+      // var payableamount = double.parse(invoice.invoice_value);
+      // var purchaseprice;
+      // if (amt != null) {
+      //   double _amt = double.parse(amt);
+      //   purchaseprice = _amt;
+      // } else {
+      //   purchaseprice = double.parse(invoice.ask_amt);
+      // }
+      //
+      // DateTime invoiceDate =
+      //     new DateFormat("yyyy-MM-dd").parse(invoice.start_date);
+      //
+      // DateTime invoiceDueDate =
+      //     new DateFormat("yyyy-MM-dd").parse(invoice.due_date);
+      //
+      // // invoice.invDate = DateFormat.yMMMd('en_US').format(invoiceDate);
+      // // invoice.invDueDate = DateFormat.yMMMd('en_US').format(invoiceDueDate);
+      // invoicedays = invoiceDueDate.difference(invoiceDate).inDays;
+      //
+      // var termRate =
+      //     (1 / invoicedays) * (payableamount / purchaseprice - 1) * invoicedays;
+      // termRate = termRate * 100;
+      // termRate = termRate.toPrecision(2);
+      //
+      // var rate = (1 / invoicedays) * (payableamount / purchaseprice - 1) * 360;
+      // rate = rate * 100;
+      // rate = rate.toPrecision(2);
+
+      // return null;
+
+      var _body = {};
+
+      _body['investor_pan'] = userData['panNumber'];
+      _body['userName'] = userData['userName'];
+      _body['role'] = userData['role'];
+      _body['new_prop_amt'] = amt.toString();
+      _body['discount_per'] = rate.toString();
+
+      _body['pay_amt'] = '';
+      // _body['discount_val'] = openInvoice.;
+      _body['plt_fee'] = '';
+      _body['pay_amt'] = '';
+      _body['from_popup'] = '1';
+      // _body['comp_pan'] = invoice.comp_pan;
+      // _body['cust_pan'] = invoice.cust_pan;
+      // _body['prop_amt'] = invoice.prop_amt;
+      // _body['discper1'] = openInvoice.discper;
+      // _body['childcontract1'] = openInvoice.childcontract;
+      _body['duedate1'] = invoice.due_date;
+      _body['inv_number'] = invoice.invoice_number;
+      _body['invval1'] = invoice.invoice_value;
+      _body['start_date'] = invoice.start_date;
+      _body['due_date'] = invoice.due_date;
+      // _body['click_type'] = clickType.toString();
+
+      //_body['diffDays'] = invoicedays.toString();
+
+      // capsaPrint(_body);
+      // return null;
+      String _url = apiUrl;
+
+      dynamic _uri;
+      _uri = _url + 'dashboard/i/deleteBid';
+      _uri = Uri.parse(_uri);
+      var response = await http.post(_uri,
+          headers: <String, String>{
+            'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+          },
+          body: _body);
+      var data = jsonDecode(response.body);
+
+      capsaPrint('Delete response : $data');
+
+      // if (data['res'] == 'success') {
+      //   var _data = data['data'];
+      //
+      //   notifyListeners();
+      // }
+
+      return data;
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    //OpenDealProvider openDealProvider = Provider.of<OpenDealProvider>(context, listen: false);
+    return Container(
+      constraints: BoxConstraints(minWidth: Responsive.isMobile(context)?280 : 360,),
+      child: !bidDeletedSuccessfully
+          ? Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  height: Responsive.isMobile(context) ? 12 : 20,
+                ),
+                Image.asset('assets/icons/warning.png'),
+                SizedBox(
+                  height: Responsive.isMobile(context) ? 12 : 20,
+                ),
+                Text(
+                  'Cancel Bid',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                      fontSize: Responsive.isMobile(context) ? 18 : 22,
+                      color: HexColor('#333333'),
+                      fontWeight: FontWeight.w700),
+                ),
+                SizedBox(
+                  height: Responsive.isMobile(context) ? 12 : 20,
+                ),
+                Text(
+                  Responsive.isMobile(context)
+                      ? 'This bid will no longer be presented to the vendor for consideration. Are you sure you want to continue?'
+                      : 'This bid will no longer be presented to the\nvendor for consideration. Are you sure you\nwant to continue?',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: HexColor('#333333'),
+                      fontWeight: FontWeight.w500),
+                ),
+                SizedBox(
+                  height: Responsive.isMobile(context) ? 14 : 20,
+                ),
+                if (!_loading)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      InkWell(
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
+                        child: Container(
+                          width: !Responsive.isMobile(context) ? 150 : 100,
+                          height: 49,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(15),
+                                topRight: Radius.circular(15),
+                                bottomLeft: Radius.circular(15),
+                                bottomRight: Radius.circular(15),
+                              ),
+                              border: Border.all(
+                                  color: Color.fromRGBO(0, 152, 219, 1),
+                                  width: 2),
+                              color: Colors.white),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 10),
+                          child: Center(
+                            child: Text(
+                              'No',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: Color.fromRGBO(0, 152, 219, 1),
+                                  fontFamily: 'Poppins',
+                                  fontSize: 16,
+                                  letterSpacing:
+                                      0 /*percentages not used in flutter. defaulting to zero*/,
+                                  fontWeight: FontWeight.normal,
+                                  height: 1),
+                            ),
+                          ),
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () async {
+                          setState(() {
+                            _loading = true;
+                          });
+
+                          dynamic response = await deleteBid(
+                            widget.data,
+                          );
+                          capsaPrint('Edit Invoice Response : $response');
+
+                          setState(() {
+                            _loading = false;
+                          });
+
+                          if (response['msg'] == 'success') {
+                            //showToast('Bid Deleted Successfully', context);
+                            bidDeleted = true;
+                            bidDeletedSuccessfully = true;
+                            //Navigator.pop(context);
+                            //widget.context1.beamBack();
+                          }
+
+                          //Navigator.pop(context);
+                        },
+                        child: Container(
+                          width: !Responsive.isMobile(context) ? 150 : 100,
+                          height: 49,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(15),
+                              topRight: Radius.circular(15),
+                              bottomLeft: Radius.circular(15),
+                              bottomRight: Radius.circular(15),
+                            ),
+                            color: Color.fromRGBO(0, 152, 219, 1),
+                          ),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 10),
+                          child: Center(
+                            child: Text(
+                              'Yes',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: Color.fromRGBO(242, 242, 242, 1),
+                                  fontFamily: 'Poppins',
+                                  fontSize: 16,
+                                  letterSpacing:
+                                      0 /*percentages not used in flutter. defaulting to zero*/,
+                                  fontWeight: FontWeight.normal,
+                                  height: 1),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  const Align(
+                      alignment: Alignment.center,
+                      child: CircularProgressIndicator()),
+              ],
+            )
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  height: 20,
+                ),
+                Image.asset('assets/icons/check.png'),
+                SizedBox(
+                  height: Responsive.isMobile(context) ? 12 : 20,
+                ),
+                Text(
+                  'Bid Cancelled',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: HexColor('#333333'),
+                      fontWeight: FontWeight.w600),
+                ),
+                SizedBox(
+                  height: Responsive.isMobile(context) ? 12 : 20,
+                ),
+                Text(
+                  'Your bid has been cancelled.\nYou can still place a fresh bid on\nthis invoice or check out other\ninvoices.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: HexColor('#333333'),
+                      fontWeight: FontWeight.w400),
+                ),
+                SizedBox(
+                  height: Responsive.isMobile(context) ? 12 : 20,
+                ),
+                InkWell(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    height: 49,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(15),
+                        topRight: Radius.circular(15),
+                        bottomLeft: Radius.circular(15),
+                        bottomRight: Radius.circular(15),
+                      ),
+                      color: Color.fromRGBO(0, 152, 219, 1),
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                    child: Center(
+                      child: Text(
+                        'Back To My Bids',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: Color.fromRGBO(242, 242, 242, 1),
+                            fontFamily: 'Poppins',
+                            fontSize: 16,
+                            letterSpacing:
+                                0 /*percentages not used in flutter. defaulting to zero*/,
+                            fontWeight: FontWeight.normal,
+                            height: 1),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }
@@ -1057,7 +1908,7 @@ class _MyPayButtonClassState extends State<MyPayButtonClass> {
                   } else {
                     showToast(_response['messg'], context, type: 'warning');
                   }
-                  widget.openDealProvider.queryOpenDealList();
+                  //widget.openDealProvider.queryOpenDealList();
                   Navigator.of(context, rootNavigator: true).pop();
                   context.beamToNamed('/my-bids');
                 },

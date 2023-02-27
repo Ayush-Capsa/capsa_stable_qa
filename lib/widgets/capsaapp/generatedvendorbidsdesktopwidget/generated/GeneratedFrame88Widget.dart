@@ -8,11 +8,12 @@ import 'package:capsa/widgets/capsaapp/generatedvendorbidsdesktopwidget/generate
   */
 class GeneratedFrame88Widget extends StatelessWidget {
   final BidsModel bidsModel;
-  GeneratedFrame88Widget(this.bidsModel, {Key key}) : super(key: key);
+  final String title;
+  GeneratedFrame88Widget(this.title,this.bidsModel, {Key key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 53.0,
+      width: 58.0,
       height: 31.0,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15.0),
@@ -35,7 +36,7 @@ class GeneratedFrame88Widget extends StatelessWidget {
               bottom: null,
               width: 42.0,
               height: 20.0,
-              child: GeneratedAnchorWidget(),
+              child: GeneratedAnchorWidget(title: title,),
             )
           ]),
     );

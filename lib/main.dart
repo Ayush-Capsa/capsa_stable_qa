@@ -36,16 +36,30 @@ import 'investor/pages/AnchorAnalysisPage/provider/anchor_analysis_provider.dart
 import 'providers/auth_provider.dart';
 import 'signup/signup.dart';
 
+// Future<void> main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   //capsaPrint = (String message, {int wrapWidth}) {};
+//   await Hive.initFlutter();
+//   const String _appTitle = 'Capsa Quality';
+//   const String _buildFlavour = 'dev';
+//   const String _ip = 'https://getcapsa.ml/api/';
+//   // const String _ip = 'http://127.0.0.1:3012/';
+//   runMain(appTitle: _appTitle, buildFlavour: _buildFlavour, ip: _ip);
+// }
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  //capsaPrint = (String message, {int wrapWidth}) {};
   await Hive.initFlutter();
+  // if (!Hive.isAdapterRegistered(1)) {
+  //   Hive.registerAdapter(DataModelAdapter());
+  // }
   const String _appTitle = 'Capsa Quality';
   const String _buildFlavour = 'dev';
-  const String _ip = 'https://getcapsa.ml/api/';
+  const String _ip = 'https://getcapsaquality.com/api/';
   // const String _ip = 'http://127.0.0.1:3012/';
   runMain(appTitle: _appTitle, buildFlavour: _buildFlavour, ip: _ip);
 }
+
 
 
 Future<void> runMain(
@@ -283,24 +297,28 @@ class CapsaHome extends StatelessWidget {
 
     var _role = "";
     if (box.get('isAuthenticated', defaultValue: false)) {
+      capsaPrint('Pass 1 auth');
       var _auth = authProvider.isAuthenticated;
       userData = Map<String, dynamic>.from(box.get('userData'));
-      authProvider.authChange(true, userData['role']);
+      authProvider.authChange(true, userData['role'], notify: false);
       authProvider.setUserdata(userData);
       _role = userData['role'];
     }
 
-    if (loginTime != null) if (now.difference(loginTime).inMilliseconds > 0) {
-      // print('Auto logout');
-      box.put('isAuthenticated', false);
-      box.delete('userData');
-      box.delete('loginUserData');
-      box.delete('loginTime');
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      authProvider.authChange(false, '');
-      // Beamer.of(context).beamToNamed('/sign_in', replaceCurrent: true);
-      // print(pass           wordResetToken);
-      return Signup(passwordResetToken: passwordResetToken);
+    if (loginTime != null) {
+      if (now.difference(loginTime).inMilliseconds > 0) {
+        // print('Auto logout');\
+        capsaPrint('Pass 2');
+        box.put('isAuthenticated', false);
+        box.delete('userData');
+        box.delete('loginUserData');
+        box.delete('loginTime');
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        authProvider.authChange(false, '');
+        // Beamer.of(context).beamToNamed('/sign_in', replaceCurrent: true);
+        // print(pass           wordResetToken);
+        return Signup(passwordResetToken: passwordResetToken);
+      }
     }
 
     if (_role == 'ADMIN') {

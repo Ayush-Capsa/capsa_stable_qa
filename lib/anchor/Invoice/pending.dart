@@ -92,7 +92,7 @@ class _pendingScreenState extends State<pendingScreen> {
       ),
       Container(
         padding: const EdgeInsets.only(top: 8, bottom: 8),
-        child: const Text('Invoice no',
+        child: const Text('Invoice No',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -476,7 +476,7 @@ class _pendingScreenState extends State<pendingScreen> {
         ),
         Container(
           padding: const EdgeInsets.only(top: 8, bottom: 8),
-          child: const Text('Invoice no',
+          child: const Text('Invoice No',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -832,7 +832,7 @@ class _pendingScreenState extends State<pendingScreen> {
         ),
         Container(
           padding: const EdgeInsets.only(top: 8, bottom: 8),
-          child: Text('Invoice no',
+          child: Text('Invoice No',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -1761,7 +1761,7 @@ class _SuperAdminContainerViewState extends State<SuperAdminContainerView> {
                             Expanded(
                               child: InkWell(
                                 onTap: () async {
-                                  capsaPrint('Reject');
+                                  capsaPrint('Reject x');
                                   setState(() {
                                     _loading = true;
                                   });
@@ -1786,7 +1786,7 @@ class _SuperAdminContainerViewState extends State<SuperAdminContainerView> {
                                     // Navigator.of(context, rootNavigator: true).pop();
 
                                     widget.functionStateChange();
-                                    Navigator.pop(context);
+                                    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => CapsaHome()));
                                   } else {
                                     showToast('Unable to proceed', context);
                                   }
@@ -2248,7 +2248,7 @@ class _SubAdminInvoiceContainerViewState
                                           // Navigator.of(context, rootNavigator: true).pop();
 
                                           widget.functionStateChange();
-                                          Navigator.pop(context);
+                                          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => CapsaHome()));
                                         } else {
                                           showToast(
                                               'Unable to proceed', context);

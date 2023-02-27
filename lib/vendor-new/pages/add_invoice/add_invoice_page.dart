@@ -447,7 +447,7 @@ class _AddInvoiceState extends State<AddInvoice> {
                                         Flexible(
                                           child: UserTextFormField(
                                             label: "Invoice No",
-                                            hintText: "Invoice umber",
+                                            hintText: "Invoice Number",
                                             controller: invoiceNoController,
                                             onChanged: (v) {
                                               String s = v;
@@ -500,6 +500,7 @@ class _AddInvoiceState extends State<AddInvoice> {
                                             hintText: "Enter invoice amount",
                                             prefixIcon:
                                             getCurrencyIcon('NGN'),
+                                            note: 'Invoice amount should not include\nVAT fee',
                                             // Image.asset(
                                             //     "assets/images/currency.png"),
                                             controller: invoiceAmtController,
@@ -949,7 +950,7 @@ class _AddInvoiceState extends State<AddInvoice> {
                                   ],
                                 )),
                             SizedBox(
-                              width: 25,
+                              height: 40,
                             ),
                             Flexible(
                                 flex: 1,
@@ -1007,7 +1008,7 @@ class _AddInvoiceState extends State<AddInvoice> {
         width: MediaQuery.of(context).size.width,
         height: 60,
         decoration: BoxDecoration(
-          color: Color.fromRGBO(255, 255, 255, 1),
+          //color: Color.fromRGBO(255, 255, 255, 1),
         ),
         child: Center(
           child: Stack(children: <Widget>[
@@ -1015,7 +1016,7 @@ class _AddInvoiceState extends State<AddInvoice> {
                 top: 14,
                 left: 104,
                 child: Container(
-                    width: 80,
+                    width: 180,
                     height: 4,
                     decoration: BoxDecoration(
                       color: Color.fromRGBO(130, 130, 130, 1),
@@ -1058,7 +1059,7 @@ class _AddInvoiceState extends State<AddInvoice> {
                 )),
             Positioned(
                 top: 0,
-                left: 184,
+                left: 264,
                 child: Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.only(

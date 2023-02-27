@@ -1,6 +1,7 @@
 import 'package:capsa/common/constants.dart';
 import 'package:capsa/functions/call_api.dart';
 import 'package:capsa/models/profile_model.dart';
+import 'package:capsa/vendor-new/model/account_letter_model.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,7 @@ class ProfileProvider extends ChangeNotifier {
   List _bankList = [];
   bool _withdrawResponseReceived = false;
   dynamic _withdrawResponse;
+  BankDetails statementBankDetails;
 
   PortfolioData _portfolioData = PortfolioData(
     totalDiscount: 0,
@@ -50,6 +52,9 @@ class ProfileProvider extends ChangeNotifier {
   bool get withdrawResponseReceived => _withdrawResponseReceived;
 
   List get bankList => _bankList;
+
+  BankDetails get getStatementBankDetails =>
+      statementBankDetails;
 
   List _userDetails = [];
 
@@ -184,26 +189,35 @@ class ProfileProvider extends ChangeNotifier {
   }
 
   Future<Object> queryPortfolioData2() async {
-    capsaPrint('queryPortfolioData');
+    capsaPrint('queryPortfolioData 2 ');
     if (box.get('isAuthenticated', defaultValue: false)) {
+      capsaPrint('Query Data pass 0');
+
       var userData = Map<String, dynamic>.from(box.get('userData'));
+
+      capsaPrint('Query Data pass 0.1');
 
       var _body = {};
       _body['panNumber'] = userData['panNumber'];
       // _body['panNumber'] = userData['panNumber'];
       _body['userName'] = userData['userName'];
-
+      capsaPrint('Query Data pass 0.2');
       dynamic _uri;
       _uri = apiUrl + 'dashboard/i/portfolio';
       _uri = Uri.parse(_uri);
+      capsaPrint('Query Data pass 0.3 $_uri $_body');
       var response = await http.post(_uri,
           headers: <String, String>{
             'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
           },
           body: _body);
+      capsaPrint('Query Data pass 0.4 \n${response.body}');
       var data = jsonDecode(response.body);
+      capsaPrint('Query Data pass 1');
       if (data['res'] == 'success') {
+        capsaPrint('Query Data pass 2');
         var _data = data['data'];
+        capsaPrint('Query Data pass 3');
 
         if (_data['totalDiscount'] == null) _data['totalDiscount'] = 0;
         if (_data['grandannualExpReturn'] == null)
@@ -228,6 +242,7 @@ class ProfileProvider extends ChangeNotifier {
             if (element['payment_status'] == 0) upPmt.add(element);
           });
         }
+        capsaPrint('Query Data pass 4');
 
         capsaPrint('Portfolio Data WEEK: $data');
 
@@ -598,9 +613,18 @@ class ProfileProvider extends ChangeNotifier {
             chq_copy: element['chq_copy'] != null
                 ? element['chq_copy'].toString()
                 : '',
+            inflow: element['totalInflow'].toString(),
+            outflow: element['totalOutflow'] != null
+                ? element['totalOutflow'].toString()
+                : '',
+
           );
 
-          _bankDetails.add(_tmpBankDetails);
+          //capsaPrint('_data 2 ${element['totalInflow'].toString()} ${_tmpBankDetails.inflow} ${_tmpBankDetails.outflow} ${_tmpBankDetails.bene_bvn} ${_tmpBankDetails.account_number}');
+
+
+          bankDetails.add(_tmpBankDetails);
+          statementBankDetails = _tmpBankDetails;
         });
 
         bankDetails.addAll(_bankDetails);
@@ -1022,4 +1046,123 @@ class ProfileProvider extends ChangeNotifier {
     var data = jsonDecode(response.body);
     return data;
   }
+
+  Future<Object> getAccountLetters() async {
+    dynamic _uri;
+    capsaPrint('pass 1 account letter');
+    _uri = apiUrl + 'dashboard/r/getAnchors';
+    _uri = Uri.parse(_uri);
+    var userData = Map<String, dynamic>.from(box.get('userData'));
+    var _body = {};
+    _body['panNumber'] = userData['panNumber'];
+    capsaPrint('pass 2 account letter $_body');
+    var response = await http.post(_uri,
+        headers: <String, String>{
+          'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+        },
+        body: _body);
+
+    var data = jsonDecode(response.body);
+
+    capsaPrint('pass 3 account letter \n$data\n\n');
+
+
+
+    capsaPrint('pass 3.1 account letter ${data['anchorsList']}\n\n');
+
+    List<String> anchorsNameList = [];
+
+    for(int i = 0;i<data['anchorsList'].length;i++){
+      capsaPrint('pass 3.1 account letter ${data['anchorsList'][i]}\n\n');
+      anchorsNameList.add(data['anchorsList'][i].toString());
+    }
+
+
+
+    capsaPrint('Pass 4 account letter');
+
+    var accountLetterList = data['data'];
+    List<AccountLetterModel> accountLetterModels = [];
+    capsaPrint('Pass 5 account letter');
+    accountLetterList.forEach((element) {
+      AccountLetterModel model = AccountLetterModel(
+        element['anchor_name'] ?? "",
+        element['companyPan'] ?? "",
+        element['customerPan'] ?? "",
+        element['account_letter_url'] ?? "",
+        element['account_letter_ext'] ?? "",
+        element['uploaded'] != null ? element['uploaded'].toString() : "",
+        element['approved'] != null ? element['approved'].toString() : "",
+      );
+      accountLetterModels.add(model);
+    });
+    capsaPrint('Pass 6 account letter');
+
+    AnchorsListApiModel anchorsList = AnchorsListApiModel(anchorsNameList, accountLetterModels);
+
+    //anchorsList.accountLetters = accountLetterModels;
+
+    capsaPrint('Pass 7 account letter');
+
+    return anchorsList;
+  }
+
+  Future<Object> saveAnchorList(List<dynamic> cuGst) async {
+    var _body = {};
+    var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
+    dynamic _uri;
+    var _role = userData['role'];
+
+    _uri = apiUrl + 'signup/saveAnchors';
+
+    String anchorPan = '';
+    for(int i = 0;i<cuGst.length;i++){
+      if(i == 0){
+        anchorPan += cuGst[i];
+      }else{
+        anchorPan += ' ' + cuGst[i];
+      }
+    }
+
+    _uri = Uri.parse(_uri);
+    _body['vendorPan'] = userData['panNumber'];
+    _body['anchorPan'] = anchorPan;
+
+    _body['bvnNo'] = userData['panNumber'];
+    _body['bvn'] = userData['panNumber'];
+    var response = await http.post(_uri, headers: <String, String>{
+      'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+    }, body: _body);
+    capsaPrint('save anchor $_uri $_body');
+    capsaPrint(response.body);
+    var data = jsonDecode(response.body);
+    return data;
+
+    return null;
+  }
+
+  Future getAnchorsList() async {
+    dynamic _uri = apiUrl + 'signup/getAllAnchors';
+    _uri = Uri.parse(_uri);
+    var _body = {};
+    var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
+    _body['panNumber'] = userData['panNumber'];
+    capsaPrint('company name pass 1 anchors list');
+    var response = await http.post(_uri, headers: <String, String>{
+      'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+    }, body: _body);
+    capsaPrint('company name pass 2');
+    capsaPrint(response.body);
+    var data = jsonDecode(response.body);
+
+    // if (data['res'] == 'success') {
+    //   for (int i = 0; i < data['data'].length; i++) {
+    //     _anchorsNameList.add(data['data'][i]['name']);
+    //     _cinList[data['data'][i]['name']] = data['data'][i]['cu_pan'];
+    //   }
+    // }
+
+    return data;
+  }
+
 }

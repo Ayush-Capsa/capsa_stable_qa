@@ -76,7 +76,7 @@ class _OnBoardPageState extends State<OnBoardPage> {
       text1 = "Enjoy Invoice Discounting";
       text2 = "Sign up on";
     } else if (type == "Investor") {
-      text1 = "Invest in discounted invoice.";
+      text1 = "Invest in discounted invoices.";
       text2 = "Sign up on";
     }
     // capsaPrint('type2');

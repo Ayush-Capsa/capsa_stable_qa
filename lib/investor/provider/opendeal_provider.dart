@@ -592,75 +592,75 @@ class OpenDealProvider extends ChangeNotifier {
     }
   }
 
-  Future<Object> bidEdit(ProposalModel invoice,
+  Future<Object> bidEdit(OpenDealModel invoice,
       {String rate, String amt, String tRate}) async {
     if (box.get('isAuthenticated', defaultValue: false)) {
       var userData = Map<String, dynamic>.from(box.get('userData'));
 
-      var invoicedays = 0;
-
-      var payableamount = double.parse(invoice.invoice_value);
-      var purchaseprice;
-      if (amt != null) {
-        double _amt = double.parse(amt);
-        purchaseprice = _amt;
-      } else {
-        purchaseprice = double.parse(invoice.ask_amt);
-      }
-
-      DateTime invoiceDate =
-          new DateFormat("yyyy-MM-dd").parse(invoice.start_date);
-
-      DateTime invoiceDueDate =
-          new DateFormat("yyyy-MM-dd").parse(invoice.due_date);
-
-      // invoice.invDate = DateFormat.yMMMd('en_US').format(invoiceDate);
-      // invoice.invDueDate = DateFormat.yMMMd('en_US').format(invoiceDueDate);
-      invoicedays = invoiceDueDate.difference(invoiceDate).inDays;
-
-      var termRate =
-          (1 / invoicedays) * (payableamount / purchaseprice - 1) * invoicedays;
-      termRate = termRate * 100;
-      termRate = termRate.toPrecision(2);
-
-      var rate = (1 / invoicedays) * (payableamount / purchaseprice - 1) * 360;
-      rate = rate * 100;
-      rate = rate.toPrecision(2);
+      // var invoicedays = 0;
+      //
+      // var payableamount = double.parse(invoice.invoice_value);
+      // var purchaseprice;
+      // if (amt != null) {
+      //   double _amt = double.parse(amt);
+      //   purchaseprice = _amt;
+      // } else {
+      //   purchaseprice = double.parse(invoice.ask_amt);
+      // }
+      //
+      // DateTime invoiceDate =
+      //     new DateFormat("yyyy-MM-dd").parse(invoice.start_date);
+      //
+      // DateTime invoiceDueDate =
+      //     new DateFormat("yyyy-MM-dd").parse(invoice.due_date);
+      //
+      // // invoice.invDate = DateFormat.yMMMd('en_US').format(invoiceDate);
+      // // invoice.invDueDate = DateFormat.yMMMd('en_US').format(invoiceDueDate);
+      // invoicedays = invoiceDueDate.difference(invoiceDate).inDays;
+      //
+      // var termRate =
+      //     (1 / invoicedays) * (payableamount / purchaseprice - 1) * invoicedays;
+      // termRate = termRate * 100;
+      // termRate = termRate.toPrecision(2);
+      //
+      // var rate = (1 / invoicedays) * (payableamount / purchaseprice - 1) * 360;
+      // rate = rate * 100;
+      // rate = rate.toPrecision(2);
 
       // return null;
 
       var _body = {};
 
-      _body['panNumber'] = userData['panNumber'];
+      _body['investor_pan'] = userData['panNumber'];
       _body['userName'] = userData['userName'];
       _body['role'] = userData['role'];
-      _body['discount_val'] = purchaseprice.toString();
-      _body['discount_percentage'] = rate.toString();
+      _body['new_prop_amt'] = amt.toString();
+      _body['discount_per'] = rate.toString();
 
       _body['pay_amt'] = '';
       // _body['discount_val'] = openInvoice.;
       _body['plt_fee'] = '';
       _body['pay_amt'] = '';
       _body['from_popup'] = '1';
-      _body['comp_pan'] = invoice.comp_pan;
-      _body['cust_pan'] = invoice.cust_pan;
-      _body['prop_amt'] = invoice.prop_amt;
+      // _body['comp_pan'] = invoice.comp_pan;
+      // _body['cust_pan'] = invoice.cust_pan;
+      // _body['prop_amt'] = invoice.prop_amt;
       // _body['discper1'] = openInvoice.discper;
       // _body['childcontract1'] = openInvoice.childcontract;
       _body['duedate1'] = invoice.due_date;
-      _body['invoice_number'] = invoice.invoice_number;
+      _body['inv_number'] = invoice.invoice_number;
       _body['invval1'] = invoice.invoice_value;
       _body['start_date'] = invoice.start_date;
       _body['due_date'] = invoice.due_date;
       // _body['click_type'] = clickType.toString();
 
-      _body['diffDays'] = invoicedays.toString();
+      //_body['diffDays'] = invoicedays.toString();
 
       // capsaPrint(_body);
       // return null;
 
       dynamic _uri;
-      _uri = _url + 'dashboard/i/editproposal';
+      _uri = _url + 'dashboard/i/editbid';
       _uri = Uri.parse(_uri);
       var response = await http.post(_uri,
           headers: <String, String>{
@@ -669,7 +669,7 @@ class OpenDealProvider extends ChangeNotifier {
           body: _body);
       var data = jsonDecode(response.body);
 
-      // capsaPrint(data);
+      capsaPrint('Edit response : $data');
 
       // if (data['res'] == 'success') {
       //   var _data = data['data'];
@@ -1023,6 +1023,7 @@ class OpenDealProvider extends ChangeNotifier {
         },
         body: _body);
     var data = jsonDecode(response.body);
+    await queryOpenDealList();
     return data;
   }
 

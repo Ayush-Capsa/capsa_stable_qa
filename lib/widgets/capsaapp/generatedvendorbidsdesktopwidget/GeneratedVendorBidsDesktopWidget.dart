@@ -15,9 +15,10 @@ import 'generated/GeneratedFrame89Widget.dart';
 class GeneratedVendorBidsDesktopWidget extends StatelessWidget {
   final BidsModel bidsModel;
   final Widget actionWidget;
+  final String title;
 
   const GeneratedVendorBidsDesktopWidget(this.bidsModel,
-      {this.actionWidget, Key key})
+      {this.actionWidget, this.title = '', Key key})
       : super(key: key);
 
   @override
@@ -78,7 +79,7 @@ class GeneratedVendorBidsDesktopWidget extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            GeneratedFrame89Widget(bidsModel),
+                            GeneratedFrame89Widget(bidsModel, title: title,),
                             // GeneratedFrame87Widget(),
                             // GeneratedFrame94Widget(bidsModel),
                           ],

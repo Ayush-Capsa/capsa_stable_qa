@@ -24,22 +24,22 @@ class GeneratedFrame82Widget extends StatelessWidget {
           children: [
             Positioned(
               left: 0.0,
-              top: 0.0,
+              top: 12,
               right: null,
               bottom: null,
               width: 173.0,
               height: 23.0,
               child: GeneratedArdovaPlcWidget(bidsModel),
             ),
-            Positioned(
-              left: 0.0,
-              top: 21.0,
-              right: null,
-              bottom: null,
-              width: 99.0,
-              height: 20.0,
-              child: GeneratedCACRC1661142Widget(bidsModel),
-            )
+            // Positioned(
+            //   left: 0.0,
+            //   top: 21.0,
+            //   right: null,
+            //   bottom: null,
+            //   width: 99.0,
+            //   height: 20.0,
+            //   child: GeneratedCACRC1661142Widget(bidsModel),
+            // )
           ]),
     );
   }

@@ -233,12 +233,21 @@ class _BidsAnalysisState extends State<BidsAnalysis> {
         );
 
         row.add(
-          DateFormat('d MMM, y').format(bid.discountedDate).toString(),
+          DateFormat('d MMM, y').format(
+              DateFormat(
+                  "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                  .parse(bid
+                  .effectiveDueDate)),
         );
         row.add(
-          daysBetween(DateTime.parse(bid.startDate),
-                  DateTime.parse(bid.effectiveDueDate))
-              .toString(),
+          daysBetween(
+            bid.discountedDate,
+            DateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                .parse(bid
+                .effectiveDueDate),
+
+          ).toString(),
         );
         row.add(statusString(bid));
         rows.add(row);

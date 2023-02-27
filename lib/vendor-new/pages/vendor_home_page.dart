@@ -779,7 +779,7 @@ class VendorHomePage extends StatelessWidget {
                       )
                     ],
                   ):Container(),
-                  Responsive.isMobile(context)?SizedBox(height: 0,):SizedBox(height: 22,),
+                  Responsive.isMobile(context)?SizedBox(height: 16,):SizedBox(height: 22,),
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(

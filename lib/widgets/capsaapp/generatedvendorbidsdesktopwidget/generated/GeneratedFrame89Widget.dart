@@ -9,7 +9,8 @@ import 'package:capsa/widgets/capsaapp/generatedvendorbidsdesktopwidget/generate
 class GeneratedFrame89Widget extends StatelessWidget {
 
   final BidsModel bidsModel;
-  const GeneratedFrame89Widget(this.bidsModel,{Key key}) : super(key: key);
+  final String title;
+  const GeneratedFrame89Widget(this.bidsModel,{Key key, this.title = ''}) : super(key: key);
 
 
   @override
@@ -38,7 +39,7 @@ class GeneratedFrame89Widget extends StatelessWidget {
               bottom: null,
               width: 53.0,
               height: 31.0,
-              child: GeneratedFrame88Widget(bidsModel),
+              child: GeneratedFrame88Widget(title,bidsModel,),
             )
           ]),
     );

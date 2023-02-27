@@ -136,7 +136,7 @@ class _MyBidsPageState extends State<MyTransactions> {
                             letterSpacing: 0 /*percentages not used in flutter. defaulting to zero*/,
                             fontWeight: FontWeight.normal,
                             height: 1),
-                        hintText: Responsive.isMobile(context) ? "Search by invoice number" : "Search by invoice number, Anchor name",
+                        hintText: Responsive.isMobile(context) ? "Search by Anchor Name, Status" : "Search by invoice number, Anchor name, Status",
                       ),
                     ),
                   ),

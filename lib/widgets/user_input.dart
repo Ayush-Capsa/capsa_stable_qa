@@ -223,16 +223,21 @@ class UserTextFormField extends StatelessWidget {
           )
               : Container(),
           note != ""
-              ? Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+              ? Row(mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start
+              , children: [
             Text(
               'Note: ',
               style: TextStyle(
-                  color: Colors.red, fontSize: isMobile ? 10 : 18),
+                  color: Colors.red, fontSize: isMobile ? 10 : 14),
             ),
-            Text(
-              note,
-              style: TextStyle(
-                  color: Colors.black, fontSize: isMobile ? 10 : 18),
+            Container(
+
+              child: Text(
+                note,
+                style: TextStyle(
+                    color: Colors.black, fontSize: isMobile ? 10 : 14),
+              ),
             ),
           ])
               : Container(),
