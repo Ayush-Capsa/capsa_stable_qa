@@ -51,6 +51,7 @@ class AnchorActionProvider extends ChangeNotifier {
       var _results = _data['data']['invoicelist'];
       String approvedBy = _data['data']['_action_by'];
       // capsaPrint(_results);
+
       _results.forEach((element) {
         DateTime invoiceDate =
             new DateFormat("yyyy-MM-dd").parse(element['invoice_date']);
@@ -141,7 +142,7 @@ class AnchorActionProvider extends ChangeNotifier {
     if (box.get('isAuthenticated', defaultValue: false)) {
       var userData = Map<String, dynamic>.from(box.get('userData'));
 
-      capsaPrint('calling status $status \nUser Data:  $userData');
+      //capsaPrint('calling status $status \nUser Data:  $userData');
 
       var _body = {};
 
@@ -155,7 +156,7 @@ class AnchorActionProvider extends ChangeNotifier {
 
       var data = await callApi('dashboard/a/invoicelist', body: _body);
       //var data = await callApi3('requestor/invoicelist', body: _body);
-      capsaPrint("Data $status ${data}");
+      //capsaPrint("Data $status ${data}");
 
       List<AcctTableData> _acctTableData = await setData(data, status);
 
@@ -628,6 +629,36 @@ class AnchorActionProvider extends ChangeNotifier {
 
     return null;
   }
+
+  Future checkLastPasswordReset() async {
+    capsaPrint('Pass 1 check password reset');
+    String _uri = 'signin/checkLastPasswordReset';
+    //_uri = Uri.parse(_uri);
+    //capsaPrint('company name pass 1');
+    var _body = {};
+    var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
+    _body['panNumber'] = userData['panNumber'];
+    capsaPrint('Pass 2 check password reset');
+    var response = await callApi(_uri, body: _body);
+    // capsaPrint('Pass 3 check password reset ${response.body}');
+    // // await http.post(_uri,
+    // //     headers: <String, String>{
+    // //       'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+    // //     },
+    // //     body: _body);
+    // //capsaPrint('company name pass 2');
+    // capsaPrint(response.body);
+    // var data = jsonDecode(response.body);
+
+    // if (data['res'] == 'success') {
+    //   for (int i = 0; i < data['data'].length; i++) {
+    //     _anchorsNameList.add(data['data'][i]['name']);
+    //     _cinList[data['data'][i]['name']] = data['data'][i]['cu_pan'];
+    //   }
+    // }
+
+    return response;
+  }
 }
 
 class AcctTableData {
@@ -638,6 +669,7 @@ class AcctTableData {
   DateTime invDateO;
   String invDueDate;
   DateTime invDueDateO;
+  DateTime effDueDate;
   DateTime sortingFactor;
   String buyNowAmt;
   String payTerms;

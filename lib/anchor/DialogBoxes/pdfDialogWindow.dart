@@ -82,7 +82,7 @@ class _pdfDialogBoxState extends State<pdfDialogBox> {
               if (snapshot.hasData) {
                 if (_data['res'] == 'success') {
                   String url = _data['data']['url'];
-                  capsaPrint('Data 2: $url');
+                  //capsaPrint('Data 2: $url');
                   var urlDownload = url;
                   return Container(
                       width: 550,

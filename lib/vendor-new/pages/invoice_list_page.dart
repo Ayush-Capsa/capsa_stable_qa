@@ -195,19 +195,24 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
       return table;
     }
     table.forEach((element) {
-      int a = element['invoice_number']
+      // int a = element['invoice_number']
+      //     .toString()
+      //     .toLowerCase()
+      //     .compareTo(search.toLowerCase());
+      // int b = element['customer_name']
+      //     .toString()
+      //     .toLowerCase()
+      //     .compareTo(search.toLowerCase());
+      if (element['invoice_number']
           .toString()
-          .toLowerCase()
-          .compareTo(search.toLowerCase());
-      int b = element['customer_name']
+          .toLowerCase().contains(search.toLowerCase()) || element['customer_name']
           .toString()
-          .toLowerCase()
-          .compareTo(search.toLowerCase());
-      if (a == 0 || b == 0) {
+          .toLowerCase().contains(search.toLowerCase())) {
         result.add(element);
       }
     });
     if (result.isEmpty) {
+      showToast('No Data Found', context, type: "warning");
       result = table;
     }
 
@@ -785,6 +790,7 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
                       PopupMenuItem(
                           child: InkWell(
                         onTap: () {
+                          Navigator.pop(context);
                           // capsaPrint('view Tapped');
                           setState(() {
                             // dialogHelper.showPdf(context,anchorsActions, _acctTable[i].fileName);
@@ -1098,7 +1104,7 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
                             } else {
                               showToast(
                                   'This Invoice Cannot be edited', context,
-                                  type: 'warning', toastDuration: 1800);
+                                  type: 'warning', toastDuration: 2);
                             }
                           },
                           child: Row(
@@ -1567,6 +1573,7 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
 
   void initialise() {
     var _type = widget.type;
+    capsaPrint('Type : $_type');
     if (widget.type == 'notPresented') {
       _type = 'notPresented';
     }
@@ -1589,6 +1596,7 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
             ? 'Pending Invoices'
             : _type == 'notPresented'
                 ? 'Not Presented Invoices'
+                : _type == 'live'? 'Live Invoices'
                 : 'Sold Invoices';
 
     super.initState();

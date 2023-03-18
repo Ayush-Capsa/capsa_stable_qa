@@ -1,10 +1,12 @@
 import 'package:beamer/beamer.dart';
+import 'package:capsa/common/constants.dart';
 import 'package:capsa/common/page_bgimage.dart';
 import 'package:capsa/common/responsive.dart';
 import 'package:capsa/functions/currency_format.dart';
 import 'package:capsa/functions/hexcolor.dart';
 import 'package:capsa/investor/provider/invoice_providers.dart';
 import 'package:capsa/models/profile_model.dart';
+import 'package:capsa/pages/change_password_vendor_investor.dart';
 import 'package:capsa/providers/profile_provider.dart';
 import 'package:capsa/widgets/StatefulWrapper.dart';
 import 'package:capsa/widgets/TopBarWidget.dart';
@@ -26,11 +28,120 @@ class InvestorHomePage extends StatefulWidget {
 
 class _InvestorHomePageState extends State<InvestorHomePage> {
 
+  void checkPassword() async{
+    dynamic response = await Provider.of<ProfileProvider>(context, listen: false)
+        .checkLastPasswordReset();
 
+    capsaPrint('\n\nCheck passwrod : $response');
+
+    if(response['msg'] != 'success') {
+      showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            // title: Text(
+            //   '',
+            //   style: TextStyle(
+            //     fontSize: 24,
+            //     fontWeight: FontWeight.bold,
+            //     color: Theme.of(context).primaryColor,
+            //   ),
+            // ),
+            content: Container(
+              // width: 800,
+                height: Responsive.isMobile(context)?340:300,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children:  [
+
+                      SizedBox(height: 12,),
+
+                      Image.asset('assets/icons/warning.png'),
+
+                      SizedBox(height: 12,),
+
+                      Text(
+                        'Action Required',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+
+                      SizedBox(height: 12,),
+
+                      Text(
+                        'Your GetCapsa Password has not been changed for more than 90 days!\nKindly change password to continue.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.black,
+                        ),
+                      ),
+
+                      SizedBox(height: 12,),
+
+                      InkWell(
+                        onTap: (){
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ChangeNotifierProvider(
+                                    create: (BuildContext
+                                    context) =>
+                                        ProfileProvider(),
+                                    child:ChangePasswordPageVI(canGoBack: false,),),
+                            ),
+                          );
+                        },
+                        child:  Container(
+                          width: Responsive.isMobile(context)?140 : 220,
+                          decoration: BoxDecoration(
+                              color: HexColor('#0098DB'),
+                              borderRadius: BorderRadius.all(Radius.circular(10))
+                          ),
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Text(
+                                'Okay',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    ],
+                  ),
+                )
+            ),
+            //actions: <Widget>[],
+          ));
+    }
+  }
+
+
+
+  dynamic userData;
 
   @override
   void initState(){
     super.initState();
+    userData = Map<String, dynamic>.from(box.get('userData'));
+    capsaPrint('Data : 222 $userData');
+    checkPassword();
   }
 
   @override
@@ -96,7 +207,7 @@ class _InvestorHomePageState extends State<InvestorHomePage> {
                   SizedBox(
                     height:  Responsive.isMobile(context) ?  06 : 22,
                   ),
-                  TopBarWidget("👋 Capsa,", "Welcome, enjoy alternative financing!", quickGuide : true ),
+                  TopBarWidget("👋 Welcome ${userData['userName']},", "Welcome, enjoy alternative financing!", quickGuide : true ),
                   SizedBox(
                     height: 22,
                   ),

@@ -5,7 +5,8 @@ import 'package:capsa/functions/show_toast.dart';
 import 'package:capsa/providers/profile_provider.dart';
 import 'package:capsa/widgets/TopBarWidget.dart';
 import 'package:capsa/widgets/user_input.dart';
-import 'package:flutter/material.dart';import 'package:capsa/functions/custom_print.dart';
+import 'package:flutter/material.dart';
+import 'package:capsa/functions/custom_print.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:provider/provider.dart';
 
@@ -41,7 +42,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   String _conPassword = "";
 
   bool validateStructure(String value) {
-    String pattern = r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,}$';
+    String pattern =
+        r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,}$';
     RegExp regExp = new RegExp(pattern);
     return regExp.hasMatch(value);
   }
@@ -209,13 +211,12 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                   _body['cPassword'] = _conPassword;
                   _body['oPassword'] = _oldPassword;
 
-                  dynamic response = await callApi('signin/userResetPassword', body: _body);
-                  _oldPassword = "";
-                  oldController.text = "";
-                  setState(() {
-                    saving = false;
-                  });
-                  if (response['res'] == 'success') {
+                  dynamic response1 =
+                      await callApi('signin/checkBlockedPassword', body: _body);
+
+                  if (response1['msg'] == 'failed') {
+                    showToast(response1['data'], context, type: 'error');
+
                     _oldPassword = "";
                     oldController.text = "";
 
@@ -224,15 +225,106 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
                     _conPassword = "";
                     conController.text = "";
-
-                    await profileProvider.queryFewData();
-                    showToast('Password was successfully changed.', context);
-                    showToast('Login with new password', context);
-                    logout(context);
-
-                    // context.beamBack();
+                    setState(() {
+                      saving = false;
+                    });
                   } else {
-                    showToast('Error ! ' + response['messg'], context, toastDuration: 15, type: 'error');
+                    dynamic response =
+                        await callApi('signin/userResetPassword', body: _body);
+                    _oldPassword = "";
+                    oldController.text = "";
+                    setState(() {
+                      saving = false;
+                    });
+                    if (response['res'] == 'success') {
+                      _oldPassword = "";
+                      oldController.text = "";
+
+                      _newPassword = "";
+                      newController.text = "";
+
+                      _conPassword = "";
+                      conController.text = "";
+
+                      await profileProvider.queryFewData();
+                      showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => AlertDialog(
+                                // title: Text(
+                                //   '',
+                                //   style: TextStyle(
+                                //     fontSize: 24,
+                                //     fontWeight: FontWeight.bold,
+                                //     color: Theme.of(context).primaryColor,
+                                //   ),
+                                // ),
+                                content: Container(
+                                    // width: 800,
+                                    height: 180,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceEvenly,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          SizedBox(
+                                            height: 12,
+                                          ),
+                                          Text(
+                                            'Password Changed',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold,
+                                              color: Theme.of(context)
+                                                  .primaryColor,
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: 12,
+                                          ),
+                                          Text(
+                                            'Password Changed Successfully!\nLogin to continue.',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w400,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: 12,
+                                          ),
+                                          InkWell(
+                                            onTap: () {
+                                              logout(context);
+                                            },
+                                            child: Text(
+                                              'OK',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.blue,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )),
+                                //actions: <Widget>[],
+                              ));
+                      // showToast('Password was successfully changed.', context);
+                      // showToast('Login with new password', context);
+                      // logout(context);
+
+                      // context.beamBack();
+                    } else {
+                      showToast('Error ! ' + response['messg'], context,
+                          toastDuration: 3, type: 'error');
+                    }
                   }
                 }
               },
@@ -253,7 +345,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                             ),
                             color: Color.fromRGBO(0, 152, 219, 1),
                           ),
-                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 16),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
@@ -264,7 +357,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                                     color: Color.fromRGBO(242, 242, 242, 1),
                                     fontFamily: 'Poppins',
                                     fontSize: 18,
-                                    letterSpacing: 0 /*percentages not used in flutter. defaulting to zero*/,
+                                    letterSpacing:
+                                        0 /*percentages not used in flutter. defaulting to zero*/,
                                     fontWeight: FontWeight.normal,
                                     height: 1),
                               ),
@@ -285,7 +379,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     bool hasUppercase = _newPassword.contains(new RegExp(r'[A-Z]'));
     bool hasDigits = _newPassword.contains(new RegExp(r'[0-9]'));
     bool hasLowercase = _newPassword.contains(new RegExp(r'[a-z]'));
-    bool hasSpecialCharacters = _newPassword.contains(new RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
+    bool hasSpecialCharacters =
+        _newPassword.contains(new RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -299,7 +394,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               color: Color.fromRGBO(51, 51, 51, 1),
               fontFamily: 'Poppins',
               fontSize: 20,
-              letterSpacing: 0 /*percentages not used in flutter. defaulting to zero*/,
+              letterSpacing:
+                  0 /*percentages not used in flutter. defaulting to zero*/,
               fontWeight: FontWeight.normal,
               height: 1),
         ),
@@ -311,7 +407,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               color: Color.fromRGBO(51, 51, 51, 1),
               // fontFamily: 'Poppins',
               fontSize: 16,
-              letterSpacing: 0 /*percentages not used in flutter. defaulting to zero*/,
+              letterSpacing:
+                  0 /*percentages not used in flutter. defaulting to zero*/,
               fontWeight: FontWeight.normal,
               height: 1),
         ),
@@ -331,7 +428,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                     color: Color.fromRGBO(51, 51, 51, 1),
                     // fontFamily: 'Poppins',
                     fontSize: 18,
-                    letterSpacing: 0 /*percentages not used in flutter. defaulting to zero*/,
+                    letterSpacing:
+                        0 /*percentages not used in flutter. defaulting to zero*/,
                     fontWeight: FontWeight.normal,
                     height: 1),
               ),
@@ -354,7 +452,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                     color: Color.fromRGBO(51, 51, 51, 1),
                     // fontFamily: 'Poppins',
                     fontSize: 18,
-                    letterSpacing: 0 /*percentages not used in flutter. defaulting to zero*/,
+                    letterSpacing:
+                        0 /*percentages not used in flutter. defaulting to zero*/,
                     fontWeight: FontWeight.normal,
                     height: 1),
               ),
@@ -377,7 +476,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                     color: Color.fromRGBO(51, 51, 51, 1),
                     // fontFamily: 'Poppins',
                     fontSize: 18,
-                    letterSpacing: 0 /*percentages not used in flutter. defaulting to zero*/,
+                    letterSpacing:
+                        0 /*percentages not used in flutter. defaulting to zero*/,
                     fontWeight: FontWeight.normal,
                     height: 1),
               ),
@@ -400,7 +500,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                     color: Color.fromRGBO(51, 51, 51, 1),
                     // fontFamily: 'Poppins',
                     fontSize: 18,
-                    letterSpacing: 0 /*percentages not used in flutter. defaulting to zero*/,
+                    letterSpacing:
+                        0 /*percentages not used in flutter. defaulting to zero*/,
                     fontWeight: FontWeight.normal,
                     height: 1),
               ),
@@ -423,7 +524,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                     color: Color.fromRGBO(51, 51, 51, 1),
                     // fontFamily: 'Poppins',
                     fontSize: 18,
-                    letterSpacing: 0 /*percentages not used in flutter. defaulting to zero*/,
+                    letterSpacing:
+                        0 /*percentages not used in flutter. defaulting to zero*/,
                     fontWeight: FontWeight.normal,
                     height: 1),
               ),

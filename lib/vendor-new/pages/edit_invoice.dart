@@ -39,11 +39,16 @@ class _EditInvoiceState extends State<EditInvoice> {
   final Box box = Hive.box('capsaBox');
   final dueDateCont = TextEditingController();
   final dateCont = TextEditingController();
+  final extendedDueDateCont = TextEditingController();
   final fileCont = TextEditingController(text: '');
   DateTime _selectedDate;
   DateTime _selectedDueDate;
-  dynamic invoiceFileResponse;
+  DateTime _extendedDueDate;
   var _cuGst;
+  bool showExtendedDate = false;
+  dynamic invoiceFileResponse;
+  Map<String, String> anchorGrade = {};
+  String grade;
 
   bool saving = false;
 
@@ -67,10 +72,15 @@ class _EditInvoiceState extends State<EditInvoice> {
         anchorNameList.forEach((element) {
           if (!term.contains(element['name'])) {
             term.add(element['name']);
+            anchorGrade[element['name'].toString()] = element['grade'] ?? '';
             if (widget.data['customer_name'] == element['name']) {
               anchor = widget.data['customer_name'];
               anchorController.text = element['name_address'];
               _cuGst = element['cu_gst'];
+              grade = element['grade'] ?? '';
+              if (grade == 'C' || grade == 'D') {
+                showExtendedDate = true;
+              }
             }
           }
         });
@@ -155,6 +165,11 @@ class _EditInvoiceState extends State<EditInvoice> {
         ..text = DateFormat.yMMMd().format(_selectedDueDate)
         ..selection = TextSelection.fromPosition(TextPosition(
             offset: dueDateCont.text.length, affinity: TextAffinity.upstream));
+      if (showExtendedDate == true) {
+        _extendedDueDate =
+            newSelectedDate.add(Duration(days: grade == 'C' ? 30 : 45));
+        extendedDueDateCont.text = DateFormat.yMMMd().format(_extendedDueDate);
+      }
       calculateRate();
     }
   }
@@ -243,7 +258,8 @@ class _EditInvoiceState extends State<EditInvoice> {
       capsaPrint('pass 1.8');
       //anchor = invoiceFormData["anchor"];
       //anchorController.text = invoiceFormData["anchorAddress"];
-
+      _extendedDueDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+          .parse(widget.data['effective_due_date']);
       tenureDaysDiff = 0;
       rateController2.text =  widget.data['ask_rate'].toString();
 
@@ -256,6 +272,8 @@ class _EditInvoiceState extends State<EditInvoice> {
         _selectedDueDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
             .parse(widget.data['invoice_due_date']);
         dueDateCont.text = DateFormat.yMMMd('en_US').format(_selectedDueDate);
+        extendedDueDateCont.text =
+            DateFormat.yMMMd('en_US').format(_extendedDueDate);
       }catch(e){
         capsaPrint('pass 1.11');
       }
@@ -494,8 +512,143 @@ class _EditInvoiceState extends State<EditInvoice> {
                                                                     .text =
                                                                 element1[
                                                                 'name_address'];
+                                                                grade = anchorGrade[
+                                                                anchor];
+                                                                capsaPrint(
+                                                                    'Grade initiated : ${anchor} $grade');
                                                                 _cuGst = element1[
                                                                 'cu_gst'];
+
+                                                                if (grade == 'D' ||
+                                                                    grade == 'C') {
+                                                                  showDialog(
+                                                                      context:
+                                                                      context,
+                                                                      barrierDismissible:
+                                                                      true,
+                                                                      builder:
+                                                                          (BuildContext
+                                                                      context) {
+                                                                        return AlertDialog(
+                                                                          shape: RoundedRectangleBorder(
+                                                                              borderRadius:
+                                                                              BorderRadius.all(Radius.circular(32.0))),
+                                                                          backgroundColor: Color.fromRGBO(
+                                                                              245,
+                                                                              251,
+                                                                              255,
+                                                                              1),
+                                                                          content:
+                                                                          Container(
+                                                                            constraints: Responsive.isMobile(
+                                                                                context)
+                                                                                ? BoxConstraints(
+                                                                              minHeight: 300,
+                                                                            )
+                                                                                : BoxConstraints(
+                                                                                minHeight: 220,
+                                                                                maxWidth: 584),
+                                                                            decoration:
+                                                                            BoxDecoration(
+                                                                              color: Color.fromRGBO(
+                                                                                  245,
+                                                                                  251,
+                                                                                  255,
+                                                                                  1),
+                                                                            ),
+                                                                            child:
+                                                                            Padding(
+                                                                              padding: const EdgeInsets.fromLTRB(
+                                                                                  6,
+                                                                                  8,
+                                                                                  6,
+                                                                                  8),
+                                                                              child:
+                                                                              Column(
+                                                                                mainAxisAlignment:
+                                                                                MainAxisAlignment.center,
+                                                                                crossAxisAlignment:
+                                                                                CrossAxisAlignment.center,
+                                                                                mainAxisSize:
+                                                                                MainAxisSize.min,
+                                                                                children: [
+                                                                                  SizedBox(
+                                                                                    height: 8,
+                                                                                  ),
+                                                                                  Image.asset('assets/icons/warning.png'),
+                                                                                  SizedBox(
+                                                                                    height: 22,
+                                                                                  ),
+                                                                                  Text("Your anchor is a Grade $grade Anchor and as such your tenure date and invoice due date has been extended by " + (grade == 'C' ? '30' : '45') + " days.\n\nThis will affect the quality of your bid rates. Do you wish to continue with your invoice upload?", textAlign: TextAlign.center),
+                                                                                  SizedBox(
+                                                                                    height: 30,
+                                                                                  ),
+                                                                                  Row(
+                                                                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                                                    children: [
+                                                                                      InkWell(
+                                                                                        onTap: () {
+                                                                                          anchor = null;
+                                                                                          anchorController.text = '';
+                                                                                          _cuGst = '';
+                                                                                          _formKey.currentState.reset();
+                                                                                          Navigator.pop(context);
+                                                                                          //capsaPrint('${anchor} ${anchorController.text}');
+                                                                                        },
+                                                                                        child: Container(
+                                                                                            width: Responsive.isMobile(context) ? 100 : 160,
+                                                                                            height: 49,
+                                                                                            decoration: BoxDecoration(border: Border.all(width: 2, color: HexColor('#0098DB')), borderRadius: BorderRadius.all(Radius.circular(10))),
+                                                                                            child: Center(
+                                                                                              child: Text(
+                                                                                                'Cancel',
+                                                                                                style: GoogleFonts.poppins(fontWeight: FontWeight.w500, color: HexColor('#0098DB'), fontSize: 18),
+                                                                                              ),
+                                                                                            )),
+                                                                                      ),
+                                                                                      InkWell(
+                                                                                        onTap: () async {
+                                                                                          Navigator.pop(context);
+                                                                                          if (_selectedDueDate != null) {
+                                                                                            _extendedDueDate = _selectedDueDate.add(Duration(days: grade == 'C' ? 30 : 45));
+                                                                                            dueDateCont.text = DateFormat.yMMMd('en_US').format(_selectedDueDate);
+                                                                                            extendedDueDateCont.text = DateFormat.yMMMd('en_US').format(_extendedDueDate);
+                                                                                          }
+                                                                                          setState(() {
+                                                                                            showExtendedDate = true;
+                                                                                          });
+                                                                                          // Beamer.of(context)
+                                                                                          //     .beamToNamed('/confirmInvoice');
+
+                                                                                          // showToast('Confirm invoice Details',
+                                                                                          //     context,
+                                                                                          //     type: "info");
+                                                                                        },
+                                                                                        child: Container(
+                                                                                            width: Responsive.isMobile(context) ? 100 : 160,
+                                                                                            height: 49,
+                                                                                            decoration: BoxDecoration(color: HexColor('#0098DB'), borderRadius: BorderRadius.all(Radius.circular(10))),
+                                                                                            child: Center(
+                                                                                              child: Text(
+                                                                                                'Yes, proceed',
+                                                                                                style: GoogleFonts.poppins(fontWeight: FontWeight.w500, color: Colors.white, fontSize: Responsive.isMobile(context) ? 12 : 18,),
+                                                                                              ),
+                                                                                            )),
+                                                                                      )
+                                                                                    ],
+                                                                                  )
+                                                                                ],
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                        );
+                                                                      });
+                                                                } else {
+                                                                  setState(() {
+                                                                    showExtendedDate =
+                                                                    false;
+                                                                  });
+                                                                }
 
                                                                 // capsaPrint(cacAddress);
 
@@ -689,6 +842,32 @@ class _EditInvoiceState extends State<EditInvoice> {
                                                 ),
                                               ],
                                             ),
+
+                                            if (showExtendedDate)
+                                              OrientationSwitcher(
+                                                mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                                children: [
+                                                  Flexible(
+                                                    child: UserTextFormField(
+                                                      label:
+                                                      "Extended Due Date",
+                                                      suffixIcon: Icon(Icons
+                                                          .date_range_outlined),
+                                                      readOnly: true,
+                                                      controller:
+                                                      extendedDueDateCont,
+                                                      hintText:
+                                                      "Extended Invoice Due Date",
+                                                      keyboardType:
+                                                      TextInputType.number,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+
                                             OrientationSwitcher(
                                               mainAxisAlignment:
                                               MainAxisAlignment.start,
@@ -986,7 +1165,7 @@ class _EditInvoiceState extends State<EditInvoice> {
                                                       // dynamic invoiceData = invoiceProvider.invoiceFormData;
 
                                                       capsaPrint(
-                                                          'Pass 2 edti invoice');
+                                                          'Pass 2 edti invoice \n${widget.data} \n\n' );
 
                                                       var userData = Map<String,
                                                           dynamic>.from(
@@ -1086,6 +1265,15 @@ class _EditInvoiceState extends State<EditInvoice> {
                                                             'yyyy-MM-dd')
                                                             .format(
                                                             _selectedDate),
+                                                        'extDueDate': showExtendedDate
+                                                            ? DateFormat(
+                                                            'yyyy-MM-dd')
+                                                            .format(
+                                                            _extendedDueDate)
+                                                            : DateFormat(
+                                                            'yyyy-MM-dd')
+                                                            .format(
+                                                            _selectedDueDate),
                                                         'description':
                                                         invoiceFormData[
                                                         'details'],

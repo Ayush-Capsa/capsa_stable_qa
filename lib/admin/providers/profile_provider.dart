@@ -689,7 +689,9 @@ class ProfileProvider extends ChangeNotifier {
   }
 
   Future<Object> fetchPendingAccountList(String role,
-      {String search = "", String statusFilter = 'All', String datesFilter = 'Latest First'}) async {
+      {String search = "",
+      String statusFilter = 'All',
+      String datesFilter = 'Latest First'}) async {
     // capsaPrint(amount);
     // capsaPrint(desc);
     // capsaPrint(accountNo);
@@ -743,25 +745,26 @@ class ProfileProvider extends ChangeNotifier {
                 .toLowerCase()
                 .contains(search.toLowerCase())) {
           bool allow = false;
-          if(statusFilter == 'Pending'){
-            if(element['isApproved'].toString() == '0' || !notNull(element['isApproved'].toString())) {
+          if (statusFilter == 'Pending') {
+            if (element['isApproved'].toString() == '0' ||
+                !notNull(element['isApproved'].toString())) {
               allow = true;
             }
-          }else if(statusFilter == 'Approved'){
-            if(element['isApproved'].toString() == '1') {
+          } else if (statusFilter == 'Approved') {
+            if (element['isApproved'].toString() == '1') {
               allow = true;
             }
-          }else{
+          } else {
             allow = true;
           }
-          if(allow) {
+          if (allow) {
             accounts.add(PendingAccountData(
               panNumber: notNull(element['PAN_NO'].toString())
                   ? element['PAN_NO'].toString()
                   : '',
               role: notNull(element['ROLE']) ? element['ROLE'].toString() : '',
               role2:
-              notNull(element['ROLE2']) ? element['ROLE2'].toString() : '',
+                  notNull(element['ROLE2']) ? element['ROLE2'].toString() : '',
               name: notNull(element['NAME']) ? element['NAME'].toString() : '',
               userId: notNull(element['user_id'].toString())
                   ? element['user_id'].toString()
@@ -785,18 +788,21 @@ class ProfileProvider extends ChangeNotifier {
                   ? element['file_extensions_id'].toString()
                   : '',
               cacCertificateExt:
-              notNull(element['file_extensions_CACfile'].toString())
-                  ? element['file_extensions_CACfile'].toString()
-                  : '',
+                  notNull(element['file_extensions_CACfile'].toString())
+                      ? element['file_extensions_CACfile'].toString()
+                      : '',
               cacFormExt:
-              notNull(element['file_extensions_CACFORM7'].toString())
-                  ? element['file_extensions_CACFORM7'].toString()
-                  : '',
+                  notNull(element['file_extensions_CACFORM7'].toString())
+                      ? element['file_extensions_CACFORM7'].toString()
+                      : '',
               email: notNull(element['EMAIL'].toString())
                   ? element['EMAIL'].toString()
                   : '',
               createdDate: notNull(element['modified_at'].toString())
-                  ?  DateFormat('yMMMd').format(DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(element['modified_at'].toString())).toString()
+                  ? DateFormat('yMMMd')
+                      .format(DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                          .parse(element['modified_at'].toString()))
+                      .toString()
                   : '',
               // isBlackListed: element['isBlacklisted'] != null
               //     ? element['isBlacklisted'] == '1'
@@ -822,7 +828,7 @@ class ProfileProvider extends ChangeNotifier {
       //
       //
       // }
-      if(datesFilter == 'Oldest First'){
+      if (datesFilter == 'Oldest First') {
         List<PendingAccountData> reversedList = List.from(accounts.reversed);
         accounts = reversedList;
       }
@@ -853,7 +859,7 @@ class ProfileProvider extends ChangeNotifier {
             'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
           },
           body: _body);
-      capsaPrint('Invoices Response \n$_body \n$_uri \n${response.body}');
+      //capsaPrint('Invoices Response \n$_body \n$_uri \n${response.body}');
       var data = jsonDecode(response.body);
       List<InvoiceModel> invoices = [];
       int i = 0;
@@ -960,15 +966,14 @@ class ProfileProvider extends ChangeNotifier {
           dynamic element = data['data'][i];
 
           model.add(AccountLetterModel(
-            anchorName: element['company_name'],
-            accountLetterUrl: element['account_letter_url'],
-            companyPan: element['companyPan'],
-            customerPan: element['customerPan'],
-            fileExtension: element['account_letter_ext'],
-            approved: element['approved'].toString() == '1' ? true : false,
-            uploaded: element['uploaded'].toString() == '1' ? true : false,
-            isApproved : element['approved'].toString()
-          ));
+              anchorName: element['company_name'],
+              accountLetterUrl: element['account_letter_url'],
+              companyPan: element['companyPan'],
+              customerPan: element['customerPan'],
+              fileExtension: element['account_letter_ext'],
+              approved: element['approved'].toString() == '1' ? true : false,
+              uploaded: element['uploaded'].toString() == '1' ? true : false,
+              isApproved: element['approved'].toString()));
         }
       }
 
@@ -1381,5 +1386,108 @@ class ProfileProvider extends ChangeNotifier {
     return null;
   }
 
+  Future getCompanyName() async {
+    dynamic _uri = apiUrl + 'dashboard/r/' + 'getCompanyName';
+    _uri = Uri.parse(_uri);
+    capsaPrint('company name pass 1');
+    var _body = {};
+    var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
+    _body['panNumber'] = userData['panNumber'];
+    var response = await http.post(_uri,
+        headers: <String, String>{
+          'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+        },
+        body: _body);
+    capsaPrint('company name pass 2');
+    capsaPrint(response.body);
+    var data = jsonDecode(response.body);
+
+    // if (data['res'] == 'success') {
+    //   for (int i = 0; i < data['data'].length; i++) {
+    //     _anchorsNameList.add(data['data'][i]['name']);
+    //     _cinList[data['data'][i]['name']] = data['data'][i]['cu_pan'];
+    //   }
+    // }
+
+    return data;
+  }
+
+  Future getTransactionTracker({String fromDate, String toDate}) async {
+    dynamic _uri = 'admin/transactionsTracker';
+    //_uri = Uri.parse(_uri);
+    capsaPrint('transactionsTracker pass 1');
+    var _body = {"from": fromDate, "to": toDate};
+    //var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
+
+    capsaPrint('transactionsTracker pass 1.1 $_body');
+
+    var response = await callApi(_uri, body: _body);
+    capsaPrint('company name pass 2');
+    //capsaPrint(response.body);
+    //var data = jsonDecode(response.body);
+
+    // if (data['res'] == 'success') {
+    //   for (int i = 0; i < data['data'].length; i++) {
+    //     _anchorsNameList.add(data['data'][i]['name']);
+    //     _cinList[data['data'][i]['name']] = data['data'][i]['cu_pan'];
+    //   }
+    // }
+
+    return response;
+  }
+
+  Future getRevenueTracker({String fromDate, String toDate}) async {
+    dynamic _uri = 'admin/revenueTracker';
+    //_uri = Uri.parse(_uri);
+    capsaPrint('transactionsTracker pass 1');
+    var _body = {"from": fromDate, "to": toDate};
+    //var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
+
+    capsaPrint('transactionsTracker pass 1.1 $_body');
+
+    var response = await callApi(_uri, body: _body);
+    capsaPrint('company name pass 2');
+    //capsaPrint(response.body);
+    //var data = jsonDecode(response.body);
+
+    // if (data['res'] == 'success') {
+    //   for (int i = 0; i < data['data'].length; i++) {
+    //     _anchorsNameList.add(data['data'][i]['name']);
+    //     _cinList[data['data'][i]['name']] = data['data'][i]['cu_pan'];
+    //   }
+    // }
+
+    return response;
+  }
+
+  Future checkLastPasswordReset() async {
+    capsaPrint('Pass 1 check password reset');
+    String _uri = 'signin/checkLastPasswordReset';
+    //_uri = Uri.parse(_uri);
+    //capsaPrint('company name pass 1');
+    var _body = {};
+    var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
+    _body['panNumber'] = userData['panNumber'];
+    capsaPrint('Pass 2 check password reset');
+    var response = await callApi(_uri, body: _body);
+    // capsaPrint('Pass 3 check password reset ${response.body}');
+    // // await http.post(_uri,
+    // //     headers: <String, String>{
+    // //       'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+    // //     },
+    // //     body: _body);
+    // //capsaPrint('company name pass 2');
+    // capsaPrint(response.body);
+    // var data = jsonDecode(response.body);
+
+    // if (data['res'] == 'success') {
+    //   for (int i = 0; i < data['data'].length; i++) {
+    //     _anchorsNameList.add(data['data'][i]['name']);
+    //     _cinList[data['data'][i]['name']] = data['data'][i]['cu_pan'];
+    //   }
+    // }
+
+    return response;
+  }
 
 }

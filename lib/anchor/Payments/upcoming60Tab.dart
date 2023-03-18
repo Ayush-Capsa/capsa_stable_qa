@@ -268,7 +268,11 @@ class _upcoming60ScreenState extends State<upcoming60Screen> {
             ),
           )
         ],
-      ):Center(child: CircularProgressIndicator(),),
+      ):Container(
+        height: MediaQuery.of(context).size.height,
+        //width: MediaQuery.of(context).size.width,
+        child: Center(child: CircularProgressIndicator()),
+      ),
     );
   }
 }

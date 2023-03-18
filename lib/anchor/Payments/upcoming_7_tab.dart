@@ -750,12 +750,10 @@ class _upcomingScreenState extends State<upcomingScreen> {
                 ),
               ],
             )
-          : Center(
-              child: Padding(
-                padding: EdgeInsets.all(24),
-                child: CircularProgressIndicator(),
-              ),
-            ),
+          : Container(
+        height: MediaQuery.of(context).size.height,
+        child: Center(child: CircularProgressIndicator()),
+      ),
     );
   }
 }

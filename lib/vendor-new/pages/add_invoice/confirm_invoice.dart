@@ -68,11 +68,13 @@ class _ConfirmInvoicePageState extends State<ConfirmInvoicePage> {
       buyNowPrice: (invoiceFormData['butAmt'] == '') ? '0' : invoiceFormData['butAmt'],
       rate: invoiceFormData['rate'],
       tenureDaysDiff: invoiceFormData['tenureDaysDiff'],
-
+      extendedDueDate: invoiceFormData['showExtendedDueDate'] ? invoiceFormData['_extendedDueDate'].toString() : invoiceFormData['_selectedDueDate'].toString(),
       fileType: !onlyPresent ? invoiceFormData['file'].extension : '',
       img: !onlyPresent ? invoiceFormData['file'] : null,
       bvnNo: userData['panNumber'],
     );
+
+    capsaPrint('Extended Due Date : ${invoice.extendedDueDate}');
 
     if (!onlyPresent) {
       final _responseData = await _actionProvider.uploadInvoice(invoice, invoiceFormData['file'],);
@@ -174,6 +176,7 @@ class _ConfirmInvoicePageState extends State<ConfirmInvoicePage> {
         ),
       );
     }
+    //capsaPrint('confirm invoice pass 1 ${invoiceFormData}');
     invoice = InvoiceModel(
       cuGst: invoiceFormData['cuGst'].toString(),
       anchor: invoiceFormData['anchor'].toString(),
@@ -193,11 +196,13 @@ class _ConfirmInvoicePageState extends State<ConfirmInvoicePage> {
       buyNowPrice: (invoiceFormData['butAmt'] == '') ? '0' : invoiceFormData['butAmt'].toString(),
       rate: invoiceFormData['rate'].toString(),
       tenureDaysDiff: invoiceFormData['tenureDaysDiff'].toString(),
-
+      extendedDueDate: invoiceFormData['extendedDueDateString'] ?? '',
       fileType: invoiceFormData['file'].extension.toString(),
       img: invoiceFormData['file'],
       bvnNo: '',
     );
+
+    capsaPrint('confirm invoice pass 2 ${invoice.extendedDueDate}');
 
     dynamic data = await invoiceProvider.splitInvoice(invoice.invNo,invoice.invAmt);
     if(data['isSplit'].toString() == '1'){
@@ -311,6 +316,14 @@ class _ConfirmInvoicePageState extends State<ConfirmInvoicePage> {
                 OrientationSwitcher(children: [
                   InfoBox(header: 'Issue Date', content: invoice.invDate),
                   InfoBox(header: 'Due Date', content: invoice.invDueDate)
+                ]),
+                if(invoice.extendedDueDate != '')
+                OrientationSwitcher(children: [
+                  InfoBox(
+                    header: 'Extended Due Date',
+                    content: invoice.extendedDueDate,
+                    width: 596,
+                  ),
                 ]),
                 OrientationSwitcher(children: [
                   InfoBox(header: 'Tenure', content: invoice.tenureDaysDiff),

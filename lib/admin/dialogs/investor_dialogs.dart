@@ -170,6 +170,7 @@ showBidDialog(
     {buyNow = false}) {
   return showDialog(
     context: context,
+    barrierDismissible: false,
     builder: (BuildContext context) {
       OpenDealModel openInvoice = openDealProvider.openInvoices[index];
       return AlertDialog(
@@ -379,6 +380,16 @@ class _ShowBidContentMyClassState extends State<ShowBidContentMyClass> {
       '\nYour Excepted Return Calculated ad follow\n\nBid Amount : ₦ 0\nPlatform Fee : ₦ 0\n,Excepted Return : ₦ 0\n';
 
   bool _loading = false;
+
+  final ButtonStyle raisedButtonStyle2 = ElevatedButton.styleFrom(
+    onPrimary: Colors.white70,
+    primary: Colors.red[400],
+    minimumSize: Size(88, 36),
+    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(15)),
+    ),
+  );
 
   calCul() {
     OpenDealModel openInvoice =
@@ -620,51 +631,100 @@ class _ShowBidContentMyClassState extends State<ShowBidContentMyClass> {
               height: 15,
             ),
             if (!_loading)
-              InkWell(
-                onTap: () async {
-                  if (amount.trim() == '') {
-                    showToast("Amount is required", context);
-                    return;
-                  }
-                  setState(() {
-                    _loading = true;
-                  });
-                  // return;
-                  if (widget.buyNow)
-                    await widget.openDealProvider.bidActionCall(
-                        context, openInvoice, 1, widget.index,
-                        buyNow: widget.buyNow);
-                  else
-                    await widget.openDealProvider.bidActionCall(
-                        context, openInvoice, 0, widget.index,
-                        tRate: tRate, rate: rate, amt: amount);
-                },
-                child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(15),
-                        topRight: Radius.circular(15),
-                        bottomLeft: Radius.circular(15),
-                        bottomRight: Radius.circular(15),
-                      ),
-                      color: Color.fromRGBO(0, 152, 219, 1),
-                    ),
-                    padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-                    child: Center(
-                      child: Text(
-                        (widget.buyNow ? 'Buy now at ' : 'Place Bid at ') +
-                            formatCurrency(myController0.text, withIcon: true),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            color: Color.fromRGBO(242, 242, 242, 1),
-                            fontSize: 16,
-                            letterSpacing:
-                                0 /*percentages not used in flutter. defaulting to zero*/,
-                            fontWeight: FontWeight.normal,
-                            height: 1),
-                      ),
-                    )),
+              Column(
+                children: [
+                  InkWell(
+                    onTap: () async {
+                      if (amount.trim() == '') {
+                        showToast("Amount is required", context);
+                        return;
+                      }
+                      setState(() {
+                        _loading = true;
+                      });
+                      // return;
+                      if (widget.buyNow)
+                        await widget.openDealProvider.bidActionCall(
+                            context, openInvoice, 1, widget.index,
+                            buyNow: widget.buyNow);
+                      else
+                        await widget.openDealProvider.bidActionCall(
+                            context, openInvoice, 0, widget.index,
+                            tRate: tRate, rate: rate, amt: amount);
+                    },
+                    child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(15),
+                            topRight: Radius.circular(15),
+                            bottomLeft: Radius.circular(15),
+                            bottomRight: Radius.circular(15),
+                          ),
+                          color: Color.fromRGBO(0, 152, 219, 1),
+                        ),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                        child: Center(
+                          child: Text(
+                            (widget.buyNow ? 'Buy now at ' : 'Place Bid at ') +
+                                formatCurrency(myController0.text,
+                                    withIcon: true),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: Color.fromRGBO(242, 242, 242, 1),
+                                fontSize: 16,
+                                letterSpacing:
+                                    0 /*percentages not used in flutter. defaulting to zero*/,
+                                fontWeight: FontWeight.normal,
+                                height: 1),
+                          ),
+                        )),
+                  ),
+
+                  SizedBox(height: 10),
+                  InkWell(
+                    onTap: () {
+                      Navigator.of(context, rootNavigator: true).pop();
+                    },
+                    child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(15),
+                            topRight: Radius.circular(15),
+                            bottomLeft: Radius.circular(15),
+                            bottomRight: Radius.circular(15),
+                          ),
+                          color: Colors.red,
+                        ),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                        child: Center(
+                          child: Text(
+                            'Cancel',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: Color.fromRGBO(242, 242, 242, 1),
+                                fontSize: 16,
+                                letterSpacing:
+                                    0 /*percentages not used in flutter. defaulting to zero*/,
+                                fontWeight: FontWeight.normal,
+                                height: 1),
+                          ),
+                        )),
+                  ),
+                  // ElevatedButton(
+                  //   style: raisedButtonStyle2,
+                  //   onPressed: () {
+                  //     Navigator.of(context, rootNavigator: true).pop();
+                  //   },
+                  //   child: Padding(
+                  //     padding: const EdgeInsets.all(8.0),
+                  //     child: Text('Cancel'),
+                  //   ),
+                  // ),
+                ],
               )
             else
               Align(
@@ -684,6 +744,7 @@ showEditBidDialog(
 ) {
   return showDialog(
     context: context,
+    barrierDismissible: false,
     builder: (BuildContext context) {
       return AlertDialog(
         shape: RoundedRectangleBorder(
@@ -1000,7 +1061,7 @@ class _ShowEditBidContentMyClassState extends State<ShowEditBidContentMyClass> {
                             fontFamily: 'Poppins',
                             fontSize: 24,
                             letterSpacing:
-                            0 /*percentages not used in flutter. defaulting to zero*/,
+                                0 /*percentages not used in flutter. defaulting to zero*/,
                             fontWeight: FontWeight.normal,
                             height: 1),
                       ),
@@ -1019,7 +1080,7 @@ class _ShowEditBidContentMyClassState extends State<ShowEditBidContentMyClass> {
                                 // fontFamily: 'Poppins',
                                 fontSize: 14,
                                 letterSpacing:
-                                0 /*percentages not used in flutter. defaulting to zero*/,
+                                    0 /*percentages not used in flutter. defaulting to zero*/,
                                 fontWeight: FontWeight.normal,
                                 height: 1),
                           ),
@@ -1030,7 +1091,8 @@ class _ShowEditBidContentMyClassState extends State<ShowEditBidContentMyClass> {
                           // Figma Flutter Generator AmountWidget - FRAME - HORIZONTAL
                           Container(
                             decoration: BoxDecoration(),
-                            padding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 0, vertical: 0),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: <Widget>[
@@ -1042,7 +1104,7 @@ class _ShowEditBidContentMyClassState extends State<ShowEditBidContentMyClass> {
                                       fontFamily: 'Poppins',
                                       fontSize: 18,
                                       letterSpacing:
-                                      0 /*percentages not used in flutter. defaulting to zero*/,
+                                          0 /*percentages not used in flutter. defaulting to zero*/,
                                       fontWeight: FontWeight.normal,
                                       height: 1),
                                 ),
@@ -1055,7 +1117,7 @@ class _ShowEditBidContentMyClassState extends State<ShowEditBidContentMyClass> {
                                       fontFamily: 'Poppins',
                                       fontSize: 18,
                                       letterSpacing:
-                                      0 /*percentages not used in flutter. defaulting to zero*/,
+                                          0 /*percentages not used in flutter. defaulting to zero*/,
                                       fontWeight: FontWeight.normal,
                                       height: 1),
                                 ),
@@ -1215,65 +1277,104 @@ class _ShowEditBidContentMyClassState extends State<ShowEditBidContentMyClass> {
                           padding: const EdgeInsets.all(4.0),
                           child: SizedBox(
                             width: MediaQuery.of(context).size.width,
-                            child: InkWell(
-                              onTap: () async {
-                                // capsaPrint(rate);
-                                // capsaPrint(tRate);
-                                // capsaPrint(amount);
-                                setState(() {
-                                  _loading = true;
-                                });
+                            child: Column(
+                              children: [
+                                InkWell(
+                                  onTap: () async {
+                                    // capsaPrint(rate);
+                                    // capsaPrint(tRate);
+                                    // capsaPrint(amount);
+                                    setState(() {
+                                      _loading = true;
+                                    });
 
-                                if (amount.trim() == '') return;
-                                dynamic response = await bidEdit(widget.data,
-                                    amt: amount, rate: rate);
-                                capsaPrint('Edit Invoice Response : $response');
+                                    if (amount.trim() == '') return;
+                                    dynamic response = await bidEdit(widget.data,
+                                        amt: amount, rate: rate);
+                                    capsaPrint('Edit Invoice Response : $response');
 
-                                setState(() {
-                                  _loading = false;
-                                });
+                                    setState(() {
+                                      _loading = false;
+                                    });
 
-                                if (response['msg'] == 'success') {
-                                  showToast(
-                                      'Bid Editted Successfully', context);
-                                  bidUpdated = true;
-                                  setState(() {});
-                                  //Navigator.pop(context);
-                                  //context.beamBack();
-                                }
+                                    if (response['msg'] == 'success') {
+                                      showToast(
+                                          'Bid Editted Successfully', context);
+                                      bidUpdated = true;
+                                      setState(() {});
+                                      //Navigator.pop(context);
+                                      //context.beamBack();
+                                    }
 
-                                // return;
-                                // await widget.openDealProvider.bidEditCall(context, widget.data, widget.proposalProvider, tRate: tRate, rate: rate, amt: amount);
-                              },
-                              child: Container(
-                                width: double.infinity,
-                                height: 49,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(15),
-                                    topRight: Radius.circular(15),
-                                    bottomLeft: Radius.circular(15),
-                                    bottomRight: Radius.circular(15),
+                                    // return;
+                                    // await widget.openDealProvider.bidEditCall(context, widget.data, widget.proposalProvider, tRate: tRate, rate: rate, amt: amount);
+                                  },
+                                  child: Container(
+                                    width: double.infinity,
+                                    height: 49,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(15),
+                                        topRight: Radius.circular(15),
+                                        bottomLeft: Radius.circular(15),
+                                        bottomRight: Radius.circular(15),
+                                      ),
+                                      color: Color.fromRGBO(0, 152, 219, 1),
+                                    ),
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 10),
+                                    child: Center(
+                                      child: Text(
+                                        'Edit Bid',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                            color: Color.fromRGBO(242, 242, 242, 1),
+                                            fontFamily: 'Poppins',
+                                            fontSize: 16,
+                                            letterSpacing:
+                                                0 /*percentages not used in flutter. defaulting to zero*/,
+                                            fontWeight: FontWeight.normal,
+                                            height: 1),
+                                      ),
+                                    ),
                                   ),
-                                  color: Color.fromRGBO(0, 152, 219, 1),
                                 ),
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 10),
-                                child: Center(
-                                  child: Text(
-                                    'Edit Bid',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        color: Color.fromRGBO(242, 242, 242, 1),
-                                        fontFamily: 'Poppins',
-                                        fontSize: 16,
-                                        letterSpacing:
-                                            0 /*percentages not used in flutter. defaulting to zero*/,
-                                        fontWeight: FontWeight.normal,
-                                        height: 1),
-                                  ),
+
+                                SizedBox(height: 10),
+
+                                InkWell(
+                                  onTap: () {
+                                    Navigator.of(context, rootNavigator: true).pop();
+                                  },
+                                  child: Container(
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.only(
+                                          topLeft: Radius.circular(15),
+                                          topRight: Radius.circular(15),
+                                          bottomLeft: Radius.circular(15),
+                                          bottomRight: Radius.circular(15),
+                                        ),
+                                        color: Colors.red,
+                                      ),
+                                      padding:
+                                      EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                                      child: Center(
+                                        child: Text(
+                                          'Cancel',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                              color: Color.fromRGBO(242, 242, 242, 1),
+                                              fontSize: 16,
+                                              letterSpacing:
+                                              0 /*percentages not used in flutter. defaulting to zero*/,
+                                              fontWeight: FontWeight.normal,
+                                              height: 1),
+                                        ),
+                                      )),
                                 ),
-                              ),
+
+                              ],
                             ),
                           ),
                         ),
@@ -1291,9 +1392,12 @@ class _ShowEditBidContentMyClassState extends State<ShowEditBidContentMyClass> {
                   // SizedBox(
                   //   height: Responsive.isMobile(context)?4 : 8,
                   // ),
-                  Image.asset('assets/icons/check.png', height: 80,),
+                  Image.asset(
+                    'assets/icons/check.png',
+                    height: 80,
+                  ),
                   SizedBox(
-                    height: Responsive.isMobile(context)?14 : 20,
+                    height: Responsive.isMobile(context) ? 14 : 20,
                   ),
                   Text(
                     'Bid Updated',
@@ -1304,10 +1408,10 @@ class _ShowEditBidContentMyClassState extends State<ShowEditBidContentMyClass> {
                         fontWeight: FontWeight.w600),
                   ),
                   SizedBox(
-                    height: Responsive.isMobile(context)?14 : 20,
+                    height: Responsive.isMobile(context) ? 14 : 20,
                   ),
                   Container(
-                    width: Responsive.isMobile(context)?220 : 328,
+                    width: Responsive.isMobile(context) ? 220 : 328,
                     child: Text(
                       'The  vendor will review your bid and take action on it. You will be notified as soon as this happens.',
                       textAlign: TextAlign.center,
@@ -1318,7 +1422,7 @@ class _ShowEditBidContentMyClassState extends State<ShowEditBidContentMyClass> {
                     ),
                   ),
                   SizedBox(
-                    height: Responsive.isMobile(context)?14 : 20,
+                    height: Responsive.isMobile(context) ? 14 : 20,
                   ),
                   InkWell(
                     onTap: () {
@@ -1496,7 +1600,9 @@ class _ShowDeleteBidContentMyClassState
   Widget build(BuildContext context) {
     //OpenDealProvider openDealProvider = Provider.of<OpenDealProvider>(context, listen: false);
     return Container(
-      constraints: BoxConstraints(minWidth: Responsive.isMobile(context)?280 : 360,),
+      constraints: BoxConstraints(
+        minWidth: Responsive.isMobile(context) ? 280 : 360,
+      ),
       child: !bidDeletedSuccessfully
           ? Column(
               mainAxisSize: MainAxisSize.min,
@@ -1712,6 +1818,7 @@ showPayDialog(context, OpenDealModel invoice, openDealProvider) {
 
   return showDialog(
     context: context,
+    barrierDismissible: false,
     builder: (BuildContext context) {
       return AlertDialog(
         shape: RoundedRectangleBorder(

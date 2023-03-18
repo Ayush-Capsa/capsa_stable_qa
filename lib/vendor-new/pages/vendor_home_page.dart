@@ -1,9 +1,12 @@
+import 'package:capsa/admin/screens/change_password_admin.dart';
 import 'package:capsa/common/constants.dart';
 import 'package:capsa/common/page_bgimage.dart';
 import 'package:capsa/common/responsive.dart';
 import 'package:capsa/functions/currency_format.dart';
 import 'package:capsa/functions/hexcolor.dart';
 import 'package:capsa/models/profile_model.dart';
+import 'package:capsa/pages/change_password_vendor_investor.dart';
+import 'package:capsa/signup/widgets/card_widget.dart';
 import 'package:capsa/vendor-new/provider/invoice_providers.dart';
 import 'package:capsa/vendor-new/provider/vendor_action_provider.dart';
 
@@ -23,10 +26,128 @@ import 'package:provider/provider.dart';
 import 'package:beamer/beamer.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
-class VendorHomePage extends StatelessWidget {
+class VendorHomePage extends StatefulWidget {
   VendorHomePage({Key key}) : super(key: key);
 
+  @override
+  State<VendorHomePage> createState() => _VendorHomePageState();
+}
 
+class _VendorHomePageState extends State<VendorHomePage> {
+
+  void checkPassword() async{
+    dynamic response = await Provider.of<ProfileProvider>(context, listen: false)
+        .checkLastPasswordReset();
+
+    capsaPrint('\n\nCheck passwrod : $response');
+
+    if(response['msg'] != 'success') {
+      showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            // title: Text(
+            //   '',
+            //   style: TextStyle(
+            //     fontSize: 24,
+            //     fontWeight: FontWeight.bold,
+            //     color: Theme.of(context).primaryColor,
+            //   ),
+            // ),
+            content: Container(
+              // width: 800,
+                height: Responsive.isMobile(context)?340:300,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children:  [
+
+                      SizedBox(height: 12,),
+
+                      Image.asset('assets/icons/warning.png'),
+
+                      SizedBox(height: 12,),
+
+                      Text(
+                        'Action Required',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+
+                      SizedBox(height: 12,),
+
+                      Text(
+                        'Your GetCapsa Password has not been changed for more than 90 days!\nKindly change password to continue.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.black,
+                        ),
+                      ),
+
+                      SizedBox(height: 12,),
+
+                      InkWell(
+                        onTap: (){
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ChangeNotifierProvider(
+                                    create: (BuildContext
+                                    context) =>
+                                        ProfileProvider(),
+                                    child:ChangePasswordPageVI(canGoBack: false,),),
+                            ),
+                          );
+                        },
+                        child:Container(
+                          width: Responsive.isMobile(context)?140 : 220,
+                          decoration: BoxDecoration(
+                              color: HexColor('#0098DB'),
+                              borderRadius: BorderRadius.all(Radius.circular(10))
+                          ),
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Text(
+                                'Okay',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    ],
+                  ),
+                )
+            ),
+            //actions: <Widget>[],
+          ));
+    }
+  }
+  dynamic userData;
+
+  @override
+  void initState(){
+    super.initState();
+    userData = Map<String, dynamic>.from(box.get('userData'));
+    capsaPrint('Data : 222 $userData');
+
+    checkPassword();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -460,7 +581,7 @@ class VendorHomePage extends StatelessWidget {
                     height: 22,
                   ),
                   TopBarWidget(
-                      "👋 Capsa,", "Welcome, enjoy alternative financing!"),
+                      "👋 Welcome ${userData['userName']},", "Welcome, enjoy alternative financing!"),
                   SizedBox(
                     height: Responsive.isMobile(context) ? 0 : 22,
                   ),
@@ -789,7 +910,8 @@ class VendorHomePage extends StatelessWidget {
                         // GeneratedAccountBalanceWidget(),
                         InkWell(
                           onTap: () => context.beamToNamed("/account"),
-                          child: GeneratedCardWidget(
+                          child: CardWidget(
+                              width: !Responsive.isMobile(context) ? ((MediaQuery.of(context).size.width - 185 - 28 - 14) / 3) : null,
                               title: "Account Balance",
                               icon: "assets/images/account.png",
                               currency: true,
@@ -802,7 +924,8 @@ class VendorHomePage extends StatelessWidget {
                         ),
                         InkWell(
                           onTap: () => context.beamToNamed("/history"),
-                          child: GeneratedCardWidget(
+                          child: CardWidget(
+                              width: !Responsive.isMobile(context) ? ((MediaQuery.of(context).size.width - 185 - 28 - 14) / 3) : null,
                               title: "Total Invoices Traded",
                               icon: "assets/images/invbought.png",
                               currency: true,
@@ -816,7 +939,8 @@ class VendorHomePage extends StatelessWidget {
 
                         InkWell(
                           onTap: () => context.beamToNamed("/history"),
-                          child: GeneratedCardWidget(
+                          child: CardWidget(
+                              width: !Responsive.isMobile(context) ? ((MediaQuery.of(context).size.width - 185 - 28 - 14) / 3) : null,
                               title: "Total no of Transactions",
                               icon: "assets/images/timer.png",
                               currency: false,

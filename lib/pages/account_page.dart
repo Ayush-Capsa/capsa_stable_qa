@@ -1018,7 +1018,7 @@ class _AccountPageState extends State<AccountPage> {
                                     //     }):
                                   },
                                   child: Container(
-                                    width: !Responsive.isMobile(context)?320:MediaQuery.of(context).size.width * 0.65,
+                                    width: !Responsive.isMobile(context)?320:MediaQuery.of(context).size.width * 0.9,
                                     height: !Responsive.isMobile(context)?73:45,
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.all(

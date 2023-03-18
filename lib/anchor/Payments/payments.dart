@@ -2,7 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';import 'package:capsa/functions/custom_print.dart';
 import 'package:capsa/anchor/Components/textStyles.dart';
 import 'package:capsa/anchor/Payments/paid_screen.dart';
-import 'package:capsa/anchor/Payments/upcoming30Tab.dart';
+import 'package:capsa/anchor/Payments/upcoming_30_tab.dart';
 import 'package:capsa/anchor/Payments/upcoming45Tab.dart';
 import 'package:capsa/anchor/Payments/upcoming60Tab.dart';
 import 'package:capsa/anchor/Payments/upcoming_7_tab.dart';

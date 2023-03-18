@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:beamer/beamer.dart';
 import 'package:capsa/admin/common/widget_list.dart';
 import 'package:capsa/admin/currency_icon_icons.dart';
@@ -5,6 +7,9 @@ import 'package:capsa/admin/providers/navrail_provider.dart';
 import 'package:capsa/admin/providers/profile_provider.dart';
 
 import 'package:capsa/admin/providers/tabbar_model.dart';
+import 'package:capsa/common/responsive.dart';
+import 'package:capsa/functions/hexcolor.dart';
+import 'package:capsa/functions/logout.dart';
 import 'package:capsa/functions/show_toast.dart';
 import 'package:capsa/providers/auth_provider.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +18,8 @@ import 'package:hive/hive.dart';
 import 'package:line_awesome_icons/line_awesome_icons.dart';
 
 import 'package:provider/provider.dart';
+
+import 'change_password_admin.dart';
 
 class HomeViewBig extends StatefulWidget {
   @override
@@ -85,12 +92,60 @@ class _HomeViewBigState extends State<HomeViewBig>
         LineAwesomeIcons.tag,
         size: 18,
       ),
+      selectedIcon: Icon(
+        LineAwesomeIcons.tag,
+        size: 18,
+        color: Colors.blue,
+      ),
       label: Text(
         'Anchor\nList',
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 12),
       ),
     ),
+    const NavigationRailDestination(
+      icon: Icon(
+        Icons.monetization_on_outlined,
+        size: 18,
+      ),
+      selectedIcon: Icon(
+        Icons.monetization_on_outlined,
+        size: 18,
+        color: Colors.blue,
+      ),
+      label: Text(
+        'Revenue',
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 12),
+      ),
+    ),
+    const NavigationRailDestination(
+      icon: Icon(
+        Icons.monetization_on_outlined,
+        size: 18,
+      ),
+      selectedIcon: Icon(
+        Icons.monetization_on_outlined,
+        size: 18,
+        color: Colors.blue,
+      ),
+      label: Text(
+        'Transaction Volume',
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 12),
+      ),
+    ),
+    // const NavigationRailDestination(
+    //   icon: Icon(
+    //     LineAwesomeIcons.tag,
+    //     size: 18,
+    //   ),
+    //   label: Text(
+    //     'Anchor\nList',
+    //     textAlign: TextAlign.center,
+    //     style: TextStyle(fontSize: 12),
+    //   ),
+    // ),
     const NavigationRailDestination(
       icon: Icon(
         LineAwesomeIcons.credit_card,
@@ -135,6 +190,7 @@ class _HomeViewBigState extends State<HomeViewBig>
         style: TextStyle(fontSize: 12),
       ),
     ),
+
     const NavigationRailDestination(
       icon: Icon(
         LineAwesomeIcons.user,
@@ -146,6 +202,19 @@ class _HomeViewBigState extends State<HomeViewBig>
         style: TextStyle(fontSize: 12),
       ),
     ),
+
+    const NavigationRailDestination(
+      icon: Icon(
+        Icons.grade,
+        size: 18,
+      ),
+      label: Text(
+        'Anchor\nGrading',
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 12),
+      ),
+    ),
+
     const NavigationRailDestination(
       icon: Icon(
         LineAwesomeIcons.list,
@@ -297,10 +366,13 @@ class _HomeViewBigState extends State<HomeViewBig>
     'BL',
     'VL',
     'AL',
+    'RT',
+    'TT',
     'PI',
     'VO',
     'BO',
     'AO',
+    'AG',
     'IL',
     'AC',
     'MS',
@@ -352,7 +424,9 @@ class _HomeViewBigState extends State<HomeViewBig>
             .fetchAdminAccountPermissions();
     capsaPrint('get admin pass 1');
     //capsaPrint('$response['data)
-    permissionsTotal = stringToList(response['data'][0]['totalPermissions']);
+    // String s = '{"message":"success","data":[{"id":3,"PAN_NO":"12345678912","email":"commercial@getcapsa.com","role":"support_admin","permissions":"DA BL VL AL PI VO BO IL TL RA","totalPermissions":"DA BL VL AL RT TT PI VO BO AO AG IL AC MS TL RC TA RA BA EA PA BAC EI"}]}';
+    // response = jsonDecode(s);
+    //permissionsTotal = stringToList(response['data'][0]['totalPermissions']);
     mapping();
     permissions = stringToList(response['data'][0]['permissions']);
     capsaPrint('get admin pass 2 $permissions');
@@ -360,6 +434,7 @@ class _HomeViewBigState extends State<HomeViewBig>
     desktopFinalWidget.add(EditTabCall());
 
     for (int i = 0; i < permissions.length; i++) {
+      capsaPrint('adding ${permissions[i]}');
       destinations.add(navigationRailsMap[permissions[i]]);
       desktopFinalWidget.add(pagesMap[permissions[i]]);
     }
@@ -397,8 +472,11 @@ class _HomeViewBigState extends State<HomeViewBig>
         label: Text('Logout'),
       ),
     );
+    capsaPrint('Pass 2 home view');
 
     desktopFinalWidget.add(LogOut());
+
+    capsaPrint('Pass 3 home view');
 
     // destinations.add(const NavigationRailDestination(
     //   icon: Icon(
@@ -431,6 +509,101 @@ class _HomeViewBigState extends State<HomeViewBig>
     //   label: Text('Logout'),
     // ),);
     capsaPrint('get admin pass 3');
+
+
+
+
+    //dynamic rawData = box.get('tmpUserData');
+
+    response = await Provider.of<ProfileProvider>(context, listen: false)
+        .checkLastPasswordReset();
+
+    //capsaPrint('\n\nCheck passwrod : $response');
+
+    if(response['msg'] != 'success') {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          // title: Text(
+          //   '',
+          //   style: TextStyle(
+          //     fontSize: 24,
+          //     fontWeight: FontWeight.bold,
+          //     color: Theme.of(context).primaryColor,
+          //   ),
+          // ),
+          content: Container(
+            // width: 800,
+              height: Responsive.isMobile(context)?340:300,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children:  [
+
+                    SizedBox(height: 12,),
+
+                    Image.asset('assets/icons/warning.png'),
+
+                    SizedBox(height: 12,),
+
+                    Text(
+                      'Action Required',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+
+                    SizedBox(height: 12,),
+
+                    InkWell(
+                      onTap: (){
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                ChangeNotifierProvider(
+                                  create: (BuildContext
+                                  context) =>
+                                      ProfileProvider(),
+                                  child:ChangePasswordPageAdmin(canGoBack: false,),),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: Responsive.isMobile(context)?140 : 220,
+                        decoration: BoxDecoration(
+                            color: HexColor('#0098DB'),
+                            borderRadius: BorderRadius.all(Radius.circular(10))
+                        ),
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Text(
+                              'Okay',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  ],
+                ),
+              )
+          ),
+          //actions: <Widget>[],
+        ));
+    }
 
     setState(() {
       permissionsLoaded = true;

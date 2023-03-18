@@ -39,11 +39,16 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
   final Box box = Hive.box('capsaBox');
   final dueDateCont = TextEditingController();
   final dateCont = TextEditingController();
+  final extendedDueDateCont = TextEditingController();
   final fileCont = TextEditingController(text: '');
   DateTime _selectedDate;
   DateTime _selectedDueDate;
-  dynamic invoiceFileResponse;
+  DateTime _extendedDueDate;
   var _cuGst;
+  bool showExtendedDate = false;
+  dynamic invoiceFileResponse;
+  Map<String, String> anchorGrade = {};
+  String grade;
 
   bool saving = false;
 
@@ -55,11 +60,11 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
     print('company called');
     if (companyDetails == null) {
       invoiceFileResponse =
-      await Provider.of<InvoiceProvider>(context, listen: false)
-          .getInvFile({'fName': widget.data['invoice_file']});
+          await Provider.of<InvoiceProvider>(context, listen: false)
+              .getInvFile({'fName': widget.data['invoice_file']});
       dynamic data =
-      await Provider.of<VendorActionProvider>(context, listen: false)
-          .getCompanyName();
+          await Provider.of<VendorActionProvider>(context, listen: false)
+              .getCompanyName();
       companyDetails = data;
       if (data['res'] == 'success') {
         anchorNameList = data['data'];
@@ -67,10 +72,15 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
         anchorNameList.forEach((element) {
           if (!term.contains(element['name'])) {
             term.add(element['name']);
+            anchorGrade[element['name'].toString()] = element['grade'] ?? '';
             if (widget.data['customer_name'] == element['name']) {
               anchor = widget.data['customer_name'];
               anchorController.text = element['name_address'];
               _cuGst = element['cu_gst'];
+              grade = element['grade'] ?? '';
+              if (grade == 'C' || grade == 'D') {
+                showExtendedDate = true;
+              }
             }
           }
         });
@@ -129,8 +139,8 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
         context: context,
         initialDate: _selectedDueDate != null
             ? _selectedDueDate.difference(DateTime(2000)).inMicroseconds < 0
-            ? DateTime.now()
-            : _selectedDueDate
+                ? DateTime.now()
+                : _selectedDueDate
             : DateTime.now(),
         firstDate: DateTime(2000),
         lastDate: DateTime(2040),
@@ -155,6 +165,11 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
         ..text = DateFormat.yMMMd().format(_selectedDueDate)
         ..selection = TextSelection.fromPosition(TextPosition(
             offset: dueDateCont.text.length, affinity: TextAffinity.upstream));
+      if (showExtendedDate == true) {
+        _extendedDueDate =
+            newSelectedDate.add(Duration(days: grade == 'C' ? 30 : 45));
+        extendedDueDateCont.text = DateFormat.yMMMd().format(_extendedDueDate);
+      }
       calculateRate();
     }
   }
@@ -223,7 +238,7 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
     capsaPrint('\nedit pending invoice data\n\n${widget.data}');
 
     final invoiceProvider =
-    Provider.of<InvoiceProvider>(context, listen: false);
+        Provider.of<InvoiceProvider>(context, listen: false);
 
     if (true) {
       final invoiceFormData = invoiceProvider.invoiceFormData;
@@ -240,15 +255,19 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
       //anchorController.text = invoiceFormData["anchorAddress"];
 
       tenureDaysDiff = 0;
-      rateController2.text =  widget.data['ask_rate'].toString();
+      rateController2.text = widget.data['ask_rate'].toString();
 
       fileCont.text = '';
-      _selectedDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(
-          widget.data['created_at']);
-      _selectedDueDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(
-          widget.data['invoice_due_date']);
+      _selectedDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+          .parse(widget.data['created_at']);
+      _selectedDueDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+          .parse(widget.data['invoice_due_date']);
+      _extendedDueDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+          .parse(widget.data['effective_due_date']);
       dateCont.text = DateFormat.yMMMd('en_US').format(_selectedDate);
       dueDateCont.text = DateFormat.yMMMd('en_US').format(_selectedDueDate);
+      extendedDueDateCont.text =
+          DateFormat.yMMMd('en_US').format(_extendedDueDate);
       _cuGst = widget.data['customer_gst'].toString();
     }
 
@@ -256,13 +275,17 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
     anchorController.text = widget.data['customer_name'];
     _cuGst = widget.data['customer_gst'];
 
+    // if(_extendedDueDate == _selectedDueDate){
+    //
+    // }
+
     //invoiceProvider.splitInvoice('DH001', '50000000');
   }
 
   @override
   Widget build(BuildContext context) {
     final invoiceProvider =
-    Provider.of<InvoiceProvider>(context, listen: false);
+        Provider.of<InvoiceProvider>(context, listen: false);
 
     if (Responsive.isMobile(context)) {
       nextMobileType = true;
@@ -273,86 +296,86 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
       appBar: !Responsive.isMobile(context)
           ? null
           : AppBar(
-        title: Text('Invoice Details'),
-        automaticallyImplyLeading: false,
-        leading: InkWell(
-            onTap: () {
-              Navigator.pop(context);
-            },
-            child: Icon(
-              Icons.arrow_back,
-              color: Colors.black,
-            )),
-        // actions: [
-        //   InkWell(
-        //       onTap: () {
-        //         Navigator.push(
-        //           context,
-        //           MaterialPageRoute(
-        //               builder: (context) => EditPendingInvoice(
-        //                 data: widget.data,
-        //               )),
-        //         );
-        //       },`
-        //       child: Icon(
-        //         Icons.edit,
-        //         color: Colors.black,
-        //       )),
-        // ],
-      ),
+              title: Text('Invoice Details'),
+              automaticallyImplyLeading: false,
+              leading: InkWell(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: Icon(
+                    Icons.arrow_back,
+                    color: Colors.black,
+                  )),
+              // actions: [
+              //   InkWell(
+              //       onTap: () {
+              //         Navigator.push(
+              //           context,
+              //           MaterialPageRoute(
+              //               builder: (context) => EditPendingInvoice(
+              //                 data: widget.data,
+              //               )),
+              //         );
+              //       },`
+              //       child: Icon(
+              //         Icons.edit,
+              //         color: Colors.black,
+              //       )),
+              // ],
+            ),
       body: Row(
         children: [
           !Responsive.isMobile(context)
               ? Container(
-            //width: 185,
-            margin: EdgeInsets.all(0),
-            height: double.infinity,
-            width: MediaQuery.of(context).size.width * 0.11,
-            // color: Colors.black,
-            child: Card(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.only(
-                      topRight: Radius.circular(15),
-                      bottomRight: Radius.circular(15))),
-              color: Colors.black,
-              child: Column(
-                children: [
-                  Padding(
-                    padding:
-                    const EdgeInsets.fromLTRB(50.5, 36, 50.5, 24),
-                    child: SizedBox(
-                      width: 80,
-                      height: 45.42,
-                      child: Image.asset(
-                        'assets/images/logo.png',
-                      ),
+                  //width: 185,
+                  margin: EdgeInsets.all(0),
+                  height: double.infinity,
+                  width: MediaQuery.of(context).size.width * 0.11,
+                  // color: Colors.black,
+                  child: Card(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.only(
+                            topRight: Radius.circular(15),
+                            bottomRight: Radius.circular(15))),
+                    color: Colors.black,
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding:
+                              const EdgeInsets.fromLTRB(50.5, 36, 50.5, 24),
+                          child: SizedBox(
+                            width: 80,
+                            height: 45.42,
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                            ),
+                          ),
+                        ),
+                        InkWell(
+                          onTap: () {
+                            Navigator.pop(context);
+                            // Navigator.pushReplacement(
+                            //   context,
+                            //   MaterialPageRoute(
+                            //     builder: (context) => ChangeNotifierProvider(
+                            //         create: (BuildContext
+                            //         context) =>
+                            //             AnchorActionProvider(),
+                            //         child:
+                            //        AnchorHomePage()),
+                            //   ),
+                            // );
+                          },
+                          child: Icon(
+                            Icons.arrow_back,
+                            color: HexColor("#0098DB"),
+                            size: 30,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  InkWell(
-                    onTap: () {
-                      Navigator.pop(context);
-                      // Navigator.pushReplacement(
-                      //   context,
-                      //   MaterialPageRoute(
-                      //     builder: (context) => ChangeNotifierProvider(
-                      //         create: (BuildContext
-                      //         context) =>
-                      //             AnchorActionProvider(),
-                      //         child:
-                      //        AnchorHomePage()),
-                      //   ),
-                      // );
-                    },
-                    child: Icon(
-                      Icons.arrow_back,
-                      color: HexColor("#0098DB"),
-                      size: 30,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
+                )
               : Container(),
           Expanded(
             child: Container(
@@ -432,110 +455,245 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                         flex: 1,
                                         child: Column(
                                           mainAxisAlignment:
-                                          MainAxisAlignment.start,
+                                              MainAxisAlignment.start,
                                           crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                              CrossAxisAlignment.start,
                                           children: [
                                             OrientationSwitcher(
                                               mainAxisAlignment:
-                                              MainAxisAlignment.start,
+                                                  MainAxisAlignment.start,
                                               crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Flexible(
                                                   child: UserTextFormField(
                                                     label: "Anchor Name",
                                                     hintText: "Select Anchor",
                                                     textFormField:
-                                                    DropdownButtonFormField(
+                                                        DropdownButtonFormField(
                                                       isExpanded: true,
                                                       validator: (v) {
                                                         if (anchorController
-                                                            .text ==
+                                                                .text ==
                                                             '') {
                                                           return "Can't be empty";
                                                         }
                                                         return null;
                                                       },
                                                       items: term.map(
-                                                              (String category) {
-                                                            return DropdownMenuItem(
-                                                              value: category,
-                                                              child: Text(category
-                                                                  .toString()),
-                                                            );
-                                                          }).toList(),
+                                                          (String category) {
+                                                        return DropdownMenuItem(
+                                                          value: category,
+                                                          child: Text(category
+                                                              .toString()),
+                                                        );
+                                                      }).toList(),
                                                       onChanged: (v) {
                                                         // capsaPrint(anchorNameList);
                                                         anchor = v;
                                                         anchorNameList.forEach(
-                                                                (element1) {
-                                                              if (element1[
-                                                              'name'] ==
-                                                                  v) {
-                                                                // cacAddress = element1['name_address'];
-                                                                anchorController
+                                                            (element1) {
+                                                          if (element1[
+                                                                  'name'] ==
+                                                              v) {
+                                                            // cacAddress = element1['name_address'];
+                                                            anchorController
                                                                     .text =
                                                                 element1[
-                                                                'name_address'];
-                                                                _cuGst = element1[
+                                                                    'name_address'];
+                                                            grade = anchorGrade[
+                                                                anchor];
+                                                            capsaPrint(
+                                                                'Grade initiated : ${anchor} $grade');
+                                                            _cuGst = element1[
                                                                 'cu_gst'];
 
-                                                                // capsaPrint(cacAddress);
+                                                            if (grade == 'D' ||
+                                                                grade == 'C') {
+                                                              showDialog(
+                                                                  context:
+                                                                      context,
+                                                                  barrierDismissible:
+                                                                      true,
+                                                                  builder:
+                                                                      (BuildContext
+                                                                          context) {
+                                                                    return AlertDialog(
+                                                                      shape: RoundedRectangleBorder(
+                                                                          borderRadius:
+                                                                              BorderRadius.all(Radius.circular(32.0))),
+                                                                      backgroundColor: Color.fromRGBO(
+                                                                          245,
+                                                                          251,
+                                                                          255,
+                                                                          1),
+                                                                      content:
+                                                                          Container(
+                                                                        constraints: Responsive.isMobile(
+                                                                                context)
+                                                                            ? BoxConstraints(
+                                                                                minHeight: 300,
+                                                                              )
+                                                                            : BoxConstraints(
+                                                                                minHeight: 220,
+                                                                                maxWidth: 584),
+                                                                        decoration:
+                                                                            BoxDecoration(
+                                                                          color: Color.fromRGBO(
+                                                                              245,
+                                                                              251,
+                                                                              255,
+                                                                              1),
+                                                                        ),
+                                                                        child:
+                                                                            Padding(
+                                                                          padding: const EdgeInsets.fromLTRB(
+                                                                              6,
+                                                                              8,
+                                                                              6,
+                                                                              8),
+                                                                          child:
+                                                                              Column(
+                                                                            mainAxisAlignment:
+                                                                                MainAxisAlignment.center,
+                                                                            crossAxisAlignment:
+                                                                                CrossAxisAlignment.center,
+                                                                            mainAxisSize:
+                                                                                MainAxisSize.min,
+                                                                            children: [
+                                                                              SizedBox(
+                                                                                height: 8,
+                                                                              ),
+                                                                              Image.asset('assets/icons/warning.png'),
+                                                                              SizedBox(
+                                                                                height: 22,
+                                                                              ),
+                                                                              Text("Your anchor is a Grade $grade Anchor and as such your tenure date and invoice due date has been extended by " + (grade == 'C' ? '30' : '45') + " days.\n\nThis will affect the quality of your bid rates. Do you wish to continue with your invoice upload?", textAlign: TextAlign.center),
+                                                                              SizedBox(
+                                                                                height: 30,
+                                                                              ),
+                                                                              Row(
+                                                                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                                                children: [
+                                                                                  InkWell(
+                                                                                    onTap: () {
+                                                                                      anchor = null;
+                                                                                      anchorController.text = '';
+                                                                                      _cuGst = '';
+                                                                                      _formKey.currentState.reset();
+                                                                                      Navigator.pop(context);
+                                                                                      //capsaPrint('${anchor} ${anchorController.text}');
+                                                                                    },
+                                                                                    child: Container(
+                                                                                        width: Responsive.isMobile(context) ? 100 : 160,
+                                                                                        height: 49,
+                                                                                        decoration: BoxDecoration(border: Border.all(width: 2, color: HexColor('#0098DB')), borderRadius: BorderRadius.all(Radius.circular(10))),
+                                                                                        child: Center(
+                                                                                          child: Text(
+                                                                                            'Cancel',
+                                                                                            style: GoogleFonts.poppins(fontWeight: FontWeight.w500, color: HexColor('#0098DB'), fontSize: 18),
+                                                                                          ),
+                                                                                        )),
+                                                                                  ),
+                                                                                  InkWell(
+                                                                                    onTap: () async {
+                                                                                      Navigator.pop(context);
+                                                                                      if (_selectedDueDate != null) {
+                                                                                        _extendedDueDate = _selectedDueDate.add(Duration(days: grade == 'C' ? 30 : 45));
+                                                                                        dueDateCont.text = DateFormat.yMMMd('en_US').format(_selectedDueDate);
+                                                                                        extendedDueDateCont.text = DateFormat.yMMMd('en_US').format(_extendedDueDate);
+                                                                                      }
+                                                                                      setState(() {
+                                                                                        showExtendedDate = true;
+                                                                                      });
+                                                                                      // Beamer.of(context)
+                                                                                      //     .beamToNamed('/confirmInvoice');
 
-                                                              }
-                                                            });
+                                                                                      // showToast('Confirm invoice Details',
+                                                                                      //     context,
+                                                                                      //     type: "info");
+                                                                                    },
+                                                                                    child: Container(
+                                                                                        width: Responsive.isMobile(context) ? 100 : 160,
+                                                                                        height: 49,
+                                                                                        decoration: BoxDecoration(color: HexColor('#0098DB'), borderRadius: BorderRadius.all(Radius.circular(10))),
+                                                                                        child: Center(
+                                                                                          child: Text(
+                                                                                            'Yes, proceed',
+                                                                                            style: GoogleFonts.poppins(fontWeight: FontWeight.w500, color: Colors.white, fontSize: Responsive.isMobile(context) ? 12 : 18,),
+                                                                                          ),
+                                                                                        )),
+                                                                                  )
+                                                                                ],
+                                                                              )
+                                                                            ],
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    );
+                                                                  });
+                                                            } else {
+                                                              setState(() {
+                                                                showExtendedDate =
+                                                                    false;
+                                                              });
+                                                            }
+
+                                                            // capsaPrint(cacAddress);
+
+                                                          }
+                                                        });
                                                       },
                                                       value: anchor,
                                                       decoration:
-                                                      InputDecoration(
+                                                          InputDecoration(
                                                         border:
-                                                        InputBorder.none,
+                                                            InputBorder.none,
                                                         filled: true,
                                                         fillColor: Colors.white,
                                                         hintText:
-                                                        "Select Anchor",
+                                                            "Select Anchor",
                                                         hintStyle: TextStyle(
                                                             color:
-                                                            Color.fromRGBO(
-                                                                130,
-                                                                130,
-                                                                130,
-                                                                1),
+                                                                Color.fromRGBO(
+                                                                    130,
+                                                                    130,
+                                                                    130,
+                                                                    1),
                                                             fontSize: 14,
                                                             letterSpacing:
-                                                            0 /*percentages not used in flutter. defaulting to zero*/,
+                                                                0 /*percentages not used in flutter. defaulting to zero*/,
                                                             fontWeight:
-                                                            FontWeight
-                                                                .normal,
+                                                                FontWeight
+                                                                    .normal,
                                                             height: 1),
                                                         contentPadding:
-                                                        const EdgeInsets
-                                                            .only(
-                                                            left: 8.0,
-                                                            bottom: 12.0,
-                                                            top: 12.0),
+                                                            const EdgeInsets
+                                                                    .only(
+                                                                left: 8.0,
+                                                                bottom: 12.0,
+                                                                top: 12.0),
                                                         focusedBorder:
-                                                        OutlineInputBorder(
+                                                            OutlineInputBorder(
                                                           borderSide:
-                                                          BorderSide(
-                                                              color: Colors
-                                                                  .white),
+                                                              BorderSide(
+                                                                  color: Colors
+                                                                      .white),
                                                           borderRadius:
-                                                          BorderRadius
-                                                              .circular(
-                                                              15.7),
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      15.7),
                                                         ),
                                                         enabledBorder:
-                                                        UnderlineInputBorder(
+                                                            UnderlineInputBorder(
                                                           borderSide:
-                                                          BorderSide(
-                                                              color: Colors
-                                                                  .white),
+                                                              BorderSide(
+                                                                  color: Colors
+                                                                      .white),
                                                           borderRadius:
-                                                          BorderRadius
-                                                              .circular(
-                                                              15.7),
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      15.7),
                                                         ),
                                                       ),
                                                     ),
@@ -546,7 +704,7 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                                     label: "CAC/Address",
                                                     hintText: "",
                                                     controller:
-                                                    anchorController,
+                                                        anchorController,
                                                     readOnly: true,
                                                   ),
                                                 ),
@@ -554,16 +712,16 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                             ),
                                             OrientationSwitcher(
                                               mainAxisAlignment:
-                                              MainAxisAlignment.start,
+                                                  MainAxisAlignment.start,
                                               crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Flexible(
                                                   child: UserTextFormField(
                                                     label: "Invoice No",
                                                     hintText: "Invoice Number",
                                                     controller:
-                                                    invoiceNoController,
+                                                        invoiceNoController,
                                                   ),
                                                 ),
                                                 Flexible(
@@ -571,34 +729,34 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                                     label: "PO Number",
                                                     controller: poController,
                                                     hintText:
-                                                    "Purchase order Number",
+                                                        "Purchase order Number",
                                                   ),
                                                 ),
                                               ],
                                             ),
                                             OrientationSwitcher(
                                               mainAxisAlignment:
-                                              MainAxisAlignment.start,
+                                                  MainAxisAlignment.start,
                                               crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Flexible(
                                                   child: UserTextFormField(
                                                     label: "Tenure",
                                                     hintText: "30 or 60 Days?",
                                                     controller:
-                                                    tenureController,
+                                                        tenureController,
                                                   ),
                                                 ),
                                                 Flexible(
                                                   child: UserTextFormField(
                                                     label: "Invoice Amount",
                                                     hintText:
-                                                    "Enter invoice amount",
+                                                        "Enter invoice amount",
                                                     prefixIcon: Image.asset(
                                                         "assets/images/currency.png"),
                                                     controller:
-                                                    invoiceAmtController,
+                                                        invoiceAmtController,
                                                     onChanged: (v) {
                                                       if (num.parse(v) >=
                                                           20000000) {
@@ -612,24 +770,24 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                                     },
                                                     keyboardType: TextInputType
                                                         .numberWithOptions(
-                                                        decimal: true),
+                                                            decimal: true),
                                                     inputFormatters: [
                                                       FilteringTextInputFormatter
                                                           .allow(RegExp(
-                                                          r"[0-9.]")),
+                                                              r"[0-9.]")),
                                                       TextInputFormatter
                                                           .withFunction(
                                                               (oldValue,
-                                                              newValue) {
-                                                            try {
-                                                              final text =
-                                                                  newValue.text;
-                                                              if (text.isNotEmpty)
-                                                                double.parse(text);
-                                                              return newValue;
-                                                            } catch (e) {}
-                                                            return oldValue;
-                                                          }),
+                                                                  newValue) {
+                                                        try {
+                                                          final text =
+                                                              newValue.text;
+                                                          if (text.isNotEmpty)
+                                                            double.parse(text);
+                                                          return newValue;
+                                                        } catch (e) {}
+                                                        return oldValue;
+                                                      }),
                                                     ],
                                                   ),
                                                 ),
@@ -637,9 +795,9 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                             ),
                                             OrientationSwitcher(
                                               mainAxisAlignment:
-                                              MainAxisAlignment.start,
+                                                  MainAxisAlignment.start,
                                               crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Flexible(
                                                   child: UserTextFormField(
@@ -649,11 +807,11 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                                     suffixIcon: Icon(Icons
                                                         .date_range_outlined),
                                                     hintText:
-                                                    "Invoice Issue date",
+                                                        "Invoice Issue date",
                                                     onTap: () =>
                                                         _selectDate(context),
                                                     keyboardType:
-                                                    TextInputType.number,
+                                                        TextInputType.number,
                                                   ),
                                                 ),
                                                 Flexible(
@@ -664,26 +822,50 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                                     readOnly: true,
                                                     controller: dueDateCont,
                                                     hintText:
-                                                    "Invoice Due Date",
+                                                        "Invoice Due Date",
                                                     onTap: () =>
                                                         _selectDueDate(context),
                                                     keyboardType:
-                                                    TextInputType.number,
+                                                        TextInputType.number,
                                                   ),
                                                 ),
                                               ],
                                             ),
+                                            if (showExtendedDate)
+                                              OrientationSwitcher(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Flexible(
+                                                    child: UserTextFormField(
+                                                      label:
+                                                          "Extended Due Date",
+                                                      suffixIcon: Icon(Icons
+                                                          .date_range_outlined),
+                                                      readOnly: true,
+                                                      controller:
+                                                          extendedDueDateCont,
+                                                      hintText:
+                                                          "Extended Invoice Due Date",
+                                                      keyboardType:
+                                                          TextInputType.number,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             OrientationSwitcher(
                                               mainAxisAlignment:
-                                              MainAxisAlignment.start,
+                                                  MainAxisAlignment.start,
                                               crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Flexible(
                                                   child: UserTextFormField(
                                                     label: "Sell Now Price",
                                                     hintText:
-                                                    "Amount to sell invoice",
+                                                        "Amount to sell invoice",
                                                     prefixIcon: Image.asset(
                                                         "assets/images/currency.png"),
                                                     validator: (v) {
@@ -695,7 +877,7 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                                               invoiceAmtController
                                                                   .text)) {
                                                         buyAmtController.text =
-                                                        "";
+                                                            "";
                                                         showToast(
                                                             'Sell Now Price cann\'t be greater then invoice amount',
                                                             context);
@@ -703,28 +885,28 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                                       calculateRate();
                                                     },
                                                     controller:
-                                                    buyAmtController,
+                                                        buyAmtController,
                                                     keyboardType: TextInputType
                                                         .numberWithOptions(
-                                                        decimal: true),
+                                                            decimal: true),
                                                     inputFormatters: [
                                                       // CurrencyTextInputFormatter(locale: "en_US",decimalDigits: 2),
                                                       FilteringTextInputFormatter
                                                           .allow(RegExp(
-                                                          r"[0-9.]")),
+                                                              r"[0-9.]")),
                                                       TextInputFormatter
                                                           .withFunction(
                                                               (oldValue,
-                                                              newValue) {
-                                                            try {
-                                                              final text =
-                                                                  newValue.text;
-                                                              if (text.isNotEmpty)
-                                                                double.parse(text);
-                                                              return newValue;
-                                                            } catch (e) {}
-                                                            return oldValue;
-                                                          }),
+                                                                  newValue) {
+                                                        try {
+                                                          final text =
+                                                              newValue.text;
+                                                          if (text.isNotEmpty)
+                                                            double.parse(text);
+                                                          return newValue;
+                                                        } catch (e) {}
+                                                        return oldValue;
+                                                      }),
                                                     ],
                                                     // prefixIcon : Text()
                                                   ),
@@ -743,19 +925,19 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                             ),
                                             OrientationSwitcher(
                                               mainAxisAlignment:
-                                              MainAxisAlignment.start,
+                                                  MainAxisAlignment.start,
                                               crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Flexible(
                                                   child: UserTextFormField(
                                                     // padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
                                                     label:
-                                                    "Details (e.g items or quantity)",
+                                                        "Details (e.g items or quantity)",
                                                     hintText:
-                                                    "48 packs of goods",
+                                                        "48 packs of goods",
                                                     controller:
-                                                    detailsController,
+                                                        detailsController,
                                                     minLines: 1,
                                                     maxLines: 5,
                                                   ),
@@ -764,9 +946,9 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                             ),
                                             OrientationSwitcher(
                                               mainAxisAlignment:
-                                              MainAxisAlignment.start,
+                                                  MainAxisAlignment.start,
                                               crossAxisAlignment:
-                                              CrossAxisAlignment.start,
+                                                  CrossAxisAlignment.start,
                                               children: [
                                                 Flexible(
                                                   child: UserTextFormField(
@@ -777,17 +959,17 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                                       return null;
                                                     },
                                                     hintText:
-                                                    "PDF(Single/Multiple page) or Image File",
+                                                        "PDF(Single/Multiple page) or Image File",
                                                     minLines: 1,
                                                     onTap: () async {
                                                       FilePickerResult result =
-                                                      await FilePicker
-                                                          .platform
-                                                          .pickFiles(
+                                                          await FilePicker
+                                                              .platform
+                                                              .pickFiles(
                                                         withData: true,
                                                         onFileLoading:
                                                             (FilePickerStatus
-                                                        p) {},
+                                                                p) {},
                                                         type: FileType.custom,
                                                         allowedExtensions: [
                                                           'jpg',
@@ -798,14 +980,13 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                                       );
 
                                                       if (result != null) {
-                                                        if (result.files.first
-                                                            .extension ==
-                                                            'jpg' ||
+                                                        if (result.files.first.extension == 'jpg' ||
                                                             result.files.first
-                                                                .extension ==
-                                                                'png' || result.files.first
-                                                            .extension ==
-                                                            'jpeg') {
+                                                                    .extension ==
+                                                                'png' ||
+                                                            result.files.first
+                                                                    .extension ==
+                                                                'jpeg') {
                                                           setState(() {
                                                             file = result
                                                                 .files.first;
@@ -814,9 +995,9 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                                             capsaPrint('ok');
                                                           });
                                                         } else if (result
-                                                            .files
-                                                            .first
-                                                            .extension ==
+                                                                .files
+                                                                .first
+                                                                .extension ==
                                                             'pdf') {
                                                           setState(() {
                                                             file = result
@@ -831,26 +1012,26 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                                               context: context,
                                                               builder:
                                                                   (BuildContext
-                                                              context) {
+                                                                      context) {
                                                                 return AlertDialog(
                                                                   content:
-                                                                  const Text(
-                                                                      'Invalid Format Selected. Please Select Another File'),
+                                                                      const Text(
+                                                                          'Invalid Format Selected. Please Select Another File'),
                                                                   actions: <
                                                                       Widget>[
                                                                     FlatButton(
                                                                         child:
-                                                                        Text(
+                                                                            Text(
                                                                           'OK',
                                                                           style:
-                                                                          TextStyle(
+                                                                              TextStyle(
                                                                             color:
-                                                                            Theme.of(context).primaryColor,
+                                                                                Theme.of(context).primaryColor,
                                                                           ),
                                                                         ),
                                                                         onPressed:
                                                                             () =>
-                                                                            Navigator.pop(context)),
+                                                                                Navigator.pop(context)),
                                                                   ],
                                                                 );
                                                               });
@@ -860,7 +1041,7 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                                             context: context,
                                                             builder:
                                                                 (BuildContext
-                                                            context) {
+                                                                    context) {
                                                               return AlertDialog(
                                                                 content: const Text(
                                                                     'No File Selected!'),
@@ -868,17 +1049,17 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                                                     Widget>[
                                                                   FlatButton(
                                                                       child:
-                                                                      Text(
+                                                                          Text(
                                                                         'OK',
                                                                         style:
-                                                                        TextStyle(
+                                                                            TextStyle(
                                                                           color:
-                                                                          Theme.of(context).primaryColor,
+                                                                              Theme.of(context).primaryColor,
                                                                         ),
                                                                       ),
                                                                       onPressed:
                                                                           () =>
-                                                                          Navigator.pop(context)),
+                                                                              Navigator.pop(context)),
                                                                 ],
                                                               );
                                                             });
@@ -886,7 +1067,7 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                                     },
                                                     readOnly: true,
                                                     suffixIcon:
-                                                    Icon(Icons.upload_file),
+                                                        Icon(Icons.upload_file),
                                                     maxLines: 5,
                                                   ),
                                                 ),
@@ -895,7 +1076,7 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                             SizedBox(height: 16),
                                             Row(
                                               mainAxisAlignment:
-                                              MainAxisAlignment.spaceEvenly,
+                                                  MainAxisAlignment.spaceEvenly,
                                               children: [
                                                 InkWell(
                                                   onTap: () async {
@@ -920,43 +1101,43 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                                       capsaPrint(
                                                           'Pass 1 edti invoice');
                                                       dynamic invoiceFormData =
-                                                      {
+                                                          {
                                                         "invoiceNo":
-                                                        invoiceNoController
-                                                            .text,
+                                                            invoiceNoController
+                                                                .text,
                                                         "poNumber":
-                                                        poController.text,
+                                                            poController.text,
                                                         "tenure":
-                                                        tenureController
-                                                            .text,
+                                                            tenureController
+                                                                .text,
                                                         "invAmt":
-                                                        invoiceAmtController
-                                                            .text,
+                                                            invoiceAmtController
+                                                                .text,
                                                         "butAmt":
-                                                        buyAmtController
-                                                            .text,
+                                                            buyAmtController
+                                                                .text,
                                                         "details":
-                                                        detailsController
-                                                            .text,
+                                                            detailsController
+                                                                .text,
                                                         "anchor": anchor,
                                                         "anchorAddress":
-                                                        anchorController
-                                                            .text,
+                                                            anchorController
+                                                                .text,
                                                         "dateCont":
-                                                        dateCont.text,
+                                                            dateCont.text,
                                                         "tenureDaysDiff":
-                                                        tenureDaysDiff
-                                                            .toString(),
+                                                            tenureDaysDiff
+                                                                .toString(),
                                                         "rate": rateController2
                                                             .text,
                                                         "dueDateCont":
-                                                        dueDateCont.text,
+                                                            dueDateCont.text,
                                                         "fileCont":
-                                                        fileCont.text,
+                                                            fileCont.text,
                                                         "_selectedDate":
-                                                        _selectedDate,
+                                                            _selectedDate,
                                                         "_selectedDueDate":
-                                                        _selectedDueDate,
+                                                            _selectedDueDate,
                                                         "file": file,
                                                         "cuGst": _cuGst,
                                                       };
@@ -965,7 +1146,7 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
 
                                                       invoiceProvider
                                                           .setInvoiceFormData(
-                                                          invoiceFormData);
+                                                              invoiceFormData);
 
                                                       // dynamic invoiceData = invoiceProvider.invoiceFormData;
 
@@ -973,137 +1154,158 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                                           'Pass 2 edti invoice');
 
                                                       var userData = Map<String,
-                                                          dynamic>.from(
+                                                              dynamic>.from(
                                                           box.get(
                                                               'tmpUserData'));
 
                                                       var _body = {
                                                         'panNumber': userData[
-                                                        'panNumber'],
+                                                            'panNumber'],
                                                         'company_pan':
-                                                        widget.data[
-                                                        'company_pan'],
+                                                            widget.data[
+                                                                'company_pan'],
                                                         'old_invoice_number':
-                                                        widget.data[
-                                                        'invoice_number'],
+                                                            widget.data[
+                                                                'invoice_number'],
                                                         'invoice_number':
-                                                        invoiceFormData[
-                                                        'invoiceNo'],
+                                                            invoiceFormData[
+                                                                'invoiceNo'],
                                                         'invoice_due_data':
-                                                        DateFormat(
-                                                            'yyyy-MM-dd')
-                                                            .format(
-                                                            _selectedDueDate),
+                                                            DateFormat(
+                                                                    'yyyy-MM-dd')
+                                                                .format(
+                                                                    _selectedDueDate),
                                                         'description':
-                                                        invoiceFormData[
-                                                        'details'],
+                                                            invoiceFormData[
+                                                                'details'],
                                                         'invoice_quantity': '1',
                                                         'invoice_value':
-                                                        invoiceFormData[
-                                                        "invAmt"],
+                                                            invoiceFormData[
+                                                                "invAmt"],
                                                         'payment_terms':
-                                                        invoiceFormData[
-                                                        "tenureDaysDiff"],
+                                                            invoiceFormData[
+                                                                "tenureDaysDiff"],
                                                         'rate': invoiceFormData[
-                                                        'rate'],
+                                                            'rate'],
                                                         'buyNowPrice':
-                                                        invoiceFormData[
-                                                        'butAmt'],
+                                                            invoiceFormData[
+                                                                'butAmt'],
                                                         'poNo': invoiceFormData[
-                                                        'poNumber'],
+                                                            'poNumber'],
                                                         'userName': widget.data[
-                                                        'company_name'],
+                                                            'company_name'],
                                                         'anchor': anchor,
                                                         'cacAddress':
-                                                        invoiceFormData[
-                                                        'anchorAddress'],
+                                                            invoiceFormData[
+                                                                'anchorAddress'],
                                                         'invNo':
-                                                        invoiceFormData[
-                                                        'invoiceNo'],
+                                                            invoiceFormData[
+                                                                'invoiceNo'],
                                                         'invDate': DateFormat(
-                                                            'yyyy-MM-dd')
+                                                                'yyyy-MM-dd')
                                                             .format(
-                                                            _selectedDate),
+                                                                _selectedDate),
                                                         'terms':
-                                                        invoiceFormData[
-                                                        'tenure'],
+                                                            invoiceFormData[
+                                                                'tenure'],
                                                         'invDueDate': DateFormat(
-                                                            'yyyy-MM-dd')
+                                                                'yyyy-MM-dd')
                                                             .format(
-                                                            _selectedDueDate),
+                                                                _selectedDueDate),
+                                                        'extDueDate': showExtendedDate
+                                                            ? DateFormat(
+                                                                    'yyyy-MM-dd')
+                                                                .format(
+                                                                    _extendedDueDate)
+                                                            : DateFormat(
+                                                                    'yyyy-MM-dd')
+                                                                .format(
+                                                                    _selectedDueDate),
                                                         'details':
-                                                        invoiceFormData[
-                                                        'details'],
+                                                            invoiceFormData[
+                                                                'details'],
                                                         'invAmount':
-                                                        invoiceFormData[
-                                                        "invAmt"],
+                                                            invoiceFormData[
+                                                                "invAmt"],
                                                         'tenureDaysDiff':
-                                                        tenureDaysDiff,
+                                                            tenureDaysDiff,
                                                         'fileType': file == null
                                                             ? ''
                                                             : file.extension,
                                                         'bvnNo': widget.data[
-                                                        'company_pan'],
+                                                            'company_pan'],
                                                         'cuGst': _cuGst
                                                       };
 
                                                       _body = {
                                                         'bvnNo': userData[
-                                                        'panNumber'],
+                                                            'panNumber'],
                                                         'company_pan':
-                                                        widget.data[
-                                                        'company_pan'],
+                                                            widget.data[
+                                                                'company_pan'],
                                                         'old_invoice_number':
-                                                        widget.data[
-                                                        'invoice_number'],
+                                                            widget.data[
+                                                                'invoice_number'],
                                                         'invNo':
-                                                        invoiceFormData[
-                                                        'invoiceNo'],
+                                                            invoiceFormData[
+                                                                'invoiceNo'],
                                                         'invoice_due_date':
-                                                        DateFormat(
-                                                            'yyyy-MM-dd')
-                                                            .format(
-                                                            _selectedDueDate),
+                                                            DateFormat(
+                                                                    'yyyy-MM-dd')
+                                                                .format(
+                                                                    _selectedDueDate),
                                                         'invoice_date': DateFormat(
-                                                            'yyyy-MM-dd')
+                                                                'yyyy-MM-dd')
                                                             .format(
-                                                            _selectedDate),
+                                                                _selectedDate),
                                                         'description':
-                                                        invoiceFormData[
-                                                        'details'],
+                                                            invoiceFormData[
+                                                                'details'],
+                                                        'extDueDate': showExtendedDate
+                                                            ? DateFormat(
+                                                                    'yyyy-MM-dd')
+                                                                .format(
+                                                                    _extendedDueDate)
+                                                            : DateFormat(
+                                                                    'yyyy-MM-dd')
+                                                                .format(
+                                                                    _selectedDueDate),
                                                         'invoice_quantity': '1',
                                                         'invoice_value':
-                                                        invoiceFormData[
-                                                        "invAmt"],
+                                                            invoiceFormData[
+                                                                "invAmt"],
                                                         'payment_terms':
-                                                        invoiceFormData[
-                                                        "tenureDaysDiff"],
+                                                            invoiceFormData[
+                                                                "tenureDaysDiff"],
                                                         'rate': invoiceFormData[
-                                                        'rate'],
+                                                            'rate'],
                                                         'buyNowPrice':
-                                                        invoiceFormData[
-                                                        'butAmt'],
+                                                            invoiceFormData[
+                                                                'butAmt'],
                                                         'poNo': invoiceFormData[
-                                                        'poNumber'],
+                                                            'poNumber'],
                                                         'userName': widget.data[
-                                                        'company_name'],
+                                                            'company_name'],
                                                         'cuGst': _cuGst,
                                                         'anchor': anchor
                                                       };
 
                                                       capsaPrint(
-                                                          'Pass 2 edti invoice \n$_body');
+                                                          'Pass 3 edti invoice \n$_body');
 
                                                       dynamic response =
-                                                      await invoiceProvider
-                                                          .editPendingInvoice(
-                                                          _body, file);
+                                                          await invoiceProvider
+                                                              .editPendingInvoice(
+                                                                  _body, file);
                                                       if (response['res'] ==
                                                           'success') {
                                                         showToast(
                                                             'Invoice Update Successful',
                                                             context);
-                                                        Navigator.pop(this.context, invoiceNoController.text);
+                                                        Navigator.pop(
+                                                            this.context,
+                                                            invoiceNoController
+                                                                .text);
                                                         //Navigator.pop(context);
                                                       } else {
                                                         showToast(
@@ -1126,69 +1328,69 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                                   },
                                                   child: Container(
                                                     width: !Responsive.isMobile(
-                                                        context)
+                                                            context)
                                                         ? 230
                                                         : 130,
                                                     height:
-                                                    !Responsive.isMobile(
-                                                        context)
-                                                        ? 59
-                                                        : 48,
+                                                        !Responsive.isMobile(
+                                                                context)
+                                                            ? 59
+                                                            : 48,
                                                     decoration:
-                                                    const BoxDecoration(
+                                                        const BoxDecoration(
                                                       borderRadius:
-                                                      BorderRadius.only(
+                                                          BorderRadius.only(
                                                         topLeft:
-                                                        Radius.circular(15),
+                                                            Radius.circular(15),
                                                         topRight:
-                                                        Radius.circular(15),
+                                                            Radius.circular(15),
                                                         bottomLeft:
-                                                        Radius.circular(15),
+                                                            Radius.circular(15),
                                                         bottomRight:
-                                                        Radius.circular(15),
+                                                            Radius.circular(15),
                                                       ),
                                                       color: Color.fromRGBO(
                                                           0, 152, 219, 1),
                                                     ),
                                                     child: saving
                                                         ? const Center(
-                                                      child: Padding(
-                                                        padding:
-                                                        EdgeInsets
-                                                            .all(8.0),
-                                                        child:
-                                                        CircularProgressIndicator(
-                                                          color: Color
-                                                              .fromRGBO(
-                                                              242,
-                                                              242,
-                                                              242,
-                                                              1),
-                                                        ),
-                                                      ),
-                                                    )
+                                                            child: Padding(
+                                                              padding:
+                                                                  EdgeInsets
+                                                                      .all(8.0),
+                                                              child:
+                                                                  CircularProgressIndicator(
+                                                                color: Color
+                                                                    .fromRGBO(
+                                                                        242,
+                                                                        242,
+                                                                        242,
+                                                                        1),
+                                                              ),
+                                                            ),
+                                                          )
                                                         : Center(
-                                                      child: Text(
-                                                        'Update Invoice',
-                                                        textAlign:
-                                                        TextAlign
-                                                            .center,
-                                                        style: TextStyle(
-                                                          color: Color
-                                                              .fromRGBO(
-                                                              242,
-                                                              242,
-                                                              242,
-                                                              1),
-                                                          fontSize: 24,
-                                                          letterSpacing:
-                                                          0 /*percentages not used in flutter. defaulting to zero*/,
-                                                          fontWeight:
-                                                          FontWeight
-                                                              .w500,
-                                                        ),
-                                                      ),
-                                                    ),
+                                                            child: Text(
+                                                              'Update Invoice',
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .center,
+                                                              style: TextStyle(
+                                                                color: Color
+                                                                    .fromRGBO(
+                                                                        242,
+                                                                        242,
+                                                                        242,
+                                                                        1),
+                                                                fontSize: 24,
+                                                                letterSpacing:
+                                                                    0 /*percentages not used in flutter. defaulting to zero*/,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w500,
+                                                              ),
+                                                            ),
+                                                          ),
 
                                                     // Stack(children: <Widget>[
                                                     //   Positioned(
@@ -1250,7 +1452,8 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                           ],
                                         )),
                                     SizedBox(
-                                      width: 25, height: 25,
+                                      width: 25,
+                                      height: 25,
                                     ),
                                     Flexible(
                                         flex: 1,
@@ -1267,33 +1470,33 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                                               bottomRight: Radius.circular(50),
                                             ),
                                             color:
-                                            Color.fromRGBO(0, 152, 219, 1),
+                                                Color.fromRGBO(0, 152, 219, 1),
                                           ),
                                           child: Container(
                                               child: file != null
                                                   ? file.extension == 'pdf'
-                                                  ? SfPdfViewer.memory(
-                                                  file.bytes)
-                                                  : Image.memory(file.bytes)
+                                                      ? SfPdfViewer.memory(
+                                                          file.bytes)
+                                                      : Image.memory(file.bytes)
                                                   : SfPdfViewer.network(
-                                                  invoiceFileResponse[
-                                                  'data']['url'])
+                                                      invoiceFileResponse[
+                                                          'data']['url'])
 
-                                            // Center(
-                                            //     child: Text(
-                                            //       'Uploaded Invoice will appear here',
-                                            //       textAlign: TextAlign.left,
-                                            //       style: TextStyle(
-                                            //           color: Color.fromRGBO(
-                                            //               255, 255, 255, 1),
-                                            //           // fontFamily: 'Poppins',
-                                            //           fontSize: 14,
-                                            //           letterSpacing:
-                                            //           0 /*percentages not used in flutter. defaulting to zero*/,
-                                            //           fontWeight: FontWeight.normal,
-                                            //           height: 1),
-                                            //     )),
-                                          ),
+                                              // Center(
+                                              //     child: Text(
+                                              //       'Uploaded Invoice will appear here',
+                                              //       textAlign: TextAlign.left,
+                                              //       style: TextStyle(
+                                              //           color: Color.fromRGBO(
+                                              //               255, 255, 255, 1),
+                                              //           // fontFamily: 'Poppins',
+                                              //           fontSize: 14,
+                                              //           letterSpacing:
+                                              //           0 /*percentages not used in flutter. defaulting to zero*/,
+                                              //           fontWeight: FontWeight.normal,
+                                              //           height: 1),
+                                              //     )),
+                                              ),
                                         )),
                                   ],
                                 ),
@@ -1362,7 +1565,7 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                             fontFamily: 'Poppins',
                             fontSize: 16,
                             letterSpacing:
-                            0 /*percentages not used in flutter. defaulting to zero*/,
+                                0 /*percentages not used in flutter. defaulting to zero*/,
                             fontWeight: FontWeight.normal,
                             height: 1),
                       ),
@@ -1398,7 +1601,7 @@ class _EditPendingInvoiceState extends State<EditPendingInvoice> {
                             fontFamily: 'Poppins',
                             fontSize: 16,
                             letterSpacing:
-                            0 /*percentages not used in flutter. defaulting to zero*/,
+                                0 /*percentages not used in flutter. defaulting to zero*/,
                             fontWeight: FontWeight.normal,
                             height: 1),
                       ),
@@ -1435,12 +1638,12 @@ class SplitInvoiceWarning extends StatelessWidget {
           Text(
             'Invoice Splitting',
             style:
-            GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w600),
+                GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w600),
           ),
           Text(
             'Please note that your invoice will be split into smaller invoices. This will allow for faster trading of your invoice.\n\n This does not affect the invoice value. A breakdown of the split can be seen on the next page.',
             style:
-            GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w400),
+                GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w400),
             textAlign: TextAlign.center,
           ),
           InkWell(

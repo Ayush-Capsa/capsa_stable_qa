@@ -211,7 +211,9 @@ class _InvoiceViewerState extends State<InvoiceViewer> {
     capsaPrint('Pass 1 $_body');
 
     _body.forEach((key, value) {
-      request.fields[key] = value;
+      if(value != null) {
+        request.fields[key] = value;
+      }
     });
 
     capsaPrint('Pass 2');
@@ -476,7 +478,7 @@ class _InvoiceViewerState extends State<InvoiceViewer> {
 
   @override
   Widget build(BuildContext context) {
-    capsaPrint('Image Url : ${widget.imageUrl}');
+    //capsaPrint('Image Url : ${widget.imageUrl}');
     return !loading?Stack(
       children: [
         SingleChildScrollView(
@@ -538,7 +540,7 @@ class _InvoiceViewerState extends State<InvoiceViewer> {
                               widget.invoice.buyNowPrice = buyNowPrice.text;
 
                               dynamic image = await takePicture();
-                              capsaPrint('Pass 1');
+                              capsaPrint('Pass 1 upload approval');
                               setState(() {
                                 widget.uploadForApproval = true;
                               });

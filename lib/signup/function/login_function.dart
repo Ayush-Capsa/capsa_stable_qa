@@ -122,7 +122,7 @@ afterSuccess(context, response, AuthProvider authProvider, myController0) {
 
   // box.get('loginUserData');
   box.put('activateToken', _active);
-
+  //box.put('rawData', _rawData);
   // if(role == 'BUYER'){
   //   authProvider.authChange(true);
   //   authProvider.setUserdata(_rawData);

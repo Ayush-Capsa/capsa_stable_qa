@@ -44,7 +44,7 @@ class _AddInvoiceState extends State<AddInvoice> {
   final fileCont = TextEditingController(text: '');
   DateTime _selectedDate;
   DateTime _selectedDueDate;
-  DateTime _extentedDueDate;
+  DateTime _extendedDueDate;
   var _cuGst;
   bool showExtendedDate = false;
 
@@ -53,6 +53,8 @@ class _AddInvoiceState extends State<AddInvoice> {
   final rateController2 = TextEditingController(text: '');
 
   dynamic companyDetails = null;
+
+  dynamic _future;
 
   final GlobalKey<FormFieldState> _key = GlobalKey<FormFieldState>();
 
@@ -155,9 +157,9 @@ class _AddInvoiceState extends State<AddInvoice> {
             offset: dueDateCont.text.length, affinity: TextAffinity.upstream));
 
       if (showExtendedDate == true) {
-        _extentedDueDate =
+        _extendedDueDate =
             newSelectedDate.add(Duration(days: grade == 'C' ? 30 : 45));
-        extendedDueDateCont.text = DateFormat.yMMMd().format(_extentedDueDate);
+        extendedDueDateCont.text = DateFormat.yMMMd().format(_extendedDueDate);
       }
 
       calculateRate();
@@ -247,6 +249,8 @@ class _AddInvoiceState extends State<AddInvoice> {
     final invoiceProvider =
         Provider.of<InvoiceProvider>(context, listen: false);
 
+    _future = getCompanyNames(context);
+
     if (invoiceProvider.invoiceFormWorking) {
       final invoiceFormData = invoiceProvider.invoiceFormData;
 
@@ -269,10 +273,10 @@ class _AddInvoiceState extends State<AddInvoice> {
       _cuGst = invoiceFormData["cuGst"];
       showExtendedDate = invoiceFormData["showExtendedDueDate"];
       grade = invoiceFormData["grade"];
-      if (showExtendedDate) {
-        _extentedDueDate =
+      if(showExtendedDate){
+        _extendedDueDate =
             _selectedDueDate.add(Duration(days: grade == 'C' ? 30 : 45));
-        extendedDueDateCont.text = DateFormat.yMMMd().format(_extentedDueDate);
+        extendedDueDateCont.text = DateFormat.yMMMd().format(_extendedDueDate);
       }
     }
 
@@ -307,7 +311,7 @@ class _AddInvoiceState extends State<AddInvoice> {
             ),
             if (Responsive.isMobile(context)) mobileFormSteper(),
             FutureBuilder<Object>(
-                future: getCompanyNames(context),
+                future: _future,
                 builder: (context, snapshot) {
                   if (companyDetails == null) {
                     return Center(
@@ -637,7 +641,7 @@ class _AddInvoiceState extends State<AddInvoice> {
                                       children: [
                                         Flexible(
                                           child: UserTextFormField(
-                                            label: "Invoice Number",
+                                            label: "Invoice No",
                                             hintText: "Invoice Number",
                                             controller: invoiceNoController,
                                             onChanged: (v) {
@@ -910,7 +914,7 @@ class _AddInvoiceState extends State<AddInvoice> {
                                                           context) {
                                                         return AlertDialog(
                                                           content: const Text(
-                                                              'Invalid Format Selected. Please select a PDF or JPG file'),
+                                                              'Invalid Format Selected. Please Select Another File'),
                                                           actions: <Widget>[
                                                             FlatButton(
                                                                 child: Text(
@@ -989,15 +993,15 @@ class _AddInvoiceState extends State<AddInvoice> {
                                                   tenureDaysDiff.toString(),
                                               "rate": rateController2.text,
                                               "dueDateCont": dueDateCont.text,
-                                              "extendedDueDateString": showExtendedDate ? extendedDueDateCont.text : dueDateCont.text,
+                                              "extendedDueDateString": showExtendedDate ? extendedDueDateCont.text : '',
                                               "fileCont": fileCont.text,
                                               "_selectedDate": _selectedDate,
                                               "_selectedDueDate":
                                                   _selectedDueDate,
+                                              "_extendedDueDate": _extendedDueDate,
                                               "file": file,
                                               "cuGst": _cuGst,
-                                              "showExtendedDueDate":
-                                                  showExtendedDate,
+                                              "showExtendedDueDate": showExtendedDate,
                                               "grade": grade,
                                             };
 

@@ -2,12 +2,15 @@ import 'dart:convert' show json, base64, ascii;
 
 import 'package:beamer/beamer.dart';
 import 'package:capsa/common/responsive.dart';
+import 'package:capsa/functions/call_api.dart';
 import 'package:capsa/functions/hexcolor.dart';
+import 'package:capsa/functions/show_toast.dart';
 import 'package:capsa/signup/provider/action_provider.dart';
 import 'package:capsa/signup/widgets/StackColumnSwitch.dart';
 import 'package:capsa/signup/widgets/capsalogo.dart';
 import 'package:capsa/widgets/user_input.dart';
-import 'package:flutter/material.dart';import 'package:capsa/functions/custom_print.dart';
+import 'package:flutter/material.dart';
+import 'package:capsa/functions/custom_print.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
 
@@ -344,35 +347,52 @@ class _PasswordSetPageState extends State<PasswordSetPage> {
                               _body['pan'] = _data_2['panNumber'];
                               _body['pas'] = newController.text;
                               _body['cPas'] = conController.text;
-                              var _data = await actionProvider
-                                  .setResetPasswordCall(_body);
+                              _body['nPassword'] = newController.text;
 
-                              if (_data['res'] == 'success') {
-                                // showToast('Password Successfully Reset! Login to continue', context);
-                                setState(() {
-                                  isDone = true;
-                                  processing = false;
-                                });
-                                // context.beamToNamed('/sign_in');
-                                return;
-                              } else {
+                              dynamic response1 = await callApi(
+                                  'signin/checkBlockedPassword',
+                                  body: _body);
+
+                              if (response1['msg'] == 'failed') {
+                                showToast(response1['data'], context,
+                                    type: 'error');
+
                                 setState(() {
                                   isDone = false;
                                   processing = false;
-                                  _errorMsg2 = _data['messg'];
+                                  _errorMsg2 = response1['data'];
                                 });
-                                // ScaffoldMessenger.of(context).showSnackBar(
-                                //   SnackBar(
-                                //     content: Text(_data['messg']),
-                                //     action: SnackBarAction(
-                                //       label: 'Ok',
-                                //       onPressed: () {
-                                //         // Code to execute.
-                                //       },
-                                //     ),
-                                //   ),
-                                // );
-                                return;
+                              } else {
+                                var _data = await actionProvider
+                                    .setResetPasswordCall(_body);
+
+                                if (_data['res'] == 'success') {
+                                  // showToast('Password Successfully Reset! Login to continue', context);
+                                  setState(() {
+                                    isDone = true;
+                                    processing = false;
+                                  });
+                                  // context.beamToNamed('/sign_in');
+                                  return;
+                                } else {
+                                  setState(() {
+                                    isDone = false;
+                                    processing = false;
+                                    _errorMsg2 = _data['messg'];
+                                  });
+                                  // ScaffoldMessenger.of(context).showSnackBar(
+                                  //   SnackBar(
+                                  //     content: Text(_data['messg']),
+                                  //     action: SnackBarAction(
+                                  //       label: 'Ok',
+                                  //       onPressed: () {
+                                  //         // Code to execute.
+                                  //       },
+                                  //     ),
+                                  //   ),
+                                  // );
+                                  return;
+                                }
                               }
                             } else {
                               // actionProvider.setPassword(widget, context, passCont, passCont2, _btnController, verificationDataProvider: verificationDataProvider, isReset: isReset);

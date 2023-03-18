@@ -559,7 +559,7 @@ class _AddInvoiceState extends State<AddInvoice> {
                                                       context: context,
                                                       builder: (BuildContext context) {
                                                         return AlertDialog(
-                                                          content: const Text('Invalid Format Selected. Please Select Another File'),
+                                                          content: const Text('Invalid Format Selected. Please select a PDF or JPG file'),
                                                           actions: <Widget>[
                                                             FlatButton(
                                                                 child: Text(

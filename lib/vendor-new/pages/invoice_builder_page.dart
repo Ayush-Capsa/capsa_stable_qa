@@ -53,6 +53,13 @@ class _InvoiceBuilderPageState extends State<InvoiceBuilderPage> {
   TextEditingController dueController = TextEditingController(text: '');
   String _cuGst = "";
 
+
+  final extendedDueDateCont = TextEditingController();
+  final fileCont = TextEditingController(text: '');
+  DateTime _extentedDueDate;
+  bool showExtendedDate = false;
+  String grade = '';
+
   bool customAnchor = false;
 
   var anchorName;
@@ -63,6 +70,7 @@ class _InvoiceBuilderPageState extends State<InvoiceBuilderPage> {
   dynamic companyDetails = null;
 
   Map<String, bool> _isBlackListed = {};
+  Map<String, String> anchorGrade = {};
 
   bool loading = false;
 
@@ -234,6 +242,12 @@ class _InvoiceBuilderPageState extends State<InvoiceBuilderPage> {
         ..text = DateFormat.yMMMd().format(_selectedDueDate)
         ..selection = TextSelection.fromPosition(TextPosition(
             offset: dueDateCont.text.length, affinity: TextAffinity.upstream));
+
+      if (showExtendedDate == true) {
+        _extentedDueDate =
+            newSelectedDate.add(Duration(days: grade == 'C' ? 30 : 45));
+        extendedDueDateCont.text = DateFormat.yMMMd().format(_extentedDueDate);
+      }
     }
   }
 
@@ -665,6 +679,8 @@ class _InvoiceBuilderPageState extends State<InvoiceBuilderPage> {
                       ? true
                       : false
                   : false;
+          anchorGrade[element['name'].toString()] =
+              element['grade'] ?? '';
         });
 
         anchorTerm.add('Not in the list');
@@ -1180,6 +1196,158 @@ class _InvoiceBuilderPageState extends State<InvoiceBuilderPage> {
                                                                     customer_cin =
                                                                         element1[
                                                                             'CIN'];
+                                                                    grade =
+                                                                    anchorGrade[v];
+                                                                    capsaPrint(
+                                                                        'Grade initiated : ${anchor} $grade');
+                                                                    // _cuGst =
+                                                                    // element1['cu_gst'];
+
+                                                                    if (grade == 'D' ||
+                                                                        grade == 'C') {
+                                                                      showDialog(
+                                                                          context: context,
+                                                                          barrierDismissible:
+                                                                          true,
+                                                                          builder:
+                                                                              (BuildContext
+                                                                          context) {
+                                                                            return AlertDialog(
+                                                                              shape: RoundedRectangleBorder(
+                                                                                  borderRadius:
+                                                                                  BorderRadius.all(
+                                                                                      Radius.circular(32.0))),
+                                                                              backgroundColor:
+                                                                              Color
+                                                                                  .fromRGBO(
+                                                                                  245,
+                                                                                  251,
+                                                                                  255,
+                                                                                  1),
+                                                                              content:
+                                                                              Container(
+                                                                                constraints: Responsive
+                                                                                    .isMobile(
+                                                                                    context)
+                                                                                    ? BoxConstraints(
+                                                                                  minHeight:
+                                                                                  300,
+                                                                                )
+                                                                                    : BoxConstraints(
+                                                                                    minHeight:
+                                                                                    220,
+                                                                                    maxWidth:
+                                                                                    584),
+                                                                                decoration:
+                                                                                BoxDecoration(
+                                                                                  color: Color
+                                                                                      .fromRGBO(
+                                                                                      245,
+                                                                                      251,
+                                                                                      255,
+                                                                                      1),
+                                                                                ),
+                                                                                child:
+                                                                                Padding(
+                                                                                  padding:
+                                                                                  const EdgeInsets.fromLTRB(
+                                                                                      6,
+                                                                                      8,
+                                                                                      6,
+                                                                                      8),
+                                                                                  child:
+                                                                                  Column(
+                                                                                    mainAxisAlignment:
+                                                                                    MainAxisAlignment
+                                                                                        .center,
+                                                                                    crossAxisAlignment:
+                                                                                    CrossAxisAlignment
+                                                                                        .center,
+                                                                                    mainAxisSize:
+                                                                                    MainAxisSize
+                                                                                        .min,
+                                                                                    children: [
+                                                                                      SizedBox(
+                                                                                        height:
+                                                                                        8,
+                                                                                      ),
+                                                                                      Image.asset(
+                                                                                          'assets/icons/warning.png'),
+                                                                                      SizedBox(
+                                                                                        height:
+                                                                                        22,
+                                                                                      ),
+                                                                                      Text(
+                                                                                          "Your anchor is a Grade $grade Anchor and as such your tenure date and invoice due date has been extended by " +
+                                                                                              (grade == 'C' ? '30' : '45') +
+                                                                                              " days.\n\nThis will affect the quality of your bid rates. Do you wish to continue with your invoice upload?",
+                                                                                          textAlign: TextAlign.center),
+                                                                                      SizedBox(
+                                                                                        height:
+                                                                                        30,
+                                                                                      ),
+                                                                                      Row(
+                                                                                        mainAxisAlignment:
+                                                                                        MainAxisAlignment.spaceEvenly,
+                                                                                        children: [
+                                                                                          InkWell(
+                                                                                            onTap: () {
+                                                                                              anchor = null;
+                                                                                              anchorController.text = '';
+                                                                                              _cuGst = '';
+                                                                                              _formKey.currentState.reset();
+                                                                                              Navigator.pop(context);
+                                                                                              //capsaPrint('${anchor} ${anchorController.text}');
+                                                                                            },
+                                                                                            child: Container(
+                                                                                                width: Responsive.isMobile(context) ? 100 : 160,
+                                                                                                height: 49,
+                                                                                                decoration: BoxDecoration(border: Border.all(width: 2, color: HexColor('#0098DB')), borderRadius: BorderRadius.all(Radius.circular(10))),
+                                                                                                child: Center(
+                                                                                                  child: Text(
+                                                                                                    'Cancel',
+                                                                                                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500, color: HexColor('#0098DB'), fontSize: Responsive.isMobile(context) ? 12 : 18,),
+                                                                                                  ),
+                                                                                                )),
+                                                                                          ),
+                                                                                          InkWell(
+                                                                                            onTap: () async {
+                                                                                              Navigator.pop(context);
+                                                                                              setState(() {
+                                                                                                showExtendedDate = true;
+                                                                                              });
+                                                                                              // Beamer.of(context)
+                                                                                              //     .beamToNamed('/confirmInvoice');
+
+                                                                                              // showToast('Confirm invoice Details',
+                                                                                              //     context,
+                                                                                              //     type: "info");
+                                                                                            },
+                                                                                            child: Container(
+                                                                                                width: Responsive.isMobile(context) ? 100 : 160,
+                                                                                                height: 49,
+                                                                                                decoration: BoxDecoration(color: HexColor('#0098DB'), borderRadius: BorderRadius.all(Radius.circular(10))),
+                                                                                                child: Center(
+                                                                                                  child: Text(
+                                                                                                    'Yes, proceed',
+                                                                                                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500, color: Colors.white, fontSize: Responsive.isMobile(context) ? 12 : 18,),
+                                                                                                  ),
+                                                                                                )),
+                                                                                          )
+                                                                                        ],
+                                                                                      )
+                                                                                    ],
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                            );
+                                                                          });
+                                                                    } else {
+                                                                      setState(() {
+                                                                        showExtendedDate =
+                                                                        false;
+                                                                      });
+                                                                    }
 
                                                                     capsaPrint(
                                                                         customer_cin);

@@ -25,87 +25,87 @@ class GeneratedCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
         child: Container(
-      width: Responsive.isMobile(context) ? (width != null) ? width : 280 : 360.0,
-      height: Responsive.isMobile(context) ?  104 : 165,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(Responsive.isMobile(context) ? 20 : 30.0),
-          topRight: Radius.circular(Responsive.isMobile(context) ? 20 : 30.0),
-          bottomRight: Radius.circular(Responsive.isMobile(context) ? 0 : 0.0),
-          bottomLeft: Radius.circular(Responsive.isMobile(context) ? 20 : 30.0),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Color.fromARGB(25, 0, 0, 0),
-            offset: Offset(4.0, 4.0),
-            blurRadius: 5.0,
+          width: Responsive.isMobile(context) ? (width != null) ? width : 280 : 360.0,
+          height: Responsive.isMobile(context) ?  104 : 165,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(Responsive.isMobile(context) ? 20 : 30.0),
+              topRight: Radius.circular(Responsive.isMobile(context) ? 20 : 30.0),
+              bottomRight: Radius.circular(Responsive.isMobile(context) ? 0 : 0.0),
+              bottomLeft: Radius.circular(Responsive.isMobile(context) ? 20 : 30.0),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Color.fromARGB(25, 0, 0, 0),
+                offset: Offset(4.0, 4.0),
+                blurRadius: 5.0,
+              ),
+              BoxShadow(
+                color: Color.fromARGB(255, 255, 255, 255),
+                offset: Offset(-4.0, -4.0),
+                blurRadius: 0.0,
+              )
+            ],
+            gradient: RadialGradient(
+              center: Alignment(-1.0, -1.0),
+              radius: 2,
+              //stops: [0.0, 1.0],
+              colors: [Color.fromARGB(193, 200, 248, 255), Color.fromARGB(0, 196, 196, 196)],
+            ),
           ),
-          BoxShadow(
-            color: Color.fromARGB(255, 255, 255, 255),
-            offset: Offset(-4.0, -4.0),
-            blurRadius: 0.0,
-          )
-        ],
-        gradient: RadialGradient(
-          center: Alignment(-1.0, -1.0),
-          radius: 2,
-          //stops: [0.0, 1.0],
-          colors: [Color.fromARGB(193, 200, 248, 255), Color.fromARGB(0, 196, 196, 196)],
-        ),
-      ),
-      child: Stack(fit: StackFit.expand, alignment: Alignment.center, overflow: Overflow.visible, children: [
-        Positioned(
-          left: Responsive.isMobile(context) ? 16 : 24.0,
-          top: Responsive.isMobile(context) ? 33 : 20.0,
-          right: null,
-          bottom: null,
-          width: 38.0,
-          height: 38.0,
-          child: GeneratedFrame140Widget(icon: icon),
-        ),
-        if(withdrawSection != null)
-        Positioned(
-          left: null,
-          top: 20,
-          right: 0,
-          bottom: null,
-          width: addNewBene?180.0:130.0,
-          height: 40.0,
-          child: withdrawSection,
-        ),
+          child: Stack(fit: StackFit.expand, alignment: Alignment.center, overflow: Overflow.visible, children: [
+            Positioned(
+              left: Responsive.isMobile(context) ? 16 : 24.0,
+              top: Responsive.isMobile(context) ? 33 : 20.0,
+              right: null,
+              bottom: null,
+              width: 38.0,
+              height: 38.0,
+              child: GeneratedFrame140Widget(icon: icon),
+            ),
+            if(withdrawSection != null)
+              Positioned(
+                left: null,
+                top: 20,
+                right: 0,
+                bottom: null,
+                width: addNewBene?180.0:130.0,
+                height: 40.0,
+                child: withdrawSection,
+              ),
 
 
-        Positioned(
-          left: Responsive.isMobile(context) ? 78 : 24.0,
-          top: Responsive.isMobile(context) ? 24 : 90.0,
-          right: null,
-          bottom: null,
-          width:  Responsive.isMobile(context) ? 186 : 332.0,
-          height: 83.0,
-          child: GeneratedFrame141Widget(
-            color: color,
-            currency: currency,
-            subText: subText,
-            title: title,
-            helpText : helpText,
-            icon: icon,
-          ),
-        ),
+            Positioned(
+              left: Responsive.isMobile(context) ? 78 : 24.0,
+              top: Responsive.isMobile(context) ? 24 : 90.0,
+              right: null,
+              bottom: null,
+              width:  Responsive.isMobile(context) ? 186 : 332.0,
+              height: 83.0,
+              child: GeneratedFrame141Widget(
+                color: color,
+                currency: currency,
+                subText: subText,
+                title: title,
+                helpText : helpText,
+                icon: icon,
+              ),
+            ),
 
-        if(helpText != null)
-          Positioned(
-            left: null,
-            top: null,
-            right: 10,
-            bottom: 20,
-            width: 24.0,
-            height: 24.0,
-            child: GeneratedIconsWidget(helpText),
-          ),
+            if(helpText != null)
+              Positioned(
+                left: null,
+                top: null,
+                right: 10,
+                bottom: 20,
+                width: 24.0,
+                height: 24.0,
+                child: GeneratedIconsWidget(helpText),
+              ),
 
 
-      ]),
-    ));
+          ]),
+        ));
   }
 
 }

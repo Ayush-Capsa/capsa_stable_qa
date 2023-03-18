@@ -34,7 +34,7 @@ class GeneratedAmountWidget extends StatelessWidget {
               child: GeneratedWidget( color: color),
             ),
             Positioned(
-              left: (currency == null) ? 16 : 23.0,
+              left: (currency == null || !currency) ? 0 : 23.0,
               top: 0.0,
               right: null,
               bottom: null,

@@ -60,6 +60,17 @@ Future<void> main() async {
   runMain(appTitle: _appTitle, buildFlavour: _buildFlavour, ip: _ip);
 }
 
+// Future<void> main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   //capsaPrint = (String message, {int wrapWidth}) {};
+//   await Hive.initFlutter();
+//   const String _appTitle = 'Capsa Quality';
+//   const String _buildFlavour = 'dev';
+//   const String _ip = 'https://getcapsadev.com/api/';
+//   // const String _ip = 'http://127.0.0.1:3012/';
+//   runMain(appTitle: _appTitle, buildFlavour: _buildFlavour, ip: _ip);
+// }
+
 
 
 Future<void> runMain(

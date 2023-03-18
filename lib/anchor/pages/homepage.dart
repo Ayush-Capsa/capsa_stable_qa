@@ -1,4 +1,6 @@
 import 'package:beamer/beamer.dart';
+import 'package:capsa/pages/change_password_vendor_investor.dart';
+import 'package:capsa/providers/profile_provider.dart';
 import 'package:capsa/anchor/provider/anchor_action_providers.dart';
 import 'package:capsa/common/page_bgimage.dart';
 import 'package:capsa/common/responsive.dart';
@@ -30,6 +32,99 @@ class _AnchorHomePageState extends State<AnchorHomePage> {
   final box = Hive.box('capsaBox');
   var userData = {};
 
+  void checkPassword() async{
+    capsaPrint('CHecking password last reset');
+    dynamic response = await Provider.of<AnchorActionProvider>(context, listen: false)
+        .checkLastPasswordReset();
+
+    capsaPrint('\n\nCheck passwrod : $response');
+
+    if(response['msg'] != 'success') {
+      showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            // title: Text(
+            //   '',
+            //   style: TextStyle(
+            //     fontSize: 24,
+            //     fontWeight: FontWeight.bold,
+            //     color: Theme.of(context).primaryColor,
+            //   ),
+            // ),
+            content: Container(
+              // width: 800,
+                height: Responsive.isMobile(context)?340:300,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children:  [
+
+                      SizedBox(height: 12,),
+
+                      Image.asset('assets/icons/warning.png'),
+
+                      SizedBox(height: 12,),
+
+                      Text(
+                        'Action Required',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+
+                      SizedBox(height: 12,),
+
+                      InkWell(
+                        onTap: (){
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ChangeNotifierProvider(
+                                    create: (BuildContext
+                                    context) =>
+                                        ProfileProvider(),
+                                    child:ChangePasswordPageVI(canGoBack: false,),),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          width: Responsive.isMobile(context)?140 : 220,
+                          decoration: BoxDecoration(
+                              color: HexColor('#0098DB'),
+                              borderRadius: BorderRadius.all(Radius.circular(10))
+                          ),
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Text(
+                                'Okay',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    ],
+                  ),
+                )
+            ),
+            //actions: <Widget>[],
+          ));
+    }
+  }
+
 
   void functionStateChange(){
     capsaPrint('functionStateChange call');
@@ -43,6 +138,7 @@ class _AnchorHomePageState extends State<AnchorHomePage> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    checkPassword();
 
     userData = box.get('userData') ?? '';
   }
@@ -69,43 +165,7 @@ class _AnchorHomePageState extends State<AnchorHomePage> {
               SizedBox(
                 height: 15,
               ),
-              if(false)
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  boxShadow: [BoxShadow(color: Color.fromRGBO(0, 0, 0, 0.15000000596046448), offset: Offset(0, -2), blurRadius: 4)],
-                  color: Color.fromRGBO(255, 255, 255, 1),
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Color.fromRGBO(245, 251, 255, 1),
-                      ),
-                      padding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: <Widget>[
-                            _textWidget1(state: 1, text: "Pending"),
-                            SizedBox(width: Responsive.isMobile(context) ? 10 : 45),
-                            // _textWidget1(state: 2, text: "Vetted"),
-                            // SizedBox(width: Responsive.isMobile(context) ? 10 : 45),
-                            // _textWidget1(state: 3, text: "Accepted"),
-                            // SizedBox(width: Responsive.isMobile(context) ? 10 : 45),
-                            // _textWidget1(state: 4, text: "Rejected"),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+
               SizedBox(
                 height: 15,
               ),
@@ -181,7 +241,7 @@ class _AnchorHomePageState extends State<AnchorHomePage> {
                                 : DataTable(
                               dataRowHeight: 60,
                               columns: dataTableColumn(
-                                  ["S/N", "Invoice No", "Vendor Name", "Issue Date", "Invoice\nAmount", "Due Date", "Tenure", "Action"]),
+                                  ["S/N", "Invoice No", "Vendor Name2", "Issue Date", "Invoice\nAmount", "Due Date", "Tenure", "Action"]),
                               rows: <DataRow>[
                                 for (var invoice in _data)
                                   DataRow(

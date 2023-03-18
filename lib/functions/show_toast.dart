@@ -14,6 +14,7 @@ showToast(String content, BuildContext context, { toastDuration,  type  }) {
             // Code to execute.
           },
         ),
+
       ),
     );
     return;
@@ -34,7 +35,7 @@ showToast(String content, BuildContext context, { toastDuration,  type  }) {
     _icon = Icons.info;
   }
 
-  if(toastDuration == null) toastDuration = 5;
+  if(toastDuration == null) toastDuration = 2;
 
   return fToast.showToast(
     gravity: ToastGravity.BOTTOM,

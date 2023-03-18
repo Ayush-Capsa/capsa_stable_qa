@@ -101,7 +101,6 @@ class _VendorNewAppState extends State<VendorNewApp> {
         routes: {
           '/*': (context, state, data) {
             final beamerKey = GlobalKey<BeamerState>();
-
             return Scaffold(
               resizeToAvoidBottomInset: false,
               body: Beamer(
@@ -224,7 +223,9 @@ class _VendorNewAppState extends State<VendorNewApp> {
                             pageUrl: "/viewInvoice/" + id,
                             menuList: false,
                             mobileTitle: id,
-                            body: ConfirmInvoice(invVoiceNumber: id,),
+                            body: ConfirmInvoice(
+                              invVoiceNumber: id,
+                            ),
                             backButton: true,
                           ),
                         );
@@ -322,7 +323,6 @@ class _VendorNewAppState extends State<VendorNewApp> {
                         );
                       },
                       '/confirmInvoice': (context, state, data) {
-
                         return BeamPage(
                           key: ValueKey('vendor-confirmInvoice'),
                           title: 'Confirm Invoice',
@@ -375,8 +375,10 @@ class _VendorNewAppState extends State<VendorNewApp> {
                           child: VendorMain(
                               pageUrl: "/invoice-builder",
                               mobileTitle: "Invoice Builder",
-                              menuList: Responsive.isMobile(context)?false:null,
-                              backButton: Responsive.isMobile(context)?true:false,
+                              menuList:
+                                  Responsive.isMobile(context) ? false : null,
+                              backButton:
+                                  Responsive.isMobile(context) ? true : false,
                               body: InvoiceBuilderPage()),
                         );
 
@@ -453,7 +455,9 @@ class _VendorNewAppState extends State<VendorNewApp> {
                           title: 'Withdraw response',
                           // popToNamed: '/',
                           type: BeamPageType.fadeTransition,
-                          child: WithdrawResponse(response: data,),
+                          child: WithdrawResponse(
+                            response: data,
+                          ),
 
                           // VendorMain(
                           //     pageUrl: "/account/withdraw-amt",
@@ -492,9 +496,6 @@ class _VendorNewAppState extends State<VendorNewApp> {
                   ),
                 ),
               ),
-              // bottomNavigationBar: BottomNavigationBarWidget(
-              //   beamerKey: beamerKey,
-              // ),
             );
           }
         },
@@ -551,15 +552,15 @@ class VendorMain extends StatelessWidget {
 
   VendorMain(
       {this.pageUrl,
-        this.body,
-        this.mobileSubTitle,
-        this.mobileTitle,
-        this.backUrl,
-        this.menuList,
-        this.backButton,
-        this.pop = false,
-        this.showLogo = false,
-        Key key})
+      this.body,
+      this.mobileSubTitle,
+      this.mobileTitle,
+      this.backUrl,
+      this.menuList,
+      this.backButton,
+      this.pop = false,
+      this.showLogo = false,
+      Key key})
       : super(key: key);
 
   List<Map> _menuList = [
@@ -720,66 +721,67 @@ class VendorMain extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-    !Responsive.isMobile(context)?_menuList=[
-      {
-        'title': 'Home',
-        'icon': 'assets/icons/homeIcons.png',
-        'activeIcon': 'assets/icons/active_homeIcons.png',
-        'active': false,
-        'url': "/home",
-      },
-      // {
-      //   'title': 'Live Deals',
-      //   'icon': 'assets/icons/livedealsicon.png',
-      //   'activeIcon': 'assets/icons/active_livedealsIcons.png',
-      //   'active': false,
-      //   'url': "/live-deals",
-      // },
-      {
-        'title': 'Bids',
-        'icon': 'assets/icons/bidsIcons.png',
-        'activeIcon': 'assets/icons/active_bidsIcons.png',
-        'active': false,
-        'url': "/bids",
-      },
-      {
-        'title': 'Invoice Builder',
-        'icon': 'assets/icons/pending.png',
-        'activeIcon': 'assets/icons/active_pending.png',
-        'active': false,
-        'url': "/invoice-builder",
-      },
-      {
-        'title': 'History',
-        'icon': 'assets/icons/history.png',
-        'activeIcon': 'assets/icons/active_historyIcons.png',
-        'active': false,
-        'url': "/history",
-      },
-      {
-        'title': 'Account',
-        'icon': 'assets/icons/accounticon.png',
-        'activeIcon': 'assets/icons/active_accountIcons.png',
-        'active': false,
-        'url': "/account",
-      },
-      {
-        'title': 'Profile',
-        'icon': 'assets/icons/profileIcons.png',
-        'activeIcon': 'assets/icons/active_profileIcons.png',
-        'active': false,
-        'url': "/profile",
-      },
-      {
-        'title': 'FAQ',
-        'icon': 'assets/icons/faqIcons.png',
-        'activeIcon': 'assets/icons/active_faqIcons.png',
-        'active': false,
-        'mobile': false,
-        'url': "/faq-vendor",
-      }
-    ] : _menuList = _mobileMenuList;
+    !Responsive.isMobile(context)
+        ? _menuList = [
+            {
+              'title': 'Home',
+              'icon': 'assets/icons/homeIcons.png',
+              'activeIcon': 'assets/icons/active_homeIcons.png',
+              'active': false,
+              'url': "/home",
+            },
+            // {
+            //   'title': 'Live Deals',
+            //   'icon': 'assets/icons/livedealsicon.png',
+            //   'activeIcon': 'assets/icons/active_livedealsIcons.png',
+            //   'active': false,
+            //   'url': "/live-deals",
+            // },
+            {
+              'title': 'Bids',
+              'icon': 'assets/icons/bidsIcons.png',
+              'activeIcon': 'assets/icons/active_bidsIcons.png',
+              'active': false,
+              'url': "/bids",
+            },
+            {
+              'title': 'Invoice Builder',
+              'icon': 'assets/icons/pending.png',
+              'activeIcon': 'assets/icons/active_pending.png',
+              'active': false,
+              'url': "/invoice-builder",
+            },
+            {
+              'title': 'History',
+              'icon': 'assets/icons/history.png',
+              'activeIcon': 'assets/icons/active_historyIcons.png',
+              'active': false,
+              'url': "/history",
+            },
+            {
+              'title': 'Account',
+              'icon': 'assets/icons/accounticon.png',
+              'activeIcon': 'assets/icons/active_accountIcons.png',
+              'active': false,
+              'url': "/account",
+            },
+            {
+              'title': 'Profile',
+              'icon': 'assets/icons/profileIcons.png',
+              'activeIcon': 'assets/icons/active_profileIcons.png',
+              'active': false,
+              'url': "/profile",
+            },
+            {
+              'title': 'FAQ',
+              'icon': 'assets/icons/faqIcons.png',
+              'activeIcon': 'assets/icons/active_faqIcons.png',
+              'active': false,
+              'mobile': false,
+              'url': "/faq-vendor",
+            }
+          ]
+        : _menuList = _mobileMenuList;
 
     List<Map> _menuList2 = [];
 
@@ -790,17 +792,17 @@ class VendorMain extends StatelessWidget {
       _menuList2 = [];
       // _menuList2 = menuList;
       _invoiceMenuList.forEach((k) => {
-        if (k['url'] == pageUrl) {k['active'] = true, invmenu = true},
-        _menuList2.add(k)
-      });
+            if (k['url'] == pageUrl) {k['active'] = true, invmenu = true},
+            _menuList2.add(k)
+          });
     } else if (menuList != null && !menuList) {
       _menuList2 = [];
     } else {
       _menuList2 = [];
       _menuList.forEach((k) => {
-        if (k['url'] == pageUrl) {k['active'] = true},
-        _menuList2.add(k)
-      });
+            if (k['url'] == pageUrl) {k['active'] = true},
+            _menuList2.add(k)
+          });
     }
     //
     // capsaPrint('_menuList2');
@@ -816,112 +818,141 @@ class VendorMain extends StatelessWidget {
 
     capsaPrint('User Detrails : $userData\n\n\n');
 
+
+
+    // if (!currentFocus.hasPrimaryFocus) {
+    //
+    // }
+
     return Scaffold(
-      resizeToAvoidBottomInset: false,
       bottomNavigationBar: (Responsive.isMobile(context))
           ? (_backButton)
-          ? invMenu2
-          : Generated_MobileMenuNavigationsVendorWidget(_menuList2)
+              ? invMenu2
+              : Generated_MobileMenuNavigationsVendorWidget(_menuList2)
           : null,
       appBar: Responsive.isMobile(context)
           ? PreferredSize(
-        preferredSize: Size.fromHeight(72.0),
-        child: AppBar(
-          automaticallyImplyLeading: false,
-          backgroundColor: HexColor("#F5FBFF"),
-          actions: [
-            showLogo?Padding(
-              padding: const EdgeInsets.only(top: 12, right: 8),
-              child: Image.asset(
-                "assets/images/Ellipse 3.png",
-                width: 35,
-                height: 35,
-              ),
-            ):Container(),
-          ],
-          title: Column(
-            children: [
-              SizedBox(
-                height: 18,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  if (_backButton)
-                    InkWell(
-                      onTap: () {
-                        if(pop) {
-                          Navigator.pop(context);
-                        } else if (invmenu)
-                          context.beamToNamed('/home');
-                        else if (Beamer.of(context).canBeamBack) {
-                          Beamer.of(context).beamBack();
-                        } else {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => CapsaHome(),
-                            ),
-                          );
-                        }
-                      },
-                      child: Icon(
-                        Icons.arrow_back,
-                        color: HexColor("#0098DB"),
-                        size: 30,
-                      ),
-                    ),
-                  SizedBox(
-                    width: (_backButton) ? 12 : 8,
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        mobileTitle != null ? mobileTitle : 'Hello ${userData['name']} 👋',
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
-                            color: Color.fromRGBO(51, 51, 51, 1),
-                            fontFamily: 'Poppins',
-                            fontSize: 16,
-                            letterSpacing:
-                            0 /*percentages not used in flutter. defaulting to zero*/,
-                            fontWeight: FontWeight.normal,
-                            height: 1),
-                      ),
-                      if (mobileSubTitle != null)
-                        SizedBox(
-                          height: 8,
-                        ),
-                      if (mobileSubTitle != null)
-                        Text(
-                          (mobileSubTitle != null)
-                              ? mobileSubTitle
-                              : 'Welcome, enjoy alternative financing!',
-                          textAlign: TextAlign.left,
-                          style: TextStyle(
-                              color: Color.fromRGBO(51, 51, 51, 1),
-                              // fontFamily: 'Poppins',
-                              fontSize: 14,
-                              letterSpacing:
-                              0 /*percentages not used in flutter. defaulting to zero*/,
-                              fontWeight: FontWeight.normal,
-                              height: 1),
-                        ),
-                    ],
-                  ),
+              preferredSize: Size.fromHeight(72.0),
+              child: AppBar(
+                automaticallyImplyLeading: false,
+                backgroundColor: HexColor("#F5FBFF"),
+                actions: [
+                  showLogo
+                      ? Padding(
+                          padding: const EdgeInsets.only(top: 12, right: 8),
+                          child: Image.asset(
+                            "assets/images/Ellipse 3.png",
+                            width: 35,
+                            height: 35,
+                          ),
+                        )
+                      : Container(),
                 ],
+                title: Column(
+                  children: [
+                    SizedBox(
+                      height: 18,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        if (_backButton)
+                          InkWell(
+                            onTap: () {
+                              // FocusScopeNode currentFocus = FocusScope.of(context);
+                              // currentFocus.unfocus();
+                              if (pop) {
+                                Navigator.pop(context);
+                              } else if (invmenu)
+                                context.beamToNamed('/home');
+                              else if (Beamer.of(context).canBeamBack) {
+                                try {
+                                  capsaPrint('can beam back 1');
+
+                                  Beamer.of(context).beamBack();
+                                } catch (e) {
+                                  capsaPrint('can beam back 2');
+                                  // FocusScopeNode currentFocus = FocusScope.of(context);
+                                  // currentFocus.unfocus();
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => VendorNewApp(),
+                                    ),
+                                  );
+                                }
+                              } else {
+                                capsaPrint('can beam back 3');
+                                // FocusScopeNode currentFocus = FocusScope.of(context);
+                                // currentFocus.unfocus();
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => VendorNewApp(),
+                                  ),
+                                );
+                              }
+                            },
+                            child: Icon(
+                              Icons.arrow_back,
+                              color: HexColor("#0098DB"),
+                              size: 30,
+                            ),
+                          ),
+                        SizedBox(
+                          width: (_backButton) ? 12 : 8,
+                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              mobileTitle != null
+                                  ? mobileTitle
+                                  : 'Hello ${userData['name']} 👋',
+                              textAlign: TextAlign.left,
+                              style: TextStyle(
+                                  color: Color.fromRGBO(51, 51, 51, 1),
+                                  fontFamily: 'Poppins',
+                                  fontSize: 16,
+                                  letterSpacing:
+                                      0 /*percentages not used in flutter. defaulting to zero*/,
+                                  fontWeight: FontWeight.normal,
+                                  height: 1),
+                            ),
+                            if (mobileSubTitle != null)
+                              SizedBox(
+                                height: 8,
+                              ),
+                            if (mobileSubTitle != null)
+                              Text(
+                                (mobileSubTitle != null)
+                                    ? mobileSubTitle
+                                    : 'Welcome, enjoy alternative financing!',
+                                textAlign: TextAlign.left,
+                                style: TextStyle(
+                                    color: Color.fromRGBO(51, 51, 51, 1),
+                                    // fontFamily: 'Poppins',
+                                    fontSize: 14,
+                                    letterSpacing:
+                                        0 /*percentages not used in flutter. defaulting to zero*/,
+                                    fontWeight: FontWeight.normal,
+                                    height: 1),
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
-        ),
-      )
+            )
           : null,
+      resizeToAvoidBottomInset: false,
       body: Container(
         // height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
+        //width: MediaQuery.of(context).size.width,
         decoration: bgDecoration,
         child: Responsive(
           desktop: Row(
@@ -987,7 +1018,7 @@ class VendorMain extends StatelessWidget {
                             color: Color.fromRGBO(245, 251, 255, 1),
                           ),
                           padding:
-                          EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                              EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
@@ -1038,7 +1069,7 @@ class VendorMain extends StatelessWidget {
                             color: Color.fromRGBO(255, 255, 255, 1),
                           ),
                           padding:
-                          EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                              EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
@@ -1058,7 +1089,7 @@ class VendorMain extends StatelessWidget {
                               fontFamily: 'Poppins',
                               fontSize: 14,
                               letterSpacing:
-                              0 /*percentages not used in flutter. defaulting to zero*/,
+                                  0 /*percentages not used in flutter. defaulting to zero*/,
                               fontWeight: FontWeight.normal,
                               height: 1),
                         ),

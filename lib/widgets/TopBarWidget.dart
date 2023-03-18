@@ -115,12 +115,12 @@ class TopBarWidget extends StatelessWidget {
                     ),
                   ),
                 ),
-              notificationEnabled?Image.asset(
-                "assets/images/Desktop Notification.png",
-                width: 35,
-                height: 35,
-                semanticLabel: "icon",
-              ):Container(),
+              // notificationEnabled?Image.asset(
+              //   "assets/images/Desktop Notification.png",
+              //   width: 35,
+              //   height: 35,
+              //   semanticLabel: "icon",
+              // ):Container(),
               SizedBox(
                 width: 24,
               ),

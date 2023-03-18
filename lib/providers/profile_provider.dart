@@ -836,6 +836,7 @@ class ProfileProvider extends ChangeNotifier {
             element['email'],
             element['nm'],
           );
+          _userDetails = [];
           _userDetails.add(_user);
         });
 
@@ -1163,6 +1164,36 @@ class ProfileProvider extends ChangeNotifier {
     // }
 
     return data;
+  }
+
+  Future checkLastPasswordReset() async {
+    capsaPrint('Pass 1 check password reset');
+    String _uri = 'signin/checkLastPasswordReset';
+    //_uri = Uri.parse(_uri);
+    //capsaPrint('company name pass 1');
+    var _body = {};
+    var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
+    _body['panNumber'] = userData['panNumber'];
+    capsaPrint('Pass 2 check password reset');
+    var response = await callApi(_uri, body: _body);
+    // capsaPrint('Pass 3 check password reset ${response.body}');
+    // // await http.post(_uri,
+    // //     headers: <String, String>{
+    // //       'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+    // //     },
+    // //     body: _body);
+    // //capsaPrint('company name pass 2');
+    // capsaPrint(response.body);
+    // var data = jsonDecode(response.body);
+
+    // if (data['res'] == 'success') {
+    //   for (int i = 0; i < data['data'].length; i++) {
+    //     _anchorsNameList.add(data['data'][i]['name']);
+    //     _cinList[data['data'][i]['name']] = data['data'][i]['cu_pan'];
+    //   }
+    // }
+
+    return response;
   }
 
 }

@@ -46,6 +46,7 @@ class _InvoiceDetailsState extends State<InvoiceDetails> {
   bool processing = false;
   bool complete = false;
   bool isEditShow = false;
+  dynamic _data;
 
 
   Future<Object> submitForApproval(_body) async {
@@ -477,7 +478,7 @@ class _InvoiceDetailsState extends State<InvoiceDetails> {
                         });
                       } else {
                         showToast('This Invoice Cannot be edited', context,
-                            type: 'warning', toastDuration: 1800);
+                            type: 'warning', toastDuration: 2);
                       }
                     }else{
                   setState(() {
@@ -538,7 +539,7 @@ class _InvoiceDetailsState extends State<InvoiceDetails> {
                       context,
                       MaterialPageRoute(
                           builder: (context) => EditInvoice(
-                            data: widget.data,
+                            data: _data['data']['invoicelist'][0],
                           )),
                     ).then((value) {
                       capsaPrint('not p number - $value');
@@ -555,7 +556,9 @@ class _InvoiceDetailsState extends State<InvoiceDetails> {
 
           (widget.type == 'pending' || widget.type == 'notPresented' )?InkWell(
               onTap: () {
-                widget.type == 'pending' ? showDialog(
+                widget.type == 'pending' ?
+
+                showDialog(
                     context: context,
                     barrierDismissible: true,
                     builder: (BuildContext context) {
@@ -833,7 +836,8 @@ class _InvoiceDetailsState extends State<InvoiceDetails> {
                     } else if (widget.invVoiceNumber == null ||
                         snapshot.hasData) {
                       if (widget.invVoiceNumber != null) {
-                        dynamic _data = snapshot.data;
+                         _data = snapshot.data;
+                         capsaPrint('Invoice Data x :\n$_data \n\n');
 
                         if (_data['res'] == 'success') {
                           var _results = _data['data']['invoicelist'];
@@ -1089,12 +1093,13 @@ class _InvoiceDetailsState extends State<InvoiceDetails> {
                                                       ),
                                                     );
                                                   } else if (snapshot.hasData) {
-                                                    dynamic _data =
+                                                    dynamic invoiceFileData =
                                                         snapshot.data;
-                                                    if (_data['res'] ==
+
+                                                    if (invoiceFileData['res'] ==
                                                         'success') {
                                                       var url =
-                                                          _data['data']['url'];
+                                                      invoiceFileData['data']['url'];
                                                       return SfPdfViewer
                                                           .network(url);
                                                     }

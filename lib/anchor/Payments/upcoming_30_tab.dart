@@ -268,7 +268,10 @@ class _upcoming30ScreenState extends State<upcoming30Screen> {
             ),
           )
         ],
-      ):Center(child: CircularProgressIndicator(),),
+      ):Container(
+        height: MediaQuery.of(context).size.height,
+        child: Center(child: CircularProgressIndicator()),
+      ),
     );
   }
 }

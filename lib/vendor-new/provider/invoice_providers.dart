@@ -325,7 +325,7 @@ class InvoiceProvider extends ChangeNotifier {
           },
           body: _body);
       var data = jsonDecode(response.body);
-      capsaPrint('\n\nInvoices $type\n : $data');
+      //capsaPrint('\n\nInvoices $type\n : $data');
 
       await setInvoiceList(data);
 
@@ -350,7 +350,9 @@ class InvoiceProvider extends ChangeNotifier {
 
       dynamic _uri = 'dashboard/r/invoiceByNumber';
 
-      return callApi(_uri, body: _body);
+      dynamic _response = callApi(_uri, body: _body);
+      capsaPrint('Invoice Response : \n$_response');
+      return _response;
     }
     return null;
   }

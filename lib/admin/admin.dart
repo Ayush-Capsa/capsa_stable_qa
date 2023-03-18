@@ -1,6 +1,7 @@
 import 'package:capsa/admin/providers/action_model.dart';
 import 'package:capsa/admin/providers/edit_table_data_provider.dart';
 import 'package:capsa/admin/providers/profile_provider.dart';
+import 'package:capsa/admin/screens/change_password_admin.dart';
 import 'package:capsa/admin/widgets/drawer_widget.dart';
 import 'package:capsa/functions/currency_format.dart';
 import 'package:capsa/functions/logout.dart';
@@ -179,13 +180,74 @@ class _HomeState extends State<Home> {
                 ],
               ),
         actions: [
-          IconButton(
-            onPressed: () {
-              showNotificationBar(context);
-            },
-            icon: Icon(Icons.notifications),
-            color: Colors.grey[700],
+          // IconButton(
+          //   onPressed: () {
+          //     // showNotificationBar(context);
+          //     Navigator.push(
+          //       context,
+          //       MaterialPageRoute(
+          //         builder: (context) => ChangePasswordPageAdmin(),
+          //       ),
+          //     );
+          //   },
+          //   icon: Icon(Icons.settings),
+          //   color: Colors.grey[700],
+          // ),
+
+          PopupMenuButton(
+            icon: Icon(Icons.settings, color: Colors.black,),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                child: InkWell(
+                  onTap: () {
+                    Navigator.pop(context);
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //     builder: (context) => ChangePasswordPageAdmin(),
+                    //   ),
+                    // );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            ChangeNotifierProvider(
+                                create: (BuildContext
+                                context) =>
+                                    ProfileProvider(),
+                                child:ChangePasswordPageAdmin(),),
+                      ),
+                    );
+                  },
+                  child: Row(
+                    children: [
+                      Icon(Icons.password, color: Colors.black,),
+                      RichText(
+                        text: TextSpan(
+                          text: 'Change Password',
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w400,
+                              color:
+                              Color.fromRGBO(51, 51, 51, 1)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
+
+           SizedBox(width: 8,),
+
+          // IconButton(
+          //   onPressed: () {
+          //     showNotificationBar(context);
+          //   },
+          //   icon: Icon(Icons.se),
+          //   color: Colors.grey[700],
+          // ),
         ],
       ),
       body: SafeArea(child: HomeViewBig()),

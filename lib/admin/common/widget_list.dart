@@ -8,6 +8,7 @@ import 'package:capsa/admin/screens/PendingRevenueScreen.dart';
 import 'package:capsa/admin/screens/RevenueScreen.dart';
 import 'package:capsa/admin/screens/TransferAmount.dart';
 import 'package:capsa/admin/screens/account_screen.dart';
+import 'package:capsa/admin/screens/anchor_grading.dart';
 import 'package:capsa/admin/screens/anchor_list/anchor_list.dart';
 import 'package:capsa/admin/screens/anchor_onboarding.dart';
 import 'package:capsa/admin/screens/block_account_screen.dart';
@@ -21,7 +22,9 @@ import 'package:capsa/admin/screens/invoices_screen.dart';
 import 'package:capsa/admin/screens/pending-account/pending_account_screen.dart';
 import 'package:capsa/admin/screens/pending_invoice_screen.dart';
 import 'package:capsa/admin/screens/reconcilation/reconciliation_screen.dart';
+import 'package:capsa/admin/screens/revenue_tracker.dart';
 import 'package:capsa/admin/screens/transaction_ledger.dart';
+import 'package:capsa/admin/screens/transaction_tracker.dart';
 import 'package:capsa/admin/screens/vendor_edit.dart';
 import 'package:capsa/admin/screens/vendor_list.dart';
 import 'package:capsa/functions/logout.dart';
@@ -38,6 +41,10 @@ final desktopWidgetList = <Widget>[
   VendorList(title: 'Vendors List'),
   AnchorList(title: 'Anchor List'),
 
+  RevenueTracker(title: 'Revenue'),
+
+  TransactionTracker(title: 'Transaction Volume',),
+
   PendingInvoiceScreen(title: 'Pending Invoices'),
 
   // PendingRevenueScreen(title: 'Pending Revenue'),
@@ -46,6 +53,8 @@ final desktopWidgetList = <Widget>[
   EnquiryList(title: 'Buyer On-boarding'),
 
   AnchorOnboarding(),
+
+  AnchorGrading(),
 
   InvoiceScreen(title: 'Invoice List'),
 
