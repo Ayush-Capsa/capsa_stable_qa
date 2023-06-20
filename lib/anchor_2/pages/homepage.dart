@@ -564,7 +564,7 @@ class _ContainerViewState extends State<ContainerView> {
 
                                 // return;
 
-                                dynamic _data = await _invoiceProvider.approve(  date.toString(), effDueDateCont.text, payableAmountCont.text, widget.invoice);
+                                dynamic _data = await _invoiceProvider.approve(  date.toString(), effDueDateCont.text, payableAmountCont.text, widget.invoice, '', '', '');
 
                                 if (_data['res'] == 'success') {
                                   // setState(() {
@@ -623,7 +623,7 @@ class _ContainerViewState extends State<ContainerView> {
                                 });
                                 // return;
 
-                                dynamic _data = await _invoiceProvider.reject( widget.invoice);
+                                dynamic _data = await _invoiceProvider.reject( widget.invoice, '', '', '');
 
                                 if (_data['res'] == 'success') {
                                   ScaffoldMessenger.of(context).showSnackBar(

@@ -1,5 +1,6 @@
 import 'package:capsa/common/constants.dart';
 import 'package:capsa/functions/call_api.dart';
+import 'package:capsa/models/api_history_model.dart';
 import 'package:capsa/models/profile_model.dart';
 import 'package:capsa/vendor-new/model/account_letter_model.dart';
 import 'package:file_picker/file_picker.dart';
@@ -53,8 +54,7 @@ class ProfileProvider extends ChangeNotifier {
 
   List get bankList => _bankList;
 
-  BankDetails get getStatementBankDetails =>
-      statementBankDetails;
+  BankDetails get getStatementBankDetails => statementBankDetails;
 
   List _userDetails = [];
 
@@ -71,9 +71,13 @@ class ProfileProvider extends ChangeNotifier {
 
   num _totalBalance = 0;
 
+  num _walletBalance = 0;
+
   num _totalBalanceToWithDraw = 0;
 
   num get totalBalance => _totalBalance;
+
+  num get walletBalance => _walletBalance;
 
   num get totalBalanceToWithDraw => _totalBalanceToWithDraw;
 
@@ -201,7 +205,7 @@ class ProfileProvider extends ChangeNotifier {
       _body['panNumber'] = userData['panNumber'];
       // _body['panNumber'] = userData['panNumber'];
       _body['userName'] = userData['userName'];
-      capsaPrint('Query Data pass 0.2');
+      //capsaPrint('Query Data pass 0.2');
       dynamic _uri;
       _uri = apiUrl + 'dashboard/i/portfolio';
       _uri = Uri.parse(_uri);
@@ -211,13 +215,13 @@ class ProfileProvider extends ChangeNotifier {
             'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
           },
           body: _body);
-      capsaPrint('Query Data pass 0.4 \n${response.body}');
+      //capsaPrint('Query Data pass 0.4 \n${response.body}');
       var data = jsonDecode(response.body);
-      capsaPrint('Query Data pass 1');
+      //capsaPrint('Query Data pass 1');
       if (data['res'] == 'success') {
-        capsaPrint('Query Data pass 2');
+        //capsaPrint('Query Data pass 2');
         var _data = data['data'];
-        capsaPrint('Query Data pass 3');
+        //capsaPrint('Query Data pass 3');
 
         if (_data['totalDiscount'] == null) _data['totalDiscount'] = 0;
         if (_data['grandannualExpReturn'] == null)
@@ -242,12 +246,12 @@ class ProfileProvider extends ChangeNotifier {
             if (element['payment_status'] == 0) upPmt.add(element);
           });
         }
-        capsaPrint('Query Data pass 4');
+        //capsaPrint('Query Data pass 4');
 
-        capsaPrint('Portfolio Data WEEK: $data');
+        //capsaPrint('Portfolio Data WEEK: $data');
 
         _portfolioData = PortfolioData(
-          totalUpcomingPayments: _data['totalUpcomingPayments'],
+            totalUpcomingPayments: _data['totalUpcomingPayments'],
             totalDiscount: _data['totalDiscount'],
             totalReceived: _data['totalReceived'],
             transactionCount: _data['transactionCount'],
@@ -273,12 +277,9 @@ class ProfileProvider extends ChangeNotifier {
             kyc3File: _data['kyc3File'],
             totalUpcomingPaymentin1month:
                 _data['totalUpPaymentsIn1Month'] ?? 0.0,
-            totalUpcomingPaymentin1week:
-                _data['totalUpPaymentsIn1Week'] ?? 0.0,
-            percentageOfPaymentIn1month:
-                _data['percentageIn1Month'] ?? 0.0,
-            percentageOfPaymentIn1week:
-                _data['percentageIn1Week'] ?? 0.0,
+            totalUpcomingPaymentin1week: _data['totalUpPaymentsIn1Week'] ?? 0.0,
+            percentageOfPaymentIn1month: _data['percentageIn1Month'] ?? 0.0,
+            percentageOfPaymentIn1week: _data['percentageIn1Week'] ?? 0.0,
             returnPercent: returnPercent,
             invIn1Week: _data['invoicesIn1Week'],
             invIn1Month: _data['invoicesIn1Month'],
@@ -296,7 +297,7 @@ class ProfileProvider extends ChangeNotifier {
         // capsaPrint(_portfolioData);
         notifyListeners();
       }
-      capsaPrint('Protfolio Data Loaded');
+      //capsaPrint('Protfolio Data Loaded');
       return data;
     }
     return null;
@@ -536,7 +537,9 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
-  Future<Object> queryBankTransaction({date,}) async {
+  Future<Object> queryBankTransaction({
+    date,
+  }) async {
     //capsaPrint('here 1');
     if (box.get('isAuthenticated', defaultValue: false)) {
       //await queryPendingBankTransactions();
@@ -617,11 +620,9 @@ class ProfileProvider extends ChangeNotifier {
             outflow: element['totalOutflow'] != null
                 ? element['totalOutflow'].toString()
                 : '',
-
           );
 
           //capsaPrint('_data 2 ${element['totalInflow'].toString()} ${_tmpBankDetails.inflow} ${_tmpBankDetails.outflow} ${_tmpBankDetails.bene_bvn} ${_tmpBankDetails.account_number}');
-
 
           bankDetails.add(_tmpBankDetails);
           statementBankDetails = _tmpBankDetails;
@@ -646,13 +647,12 @@ class ProfileProvider extends ChangeNotifier {
         int i = 0;
 
         tmpTransactionDetails?.forEach((element) {
-          if(i == 0){
-            capsaPrint('Transaction Details');
-            capsaPrint(element);
-          }
+          // if(i < 5){
+          //   capsaPrint('Transaction Details');
+          //   capsaPrint(element);
+          // }
 
           i++;
-
 
           TransactionDetails _tmptransactionDetails = TransactionDetails(
             account_number: element['account_number'] != null
@@ -686,9 +686,9 @@ class ProfileProvider extends ChangeNotifier {
                 element['updated_on'] != null ? element['updated_on'] : '',
             withdrawl_amt: element['status'] != null
                 ? element['status'] == 'PENDING'
-                    ? element['pending_amt_transaction'].toString()
+                    ? element['withdrawl_amt'].toString()
                     : element['status'] == 'FAILED'
-                        ? element['failed_amt'].toString()
+                        ? element['withdrawl_amt'].toString()
                         : element['withdrawl_amt'].toString()
                 : '',
             reference: element['reference'] != null ? element['reference'] : '',
@@ -789,8 +789,11 @@ class ProfileProvider extends ChangeNotifier {
         var tmpBankDetails = _data['bankDetails'];
 
         _data['toBal'] = _data['toBal'].toStringAsFixed(2);
+        _data['walletBalance'] = _data['walletBalance'].toStringAsFixed(2);
 
         _totalBalance = double.parse(_data['toBal']);
+
+        _walletBalance = double.parse(_data['walletBalance']);
 
         try {
           _totalBalanceToWithDraw =
@@ -897,9 +900,9 @@ class ProfileProvider extends ChangeNotifier {
       _body['panNumber'] = userData['panNumber'];
       // _body['panNumber'] = userData['panNumber'];
       _body['role'] = userData['role'];
-      if(_body['role'] == 'COMPANY'){
+      if (_body['role'] == 'COMPANY') {
         _body['role'] = 'VENDOR';
-      }else if(_body['role'] == 'BUYER'){
+      } else if (_body['role'] == 'BUYER') {
         _body['role'] = 'ANCHOR';
       }
       dynamic _uri;
@@ -1067,18 +1070,14 @@ class ProfileProvider extends ChangeNotifier {
 
     capsaPrint('pass 3 account letter \n$data\n\n');
 
-
-
     capsaPrint('pass 3.1 account letter ${data['anchorsList']}\n\n');
 
     List<String> anchorsNameList = [];
 
-    for(int i = 0;i<data['anchorsList'].length;i++){
+    for (int i = 0; i < data['anchorsList'].length; i++) {
       capsaPrint('pass 3.1 account letter ${data['anchorsList'][i]}\n\n');
       anchorsNameList.add(data['anchorsList'][i].toString());
     }
-
-
 
     capsaPrint('Pass 4 account letter');
 
@@ -1099,7 +1098,8 @@ class ProfileProvider extends ChangeNotifier {
     });
     capsaPrint('Pass 6 account letter');
 
-    AnchorsListApiModel anchorsList = AnchorsListApiModel(anchorsNameList, accountLetterModels);
+    AnchorsListApiModel anchorsList =
+        AnchorsListApiModel(anchorsNameList, accountLetterModels);
 
     //anchorsList.accountLetters = accountLetterModels;
 
@@ -1117,10 +1117,10 @@ class ProfileProvider extends ChangeNotifier {
     _uri = apiUrl + 'signup/saveAnchors';
 
     String anchorPan = '';
-    for(int i = 0;i<cuGst.length;i++){
-      if(i == 0){
+    for (int i = 0; i < cuGst.length; i++) {
+      if (i == 0) {
         anchorPan += cuGst[i];
-      }else{
+      } else {
         anchorPan += ' ' + cuGst[i];
       }
     }
@@ -1131,9 +1131,11 @@ class ProfileProvider extends ChangeNotifier {
 
     _body['bvnNo'] = userData['panNumber'];
     _body['bvn'] = userData['panNumber'];
-    var response = await http.post(_uri, headers: <String, String>{
-      'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
-    }, body: _body);
+    var response = await http.post(_uri,
+        headers: <String, String>{
+          'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+        },
+        body: _body);
     capsaPrint('save anchor $_uri $_body');
     capsaPrint(response.body);
     var data = jsonDecode(response.body);
@@ -1149,9 +1151,11 @@ class ProfileProvider extends ChangeNotifier {
     var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
     _body['panNumber'] = userData['panNumber'];
     capsaPrint('company name pass 1 anchors list');
-    var response = await http.post(_uri, headers: <String, String>{
-      'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
-    }, body: _body);
+    var response = await http.post(_uri,
+        headers: <String, String>{
+          'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+        },
+        body: _body);
     capsaPrint('company name pass 2');
     capsaPrint(response.body);
     var data = jsonDecode(response.body);
@@ -1196,4 +1200,15 @@ class ProfileProvider extends ChangeNotifier {
     return response;
   }
 
+  Future callApiHistory() async {
+    String _uri = 'dashboard/i/apiCallHistory';
+    var _body = {};
+    var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
+    _body['panNumber'] = userData['panNumber'];
+    var response = await callApi(_uri, body: _body);
+
+
+
+    return response;
+  }
 }

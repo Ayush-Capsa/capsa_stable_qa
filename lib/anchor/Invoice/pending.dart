@@ -3,6 +3,7 @@ import 'package:capsa/anchor/Invoice/invoices.dart';
 import 'package:capsa/anchor/provider/anchor_action_providers.dart';
 import 'package:capsa/common/constants.dart';
 import 'package:capsa/common/responsive.dart';
+import 'package:capsa/functions/call_api.dart';
 import 'package:capsa/functions/currency_format.dart';
 import 'package:capsa/functions/export_to_csv.dart';
 import 'package:capsa/functions/hexcolor.dart';
@@ -55,6 +56,8 @@ class _pendingScreenState extends State<pendingScreen> {
 
   var userData;
   String search = "";
+
+  String plan = '';
 
   void createCSV(){
     // final find = ',';
@@ -249,6 +252,134 @@ class _pendingScreenState extends State<pendingScreen> {
                           PopupMenuItem(
                             child: InkWell(
                               onTap: () {
+
+                                // showDialog(
+                                //     context: context,
+                                //     barrierDismissible: true,
+                                //     builder: (BuildContext context) {
+                                //       return AlertDialog(
+                                //         shape: RoundedRectangleBorder(
+                                //             borderRadius: BorderRadius.all(
+                                //                 Radius.circular(32.0))),
+                                //         backgroundColor:
+                                //         Color.fromRGBO(245, 251, 255, 1),
+                                //         content: Container(
+                                //           constraints: Responsive.isMobile(context)
+                                //               ? BoxConstraints(
+                                //             minHeight: 300,
+                                //           )
+                                //               : BoxConstraints(
+                                //               minHeight: 220, minWidth: 350),
+                                //           decoration: BoxDecoration(
+                                //             color: Color.fromRGBO(245, 251, 255, 1),
+                                //           ),
+                                //           child: Padding(
+                                //             padding: const EdgeInsets.fromLTRB(
+                                //                 6, 8, 6, 8),
+                                //             child: Column(
+                                //               mainAxisAlignment:
+                                //               MainAxisAlignment.center,
+                                //               crossAxisAlignment:
+                                //               CrossAxisAlignment.center,
+                                //               mainAxisSize: MainAxisSize.min,
+                                //               children: [
+                                //                 SizedBox(
+                                //                   height: 8,
+                                //                 ),
+                                //                 Text(
+                                //                   'Reverse Factoring',
+                                //                   style: GoogleFonts
+                                //                       .poppins(
+                                //                       fontWeight:
+                                //                       FontWeight
+                                //                           .w500,
+                                //                       color: Colors.black,
+                                //                       fontSize: 24),
+                                //                 ),
+                                //                 SizedBox(
+                                //                   height: 22,
+                                //                 ),
+                                //                 Text(
+                                //                     "Is this invoice eligible for\nreverse factoring?",
+                                //                     textAlign: TextAlign.center),
+                                //                 SizedBox(
+                                //                   height: 30,
+                                //                 ),
+                                //                 Row(
+                                //                   mainAxisAlignment:
+                                //                   MainAxisAlignment.spaceEvenly,
+                                //                   children: [
+                                //                     InkWell(
+                                //                       onTap: () {
+                                //                         Navigator.pop(context);
+                                //                       },
+                                //                       child: Container(
+                                //                           width: 100,
+                                //                           height: 49,
+                                //                           decoration: BoxDecoration(
+                                //                               border: Border.all(
+                                //                                   width: 2,
+                                //                                   color: HexColor(
+                                //                                       '#0098DB')),
+                                //                               borderRadius:
+                                //                               BorderRadius.all(
+                                //                                   Radius
+                                //                                       .circular(
+                                //                                       10))),
+                                //                           child: Center(
+                                //                             child: Text(
+                                //                               'NO',
+                                //                               style: GoogleFonts
+                                //                                   .poppins(
+                                //                                   fontWeight:
+                                //                                   FontWeight
+                                //                                       .w500,
+                                //                                   color: HexColor(
+                                //                                       '#0098DB'),
+                                //                                   fontSize: 18),
+                                //                             ),
+                                //                           )),
+                                //                     ),
+                                //                     InkWell(
+                                //                       onTap: () async {
+                                //                         showToast(
+                                //                             'Please Wait', context,
+                                //                             type: 'warning');
+                                //                       },
+                                //                       child: Container(
+                                //                           width: 100,
+                                //                           height: 49,
+                                //                           decoration: BoxDecoration(
+                                //                               color: HexColor(
+                                //                                   '#0098DB'),
+                                //                               borderRadius:
+                                //                               BorderRadius.all(
+                                //                                   Radius
+                                //                                       .circular(
+                                //                                       10))),
+                                //                           child: Center(
+                                //                             child: Text(
+                                //                               'YES',
+                                //                               style: GoogleFonts
+                                //                                   .poppins(
+                                //                                   fontWeight:
+                                //                                   FontWeight
+                                //                                       .w500,
+                                //                                   color: Colors
+                                //                                       .white,
+                                //                                   fontSize: 18),
+                                //                             ),
+                                //                           )),
+                                //                     )
+                                //                   ],
+                                //                 )
+                                //               ],
+                                //             ),
+                                //           ),
+                                //         ),
+                                //       );
+                                //     });
+
                                 showDialog(
                                     // barrierColor: Colors.transparent,
                                     context: context,
@@ -278,7 +409,7 @@ class _pendingScreenState extends State<pendingScreen> {
                                             _acctTable[i],
                                             anchorsActions,
                                             functionStateChange,
-                                            userData),
+                                            userData, plan),
                                       );
                                     });
                               },
@@ -358,38 +489,67 @@ class _pendingScreenState extends State<pendingScreen> {
                     itemBuilder: (context) => [
                       PopupMenuItem(
                         child: InkWell(
-                          onTap: () {
-                            showDialog(
-                                // barrierColor: Colors.transparent,
-                                context: context,
-                                builder: (BuildContext context) {
-                                  functionBack() {
-                                    Navigator.pop(context);
-                                  }
+                          onTap: () async{
 
-                                  return AlertDialog(
-                                    // backgroundColor: Colors.transparent,
-                                    shape: const RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(32.0))),
-                                    title: Text(
-                                      _acctTable[i].vendor,
-                                      textAlign: TextAlign.left,
-                                      style: const TextStyle(
-                                          color: Color.fromRGBO(0, 0, 0, 1),
-                                          fontFamily: 'Poppins',
-                                          fontSize: 28,
-                                          letterSpacing:
-                                              0 /*percentages not used in flutter. defaulting to zero*/,
-                                          fontWeight: FontWeight.normal,
-                                          height: 1),
-                                    ),
-                                    content: SuperAdminContainerView(
-                                        _acctTable[i],
-                                        anchorsActions,
-                                        functionStateChange),
-                                  );
-                                });
+                            var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
+
+                            dynamic _body = {
+
+                              "vendorPAN": _acctTable[i].companyPan,
+                              "anchorPAN": userData['panNumber']
+
+
+                            };
+                            // showToast('Please Wait', context, type: 'warning');
+                            //
+                            // dynamic response = await callApi('dashboard/a/checkplan', body: _body);
+                            // capsaPrint('checkplan response : $response');
+                            //
+                            // plan = response['plan'];
+
+                            //plan = '';
+
+
+
+
+                            {
+                              showDialog(
+                                // barrierColor: Colors.transparent,
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    functionBack() {
+                                      Navigator.pop(context);
+                                    }
+
+                                    return AlertDialog(
+                                      // backgroundColor: Colors.transparent,
+                                      shape: const RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(32.0))),
+                                      title: Text(
+                                        _acctTable[i].vendor,
+                                        textAlign: TextAlign.left,
+                                        style: const TextStyle(
+                                            color: Color.fromRGBO(0, 0, 0, 1),
+                                            fontFamily: 'Poppins',
+                                            fontSize: 28,
+                                            letterSpacing:
+                                            0 /*percentages not used in flutter. defaulting to zero*/,
+                                            fontWeight: FontWeight.normal,
+                                            height: 1),
+                                      ),
+                                      content: SuperAdminContainerView(
+                                          _acctTable[i],
+                                          anchorsActions,
+                                          functionStateChange,
+                                          plan),
+                                    );
+                                  });
+                            }
+
+
+
+
                           },
                           child: Row(
                             children: [
@@ -650,7 +810,7 @@ class _pendingScreenState extends State<pendingScreen> {
                                               _acctTable[i],
                                               anchorsActions,
                                               functionStateChange,
-                                              userData),
+                                              userData, plan),
                                         );
                                       });
                                 },
@@ -659,7 +819,7 @@ class _pendingScreenState extends State<pendingScreen> {
                                     Icon(Icons.edit),
                                     RichText(
                                       text: TextSpan(
-                                        text: 'Edit',
+                                        text: 'Edit3',
                                         style: TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.w400,
@@ -760,7 +920,7 @@ class _pendingScreenState extends State<pendingScreen> {
                                       content: SuperAdminContainerView(
                                           _acctTable[i],
                                           anchorsActions,
-                                          functionStateChange),
+                                          functionStateChange, plan),
                                     );
                                   });
                             },
@@ -1002,7 +1162,7 @@ class _pendingScreenState extends State<pendingScreen> {
                                               _acctTable[i],
                                               anchorsActions,
                                               functionStateChange,
-                                              userData),
+                                              userData, plan),
                                         );
                                       });
                                 },
@@ -1112,7 +1272,7 @@ class _pendingScreenState extends State<pendingScreen> {
                                       content: SuperAdminContainerView(
                                           _acctTable[i],
                                           anchorsActions,
-                                          functionStateChange),
+                                          functionStateChange,plan),
                                     );
                                   });
                             },
@@ -1389,9 +1549,10 @@ class SuperAdminContainerView extends StatefulWidget {
   final AcctTableData invoice;
   final AnchorActionProvider invoiceProvider;
   final Function functionStateChange;
+  final String plan;
 
   SuperAdminContainerView(
-      this.invoice, this.invoiceProvider, this.functionStateChange,
+      this.invoice, this.invoiceProvider, this.functionStateChange, this.plan,
       {Key key})
       : super(key: key);
 
@@ -1410,8 +1571,12 @@ class _SuperAdminContainerViewState extends State<SuperAdminContainerView> {
   TextEditingController effDueDateCont;
   TextEditingController rejectReasonCont;
   TextEditingController payableAmountCont;
+  TextEditingController percentageController = TextEditingController(text: '');
 
   bool amountReadOnly = true;
+
+  String checkBoxValue = 'no';
+  bool checkBoxBool = false;
 
   _selectEffDueDate(BuildContext context) async {
     DateTime newSelectedDate = await showDatePicker(
@@ -1595,6 +1760,72 @@ class _SuperAdminContainerViewState extends State<SuperAdminContainerView> {
                     SizedBox(
                       height: 30,
                     ),
+
+                    if(widget.plan == 'a')
+                      Container(
+                        child: UserTextFormField(
+                          label: "Percentage Discount",
+                          // action: 'Edit',
+                          // onActionTap: () {
+                          //   setState(() {
+                          //     amountReadOnly = false;
+                          //   });
+                          // },
+                          readOnly: false,
+                          keyboardType:
+                          TextInputType.numberWithOptions(decimal: true),
+                          controller: percentageController,
+                          inputFormatters: [
+                            //ThousandsFormatter(),
+                            FilteringTextInputFormatter.allow(RegExp(r"[0-9.]")),
+                            TextInputFormatter.withFunction((oldValue, newValue) {
+                              try {
+                                final text = newValue.text;
+                                if (text.isNotEmpty) double.parse(text);
+                                return newValue;
+                              } catch (e) {}
+                              return oldValue;
+                            }),
+                          ],
+                          prefixIcon: Icon(Icons.percent),
+                          hintText: "Enter a percentage",
+                          padding: EdgeInsets.zero,
+                          fillColor: Color.fromRGBO(238, 248, 255, 1.0),
+                          // errorText:
+                          // "Amount you are going to pay the vendor. If this is not correct, please change.",
+                        ),
+                      ),
+
+                    SizedBox(
+                      height: 8,
+                    ),
+
+                    if(widget.plan == 'a')
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: checkBoxBool,
+                          onChanged: (bool value) {
+                            setState(() {
+                              checkBoxBool = value;
+                            });
+                            value ? checkBoxValue = 'yes' : 'no';
+                          },
+                        ),
+
+                        SizedBox(
+                          width: 4,
+                        ),
+
+                        Text('Save this option for this vendor')
+
+                      ],
+                    ),
+
+                    SizedBox(
+                      height: 50,
+                    ),
+
                     Container(
                       child: UserTextFormField(
                         label: "Payable Amount",
@@ -1630,6 +1861,10 @@ class _SuperAdminContainerViewState extends State<SuperAdminContainerView> {
                     SizedBox(
                       height: 50,
                     ),
+
+
+
+
                     if (!_loading)
                       Container(
                         decoration: BoxDecoration(
@@ -1640,7 +1875,7 @@ class _SuperAdminContainerViewState extends State<SuperAdminContainerView> {
                             Expanded(
                               child: InkWell(
                                 onTap: () async {
-                                  capsaPrint('Approve Call');
+                                  capsaPrint('Approve Call22');
 
                                   setState(() {
                                     _loading = true;
@@ -1648,11 +1883,27 @@ class _SuperAdminContainerViewState extends State<SuperAdminContainerView> {
 
                                   // return;
 
+                                  capsaPrint('update ivoice values -  ${widget.invoice.invNo}  ${widget.plan} ${checkBoxValue} ');
+
+                                  var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
+
+                                  dynamic _body = {
+
+                                    "vendorPAN": widget.invoice.companyPan,
+                                    "anchorPAN": userData['panNumber'],
+                                    'plan': widget.plan
+
+
+                                  };
+
+                                  dynamic savePlan = await callApi('dashboard/a/updatePlan', body: _body );
+
                                   dynamic _data =
                                       await _invoiceProvider.updateInvoice(
                                     widget.invoice.invNo,
                                     DateFormat('yyyy-MM-dd').format(date),
                                     payableAmountCont.text,
+                                        widget.plan, checkBoxValue, percentageController.text ?? ''
                                   );
                                   Navigator.push(
                                     context,
@@ -1693,20 +1944,33 @@ class _SuperAdminContainerViewState extends State<SuperAdminContainerView> {
                             Expanded(
                               child: InkWell(
                                 onTap: () async {
-                                  capsaPrint('Approve Call');
+                                  capsaPrint('Approve Call12');
 
                                   setState(() {
                                     _loading = true;
                                   });
 
                                   // return;
+                                  var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
+
+                                  dynamic _body = {
+
+                                    "vendorPAN": widget.invoice.companyPan,
+                                    "anchorPAN": userData['panNumber'],
+                                    'plan': widget.plan
+
+
+                                  };
+
+                                  dynamic savePlan = await callApi('dashboard/a/updatePlan', body: _body );
+
 
                                   dynamic _data =
                                       await _invoiceProvider.approve(
                                           date.toString(),
                                           effDueDateCont.text,
                                           payableAmountCont.text,
-                                          widget.invoice);
+                                          widget.invoice, widget.plan, checkBoxValue, percentageController.text ?? '');
 
                                   if (_data['res'] == 'success') {
                                     // setState(() {
@@ -1766,9 +2030,21 @@ class _SuperAdminContainerViewState extends State<SuperAdminContainerView> {
                                     _loading = true;
                                   });
                                   // return;
+                                  var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
+
+                                  dynamic _body = {
+
+                                    "vendorPAN": widget.invoice.companyPan,
+                                    "anchorPAN": userData['panNumber'],
+                                    'plan': widget.plan
+
+
+                                  };
+
+                                  dynamic savePlan = await callApi('dashboard/a/updatePlan', body: _body );
 
                                   dynamic _data = await _invoiceProvider
-                                      .reject(widget.invoice);
+                                      .reject(widget.invoice, widget.plan, checkBoxValue, percentageController.text ?? '');
 
                                   if (_data['res'] == 'success') {
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -1838,9 +2114,12 @@ class SubAdminInvoiceContainerView extends StatefulWidget {
   final AnchorActionProvider invoiceProvider;
   final Function functionStateChange;
   var userData;
+  final String plan;
+
+
 
   SubAdminInvoiceContainerView(this.invoice, this.invoiceProvider,
-      this.functionStateChange, @required this.userData,
+      this.functionStateChange, @required this.userData, this.plan,
       {Key key})
       : super(key: key);
 
@@ -1861,7 +2140,12 @@ class _SubAdminInvoiceContainerViewState
   TextEditingController rejectReasonCont;
   TextEditingController payableAmountCont;
 
+  TextEditingController percentageController;
+
   bool amountReadOnly = true;
+
+  String checkBoxValue = 'no';
+  bool checkBoxBool = false;
 
   _selectEffDueDate(BuildContext context) async {
     DateTime newSelectedDate = await showDatePicker(
@@ -2094,7 +2378,7 @@ class _SubAdminInvoiceContainerViewState
                             editInvoice == '1' ?Expanded(
                               child: InkWell(
                                 onTap: () async {
-                                  capsaPrint('Approve Call');
+                                  capsaPrint('Approve Call13');
 
                                   setState(() {
                                     _loading = true;
@@ -2107,6 +2391,7 @@ class _SubAdminInvoiceContainerViewState
                                     widget.invoice.invNo,
                                     DateFormat('yyyy-MM-dd').format(date),
                                     payableAmountCont.text,
+                                          widget.plan, checkBoxValue, percentageController.text
                                   );
 
                                   widget.functionStateChange();
@@ -2147,7 +2432,7 @@ class _SubAdminInvoiceContainerViewState
                                 ? Expanded(
                                     child: InkWell(
                                       onTap: () async {
-                                        capsaPrint('Approve Call');
+                                        capsaPrint('Approve Call14');
 
                                         setState(() {
                                           _loading = true;
@@ -2159,7 +2444,7 @@ class _SubAdminInvoiceContainerViewState
                                             date.toString(),
                                             effDueDateCont.text,
                                             payableAmountCont.text,
-                                            widget.invoice);
+                                            widget.invoice, widget.plan, checkBoxValue, percentageController.text ?? '');
 
                                         if (_data['res'] == 'success') {
                                           // setState(() {
@@ -2228,7 +2513,7 @@ class _SubAdminInvoiceContainerViewState
                                         // return;
 
                                         dynamic _data = await _invoiceProvider
-                                            .reject(widget.invoice);
+                                            .reject(widget.invoice, widget.plan, checkBoxValue, percentageController.text ?? '');
 
                                         if (_data['res'] == 'success') {
                                           ScaffoldMessenger.of(context)

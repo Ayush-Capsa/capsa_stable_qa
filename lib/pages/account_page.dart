@@ -9,6 +9,7 @@ import 'package:capsa/functions/show_toast.dart';
 import 'package:capsa/investor/provider/invoice_providers.dart';
 import 'package:capsa/models/profile_model.dart';
 import 'package:capsa/pages/withdraw-amt/withdraw_amt_page.dart';
+import 'package:capsa/vendor-new/dialog_boxes/api_wallet_topup_dialog.dart';
 import 'package:capsa/widgets/capsaapp/generatedcardwidget/generatedcardwidget.dart';
 import 'package:capsa/widgets/capsaapp/generatedwidgettemplatewidget/GeneratedWidgetTemplateWidget.dart';
 import 'package:capsa/models/bid_history_model.dart';
@@ -25,6 +26,7 @@ import 'package:capsa/widgets/withdraw_amt.dart';
 import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
 import 'package:capsa/functions/custom_print.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
@@ -35,7 +37,10 @@ import 'package:printing/printing.dart' as pr;
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:clipboard/clipboard.dart';
+import 'package:web_smooth_scroll/web_smooth_scroll.dart';
 
+import '../admin/common/constants.dart';
+import '../data/AccountPageData.dart';
 import 'dialog_box/account_statement_dialog_box.dart';
 import 'package:capsa/pages/dialog_box/transaction_details_pdf_builder.dart';
 
@@ -245,20 +250,29 @@ class _AccountPageState extends State<AccountPage> {
   }
 
   final box = Hive.box('capsaBox');
+  var _role = "";
+  var _role2 = "";
+
+  ScrollController _scrollController;
 
   @override
   void initState() {
+    _scrollController = ScrollController();
     // TODO: implement initState
     super.initState();
 
-    var _role = "";
+
     Map<String, dynamic> userData;
 
 
     if (box.get('isAuthenticated', defaultValue: false)) {
       userData = Map<String, dynamic>.from(box.get('userData'));
 
+      capsaPrint('\n\nuser data : $userData');
+
       _role = userData['role'];
+      _role2 = userData['ROLE2'];
+
 
       if (_role == 'COMPANY') {
         showForVendor = true;
@@ -413,56 +427,9 @@ class _AccountPageState extends State<AccountPage> {
         if (!addnewbene)
           InkWell(
             onTap: () async {
-              // _checkWithdrawConditions(context,);
-              // var userData = Map<String, dynamic>.from(box.get('userData'));
-              // var _body = {};
-              // _body['panNumber'] = userData['panNumber'];
-              // _body['email'] = userData['email'];
-              //
-              // var response = await callApi('/signin/checkTransactionPINisPresent', body:_body);
-              // if(response['isPresent'] == 'false'){
-              //   showToast('Transaction Pin not set!', context,type: 'warning');
-              //   //Navigator.of(context).pop(true);
-              //   Beamer.of(context).beamToNamed('/change-transaction-pin');
-              // }else{
-              //   //Navigator.of(context).pop(true);
-              //   Beamer.of(context).beamToNamed('/account/withdraw-amt');
-              // }
               Beamer.of(context).beamToNamed('/account/withdraw-amt');
             },
 
-            //     Navigator.pushReplacement(
-            //   context,
-            //   MaterialPageRoute(
-            //     builder: (context) => WithdrawPage(),
-            //   ),
-            // ),
-
-            // {
-            //   // showWithdrawalDialog(
-            //   //   context,
-            //   //   _getBankDetails,
-            //   //   _profileProvider,
-            //   //   isBarrierDismissible: false,
-            //   // );
-            //   // showDialog(
-            //   //   barrierDismissible: false,
-            //   //   context: context,
-            //   //   builder: (context) => AlertDialog(
-            //   //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(32.0))),
-            //   //     backgroundColor: Color.fromRGBO(245, 251, 255, 1),
-            //   //
-            //   //     content: WidthDrawClass(_getBankDetails, _profileProvider),
-            //   //   ),
-            //   // ).then((value) async{
-            //   //   // await _profileProvider.queryBankTransaction();
-            //   //   setState(() {
-            //   //
-            //   // });});
-            //
-            //
-            //
-            // },
             child: Container(
                 width: Responsive.isMobile(context) ? MediaQuery.of(context).size.width * 0.9 : 200,
                 height: Responsive.isMobile(context) ? 60 : 40,
@@ -512,6 +479,17 @@ class _AccountPageState extends State<AccountPage> {
           )
       ],
     );
+  }
+
+  Widget infoPanel({Widget child}){
+    if(_role == 'INVESTOR' && _role2 == 'CORPORATE'){
+      return SingleChildScrollView(
+        scrollDirection: Responsive.isMobile(context) ? Axis.vertical : Axis.horizontal,
+        child: child,
+      );
+    }else{
+      return child;
+    }
   }
 
   @override
@@ -571,260 +549,374 @@ class _AccountPageState extends State<AccountPage> {
                         //   isDate = createdOn.isSameDate(DateTime.now());
                         // }
 
-                        if (_type != "All transactions") {
-                          isType = false;
-                          if (_type == "Deposit") {
-                            if (num.parse(element.deposit_amt) > 0  || ((element.status == 'PENDING' && element.reference != '' && num.parse(element.blocked_amt)>0))) {
-                              isType = true;
-                            }
-                            if (num.parse(element.blocked_amt) > 0) {
-                              if (element.narration == "DPST")
+                          if (_type != "All transactions") {
+                            isType = false;
+                            if (_type == "Deposit") {
+                              if (num.parse(element.deposit_amt) > 0  || ((element.status == 'PENDING' && element.reference != '' && num.parse(element.blocked_amt)>0))) {
                                 isType = true;
-                            }
-                          } else if (_type == "Withdrawal") {
-                            if ((element.status == 'FAILED' ||
-                                element.status == 'PENDING') && !((element.status == 'PENDING' && element.reference != '' && num.parse(element.blocked_amt)>0))) {
-                              isType = true;
-                            } else if (num.parse(element.withdrawl_amt) >
-                                0) {
-                              isType = true;
-                            }
-                          }
-                        } else {
-                          isType = true;
-                        }
-                        // if(isDate){
-                        //   return true;
-                        // }
-                        return isType;
-                      }).toList();
-
-                      if (_selectedDate != null && _selectedDate2 != null) {
-                        capsaPrint('pAss 1');
-                        _transactionDetails =
-                            _transactionDetails.where((element) {
-                              var isDate = false;
-                              if (_selectedDate2 != null) {
-                                DateTime createdOn =
-                                DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-                                    .parse(element.created_on);
-                                // isDate = createdOn.isSameDate(_selectedDate);
-                                if ((_selectedDate.isBefore(createdOn) || _selectedDate.isSameDate(createdOn)) &&
-                                    (_selectedDate2.isAfter(createdOn) || _selectedDate2.isSameDate(createdOn))) {
-                                  capsaPrint('created on : ${DateFormat('yyyy MM dd').format(createdOn)}');
-                                  isDate = true;
-                                }
                               }
+                              if (num.parse(element.blocked_amt) > 0) {
+                                if (element.narration == "DPST")
+                                  isType = true;
+                              }
+                            } else if (_type == "Withdrawal") {
+                              if ((element.status == 'FAILED' ||
+                                  element.status == 'PENDING') && !((element.status == 'PENDING' && element.reference != '' && num.parse(element.blocked_amt)>0))) {
+                                isType = true;
+                              } else if (num.parse(element.withdrawl_amt) >
+                                  0) {
+                                isType = true;
+                              }
+                            }
+                          } else {
+                            isType = true;
+                          }
+                          // if(isDate){
+                          //   return true;
+                          // }
+                          return isType;
+                        }).toList();
 
-                              return isDate;
-                            }).toList();
-                      }
+                        if (_selectedDate != null && _selectedDate2 != null) {
+                          capsaPrint('pAss 1');
+                          _transactionDetails =
+                              _transactionDetails.where((element) {
+                                var isDate = false;
+                                if (_selectedDate2 != null) {
+                                  DateTime createdOn =
+                                  DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                                      .parse(element.created_on);
+                                  // isDate = createdOn.isSameDate(_selectedDate);
+                                  if ((_selectedDate.isBefore(createdOn) || _selectedDate.isSameDate(createdOn)) &&
+                                      (_selectedDate2.isAfter(createdOn) || _selectedDate2.isSameDate(createdOn))) {
+                                    capsaPrint('created on : ${DateFormat('yyyy MM dd').format(createdOn)}');
+                                    isDate = true;
+                                  }
+                                }
 
-                      //capsaPrint('\n\npAss 2 transaction details : ${_transactionDetails.length}');
+                                return isDate;
+                              }).toList();
+                        }
 
-                      // _tmpTransactionDetails.forEach((element) {
-                      //   transactionDetails.add(value)
-                      // });
-                      final _bankList = _profileProvider.bankList;
-                      if (_getBankDetails.bene_account_no.trim() == '') {
-                        addnewbene = true;
-                      }
+                        if (_getBankDetails.bene_account_no.trim() == '') {
+                          addnewbene = true;
+                        }
 
-                      Map<String, bool> _isBlackListed = {};
+                        final AccountPageDataSource _historyDataSource =
+                        AccountPageDataSource(
+                          _transactionDetails,
+                        );
 
-                      var currencyList = [];
+                        int _rowsPerPage = 10;
+                        int _sortColumnIndex;
+                        bool _sortAscending = true;
 
-                      // if (currenciesData['msg'] == 'success') {
-                      //   currencyList = _items;
-                      //   currencyTerm = [];
-                      //   _items.forEach((element) {
-                      //     currencyTerm.add(element['currency_code'].toString());
-                      //     currencyAvailability[element['currency_code']] = element['is_active'].toString();
-                      //   });
-                      // } else {
-                      //   return Center(
-                      //     child: Text(
-                      //       'There was an error :(\n' + currenciesData['messg'].toString(),
-                      //       style: Theme.of(context).textTheme.bodyText2,
-                      //     ),
-                      //   );
-                      // }
-                      return Container(
-                        child: Column(
-                          children: [
-                            SizedBox(height: 20,),
-                            OrientationSwitcher(
-                              orientation: Responsive.isMobile(context)
-                                  ? "Column"
-                                  : "Row",
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
+                        return Container(
+                          child: Column(
+                            children: [
+                              SizedBox(height: 20,),
 
-                                GeneratedCardWidget(
-                                    title: "Total Balance",
-                                    icon: "assets/images/account.png",
-                                    width: MediaQuery.of(context).size.width,
-                                    helpText:
-                                        "Payment made from Anchors will be in total balance until verified by Capsa.",
-                                    currency: true,
-                                    subText: formatCurrency(
-                                        _profileProvider.totalBalance)),
-                                if (showForVendor)
-                                  if (!Responsive.isMobile(context))
-                                    SizedBox(
-                                      width: 20,
-                                    ),
-                                // if (showForVendor)
-                                  if (!Responsive.isMobile(context))
+
+                              infoPanel(
+
+                                child: OrientationSwitcher(
+                                  orientation: Responsive.isMobile(context)
+                                      ? "Column"
+                                      : "Row",
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+
                                     GeneratedCardWidget(
-                                        title: "Available to Withdraw",
+                                        title: "Total Balance",
                                         icon: "assets/images/account.png",
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                        currency: true,
-                                        isWithDrawCard: true,
+                                        width: MediaQuery.of(context).size.width,
                                         helpText:
-                                            "Verified payment from Anchors will be in available balance. This is the money you can withdraw from your Capsa Account.",
-                                        withdrawSection: buttonSection(
-                                            addnewbene,
-                                            _getBankDetails,
-                                            _profileProvider),
-                                        addNewBene:addnewbene,
-                                        subText: formatCurrency(_profileProvider
-                                            .totalBalanceToWithDraw)),
-                                if (showForVendor)
-                                  if (Responsive.isMobile(context))
-                                    SizedBox(
-                                      height: 10,
-                                    ),
-                                if (showForVendor)
-                                  if (Responsive.isMobile(context))
-                                    GeneratedCardWidget(
-                                        title: "Available to Withdraw",
-                                        icon: "assets/images/account.png",
-                                        width:
-                                            MediaQuery.of(context).size.width,
+                                            "Payment made from Anchors will be in total balance until verified by Capsa.",
                                         currency: true,
-                                        helpText:
-                                            "Verified payment from Anchors will be in available balance. This is the money you can withdraw from your Capsa Account.",
-                                        subText: formatCurrency(_profileProvider
-                                            .totalBalanceToWithDraw)),
-                                if (Responsive.isMobile(context))
-                                  SizedBox(
-                                    height: 10,
-                                  ),
-                                // else
-                                //   SizedBox(
-                                //     width: 20,
-                                //   ),
-                                if (Responsive.isMobile(context))
-                                  SizedBox(
-                                    height: 10,
-                                  ),
-                                // else
-                                //   SizedBox(
-                                //     width: 30,
-                                //   ),
-                                if (Responsive.isMobile(context))
-                                  buttonSection(addnewbene, _getBankDetails,
-                                      _profileProvider),
-                                // if (!showForVendor)
-                                //   if (!Responsive.isMobile(context))
-                                //     buttonSection(addnewbene, _getBankDetails,
-                                //         _profileProvider),
-                                if (Responsive.isMobile(context))
-                                  SizedBox(height: 10),
-                                if (!Responsive.isMobile(context))
-                                  GeneratedWidgetTemplateWidget(
-                                    bankName: _getBankDetails?.bank_name ?? "",
-                                    accountNo:
-                                        _getBankDetails?.account_number ?? "",
-                                  )
-                                else
-                                  Text(
-                                    'Capsa Bank Account',
-                                    textAlign: TextAlign.left,
-                                    style: TextStyle(
-                                        color: Color.fromRGBO(130, 130, 130, 1),
-                                        // fontFamily: 'Poppins',
-                                        fontSize: 14,
-                                        letterSpacing:
-                                            0 /*percentages not used in flutter. defaulting to zero*/,
-                                        fontWeight: FontWeight.normal,
-                                        height: 1),
-                                  ),
-                                if (Responsive.isMobile(context))
-                                  SizedBox(
-                                    height: 8,
-                                  ),
-                                if (Responsive.isMobile(context))
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.only(
-                                        topLeft: Radius.circular(15),
-                                        topRight: Radius.circular(15),
-                                        bottomLeft: Radius.circular(15),
-                                        bottomRight: Radius.circular(15),
+                                        subText: formatCurrency(
+                                            _profileProvider.totalBalance)),
+                                    if (!Responsive.isMobile(context))
+                                      SizedBox(
+                                        width: 20,
                                       ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                            color: Color.fromRGBO(
-                                                0, 0, 0, 0.15000000596046448),
-                                            offset: Offset(0, 2),
-                                            blurRadius: 4)
-                                      ],
-                                      color: Color.fromRGBO(255, 255, 255, 1),
+
+                                    if (Responsive.isMobile(context))
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                    // if (showForVendor)
+                                      if (!Responsive.isMobile(context))
+                                        GeneratedCardWidget(
+                                            title: "Available to Withdraw",
+                                            icon: "assets/images/account.png",
+                                            width:
+                                                MediaQuery.of(context).size.width,
+                                            currency: true,
+                                            isWithDrawCard: true,
+                                            helpText:
+                                                "Verified payment from Anchors will be in available balance. This is the money you can withdraw from your Capsa Account.",
+                                            withdrawSection: buttonSection(
+                                                addnewbene,
+                                                _getBankDetails,
+                                                _profileProvider),
+                                            addNewBene:addnewbene,
+                                            subText: formatCurrency(_profileProvider
+                                                .totalBalanceToWithDraw)),
+
+                                    if (!Responsive.isMobile(context))
+                                      SizedBox(
+                                        width: 20,
+                                      ),
+
+                                    if (Responsive.isMobile(context))
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+
+                                    if(_role == 'INVESTOR' && _role2 == 'CORPORATE')
+                                    InkWell(
+                                      onTap: (){
+                                        context.beamToNamed('/api-history');
+                    },
+                                      child: GeneratedCardWidget(
+                                          title: "API Balance",
+                                          icon: "assets/images/account.png",
+                                          width: MediaQuery.of(context).size.width,
+                                          helpText:
+                                          "Payment made from Anchors will be in total balance until verified by Capsa.",
+                                          currency: true,
+                                          subText: formatCurrency(
+                                              _profileProvider.walletBalance)),
                                     ),
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 10),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: <Widget>[
-                                        SizedBox(height: 6),
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.only(
-                                              topLeft: Radius.circular(20),
-                                              topRight: Radius.circular(20),
-                                              bottomLeft: Radius.circular(20),
-                                              bottomRight: Radius.circular(20),
-                                            ),
-                                            color: Color.fromRGBO(
-                                                245, 251, 255, 1),
+
+                                    if (!Responsive.isMobile(context))
+                                      SizedBox(
+                                        width: 20,
+                                      ),
+
+                                    if (Responsive.isMobile(context))
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+
+                                    if (showForVendor)
+                                      if (Responsive.isMobile(context))
+                                        SizedBox(
+                                          height: 10,
+                                        ),
+                                    if (showForVendor)
+                                      if (Responsive.isMobile(context))
+                                        GeneratedCardWidget(
+                                            title: "Available to Withdraw",
+                                            icon: "assets/images/account.png",
+                                            width:
+                                                MediaQuery.of(context).size.width,
+                                            currency: true,
+                                            helpText:
+                                                "Verified payment from Anchors will be in available balance. This is the money you can withdraw from your Capsa Account.",
+                                            subText: formatCurrency(_profileProvider
+                                                .totalBalanceToWithDraw)),
+                                    if (Responsive.isMobile(context))
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                    // else
+                                    //   SizedBox(
+                                    //     width: 20,
+                                    //   ),
+                                    if (Responsive.isMobile(context))
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                    // else
+                                    //   SizedBox(
+                                    //     width: 30,
+                                    //   ),
+                                    if (Responsive.isMobile(context))
+                                      buttonSection(addnewbene, _getBankDetails,
+                                          _profileProvider),
+                                    // if (!showForVendor)
+                                    //   if (!Responsive.isMobile(context))
+                                    //     buttonSection(addnewbene, _getBankDetails,
+                                    //         _profileProvider),
+                                    if (Responsive.isMobile(context))
+                                      SizedBox(height: 10),
+                                    if (!Responsive.isMobile(context))
+                                      GeneratedWidgetTemplateWidget(
+                                        bankName: _getBankDetails?.bank_name ?? "",
+                                        accountNo:
+                                            _getBankDetails?.account_number ?? "",
+                                      )
+                                    else
+                                      Text(
+                                        'Capsa Bank Account',
+                                        textAlign: TextAlign.left,
+                                        style: TextStyle(
+                                            color: Color.fromRGBO(130, 130, 130, 1),
+                                            // fontFamily: 'Poppins',
+                                            fontSize: 14,
+                                            letterSpacing:
+                                                0 /*percentages not used in flutter. defaulting to zero*/,
+                                            fontWeight: FontWeight.normal,
+                                            height: 1),
+                                      ),
+                                    if (Responsive.isMobile(context))
+                                      SizedBox(
+                                        height: 8,
+                                      ),
+                                    if (Responsive.isMobile(context))
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.only(
+                                            topLeft: Radius.circular(15),
+                                            topRight: Radius.circular(15),
+                                            bottomLeft: Radius.circular(15),
+                                            bottomRight: Radius.circular(15),
                                           ),
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 8),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: <Widget>[
-                                              Expanded(
-                                                child: Container(
-                                                  decoration: BoxDecoration(),
-                                                  padding: EdgeInsets.symmetric(
-                                                      horizontal: 0,
-                                                      vertical: 0),
-                                                  child: Column(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: <Widget>[
-                                                      Container(
-                                                        decoration:
-                                                            BoxDecoration(),
-                                                        padding: EdgeInsets
-                                                            .symmetric(
-                                                                horizontal: 0,
-                                                                vertical: 0),
-                                                        child: Row(
+                                          boxShadow: [
+                                            BoxShadow(
+                                                color: Color.fromRGBO(
+                                                    0, 0, 0, 0.15000000596046448),
+                                                offset: Offset(0, 2),
+                                                blurRadius: 4)
+                                          ],
+                                          color: Color.fromRGBO(255, 255, 255, 1),
+                                        ),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 10, vertical: 10),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: <Widget>[
+                                            SizedBox(height: 6),
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.only(
+                                                  topLeft: Radius.circular(20),
+                                                  topRight: Radius.circular(20),
+                                                  bottomLeft: Radius.circular(20),
+                                                  bottomRight: Radius.circular(20),
+                                                ),
+                                                color: Color.fromRGBO(
+                                                    245, 251, 255, 1),
+                                              ),
+                                              padding: EdgeInsets.symmetric(
+                                                  horizontal: 8, vertical: 8),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: <Widget>[
+                                                  Expanded(
+                                                    child: Container(
+                                                      decoration: BoxDecoration(),
+                                                      padding: EdgeInsets.symmetric(
+                                                          horizontal: 0,
+                                                          vertical: 0),
+                                                      child: Column(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: <Widget>[
+                                                          Container(
+                                                            decoration:
+                                                                BoxDecoration(),
+                                                            padding: EdgeInsets
+                                                                .symmetric(
+                                                                    horizontal: 0,
+                                                                    vertical: 0),
+                                                            child: Row(
+                                                              mainAxisSize:
+                                                                  MainAxisSize.min,
+                                                              children: <Widget>[
+                                                                Text(
+                                                                  _getBankDetails
+                                                                          ?.account_number ??
+                                                                      "",
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .left,
+                                                                  style: TextStyle(
+                                                                      color: Color
+                                                                          .fromRGBO(
+                                                                              0,
+                                                                              152,
+                                                                              219,
+                                                                              1),
+                                                                      fontFamily:
+                                                                          'Poppins',
+                                                                      fontSize: 16,
+                                                                      letterSpacing:
+                                                                          0 /*percentages not used in flutter. defaulting to zero*/,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .normal,
+                                                                      height: 1),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                          SizedBox(height: 6),
+                                                          Text(
+                                                            _getBankDetails
+                                                                    ?.bank_name ??
+                                                                "",
+                                                            textAlign:
+                                                                TextAlign.left,
+                                                            style: TextStyle(
+                                                                color:
+                                                                    Color.fromRGBO(
+                                                                        51,
+                                                                        51,
+                                                                        51,
+                                                                        1),
+                                                                // fontFamily: 'Poppins',
+                                                                fontSize: 14,
+                                                                letterSpacing:
+                                                                    0 /*percentages not used in flutter. defaulting to zero*/,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .normal,
+                                                                height: 1),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  SizedBox(width: 18),
+                                                  Expanded(
+                                                    child: Container(
+                                                      decoration: BoxDecoration(),
+                                                      padding: EdgeInsets.symmetric(
+                                                          horizontal: 0,
+                                                          vertical: 0),
+                                                      child: InkWell(
+                                                        onTap: () {
+                                                          // _getBankDetails?.account_number ?? "",
+
+                                                          FlutterClipboard.copy(
+                                                            _getBankDetails
+                                                                    ?.account_number ??
+                                                                "",
+                                                          ).then((value) =>
+                                                              showToast('Copied to Clipboard', context));
+
+                                                        },
+                                                        child: Column(
                                                           mainAxisSize:
                                                               MainAxisSize.min,
-                                                          children: <Widget>[
+                                                          children: const <Widget>[
+                                                            Icon(
+                                                              Icons.content_paste,
+                                                              size: 16,
+                                                              color: Color
+                                                                  .fromRGBO(
+                                                                  0,
+                                                                  152,
+                                                                  219,
+                                                                  1),
+                                                            ),
+                                                            SizedBox(height: 6),
                                                             Text(
-                                                              _getBankDetails
-                                                                      ?.account_number ??
-                                                                  "",
+                                                              'Click to copy',
                                                               textAlign:
-                                                                  TextAlign
-                                                                      .left,
+                                                                  TextAlign.center,
                                                               style: TextStyle(
                                                                   color: Color
                                                                       .fromRGBO(
@@ -832,9 +924,8 @@ class _AccountPageState extends State<AccountPage> {
                                                                           152,
                                                                           219,
                                                                           1),
-                                                                  fontFamily:
-                                                                      'Poppins',
-                                                                  fontSize: 16,
+                                                                  // fontFamily: 'Poppins',
+                                                                  fontSize: 10,
                                                                   letterSpacing:
                                                                       0 /*percentages not used in flutter. defaulting to zero*/,
                                                                   fontWeight:
@@ -845,488 +936,223 @@ class _AccountPageState extends State<AccountPage> {
                                                           ],
                                                         ),
                                                       ),
-                                                      SizedBox(height: 6),
-                                                      Text(
-                                                        _getBankDetails
-                                                                ?.bank_name ??
-                                                            "",
-                                                        textAlign:
-                                                            TextAlign.left,
-                                                        style: TextStyle(
-                                                            color:
-                                                                Color.fromRGBO(
-                                                                    51,
-                                                                    51,
-                                                                    51,
-                                                                    1),
-                                                            // fontFamily: 'Poppins',
-                                                            fontSize: 14,
-                                                            letterSpacing:
-                                                                0 /*percentages not used in flutter. defaulting to zero*/,
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .normal,
-                                                            height: 1),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                              SizedBox(width: 18),
-                                              Expanded(
-                                                child: Container(
-                                                  decoration: BoxDecoration(),
-                                                  padding: EdgeInsets.symmetric(
-                                                      horizontal: 0,
-                                                      vertical: 0),
-                                                  child: InkWell(
-                                                    onTap: () {
-                                                      // _getBankDetails?.account_number ?? "",
-
-                                                      FlutterClipboard.copy(
-                                                        _getBankDetails
-                                                                ?.account_number ??
-                                                            "",
-                                                      ).then((value) =>
-                                                          showToast('Copied to Clipboard', context));
-
-                                                    },
-                                                    child: Column(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: const <Widget>[
-                                                        Icon(
-                                                          Icons.content_paste,
-                                                          size: 16,
-                                                          color: Color
-                                                              .fromRGBO(
-                                                              0,
-                                                              152,
-                                                              219,
-                                                              1),
-                                                        ),
-                                                        SizedBox(height: 6),
-                                                        Text(
-                                                          'Click to copy',
-                                                          textAlign:
-                                                              TextAlign.center,
-                                                          style: TextStyle(
-                                                              color: Color
-                                                                  .fromRGBO(
-                                                                      0,
-                                                                      152,
-                                                                      219,
-                                                                      1),
-                                                              // fontFamily: 'Poppins',
-                                                              fontSize: 10,
-                                                              letterSpacing:
-                                                                  0 /*percentages not used in flutter. defaulting to zero*/,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .normal,
-                                                              height: 1),
-                                                        ),
-                                                      ],
                                                     ),
                                                   ),
+                                                ],
+                                              ),
+                                            ),
+                                            SizedBox(height: 10),
+                                            Container(
+                                              //width: MediaQuery.of(context).size.width * 0.8,
+                                              decoration: const BoxDecoration(
+                                                borderRadius: BorderRadius.only(
+                                                  topLeft: Radius.circular(10),
+                                                  topRight: Radius.circular(10),
+                                                  bottomLeft: Radius.circular(10),
+                                                  bottomRight: Radius.circular(10),
+                                                ),
+                                                color: Color.fromRGBO(
+                                                    245, 251, 255, 1),
+                                              ),
+                                              padding: const EdgeInsets.symmetric(
+                                                  horizontal: 4, vertical: 4),
+                                              child: Padding(
+                                                padding: const EdgeInsets.symmetric(
+                                                    horizontal: 4, vertical: 4),
+                                                child: Row(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                                  children: const <Widget>[
+                                                    Text(
+                                                      'Make a transfer to the above account to fund your wallet',
+                                                      textAlign: TextAlign.center,
+                                                      maxLines: 2,
+                                                      style: TextStyle(
+                                                          color: Color.fromRGBO(
+                                                              51, 51, 51, 1),
+                                                          // fontFamily: 'Poppins',
+                                                          fontSize: 12,
+                                                          letterSpacing:
+                                                              0 /*percentages not used in flutter. defaulting to zero*/,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          height: 1),
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
-                                            ],
-                                          ),
-                                        ),
-                                        SizedBox(height: 10),
-                                        Container(
-                                          //width: MediaQuery.of(context).size.width * 0.8,
-                                          decoration: const BoxDecoration(
-                                            borderRadius: BorderRadius.only(
-                                              topLeft: Radius.circular(10),
-                                              topRight: Radius.circular(10),
-                                              bottomLeft: Radius.circular(10),
-                                              bottomRight: Radius.circular(10),
                                             ),
-                                            color: Color.fromRGBO(
-                                                245, 251, 255, 1),
-                                          ),
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 4, vertical: 4),
-                                          child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 4, vertical: 4),
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              crossAxisAlignment: CrossAxisAlignment.center,
-                                              children: const <Widget>[
-                                                Text(
-                                                  'Make a transfer to the above account to fund your wallet',
-                                                  textAlign: TextAlign.center,
-                                                  maxLines: 2,
-                                                  style: TextStyle(
-                                                      color: Color.fromRGBO(
-                                                          51, 51, 51, 1),
-                                                      // fontFamily: 'Poppins',
-                                                      fontSize: 12,
-                                                      letterSpacing:
-                                                          0 /*percentages not used in flutter. defaulting to zero*/,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      height: 1),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
+                                            SizedBox(height: 6),
+                                          ],
                                         ),
-                                        SizedBox(height: 6),
-                                      ],
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            SizedBox(
-                              height:
-                              (!Responsive.isMobile(context)) ? 40 : 10,
-                            ),
-
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                InkWell(
-                                  onTap: () async{
-                                    Uint8List bytes = (await rootBundle.load('capsa_logo_blue.png')).buffer.asUint8List();
-                                    dynamic leadImage = await pr.networkImage('https://storage.googleapis.com/download/storage/v1/b/fir-anchor-creditassessment.appspot.com/o/2022-12-16_capsa_logo_blue.jpg?generation=1671182470802288&alt=media');
-                                    //dynamic leadImage = pw.MemoryImage(bytes);
-                                    dynamic sealImage = await pr.networkImage('https://storage.googleapis.com/download/storage/v1/b/fir-anchor-creditassessment.appspot.com/o/2022-12-15_seal.jpg?generation=1671114082119590&alt=media');
-                                    transactionDetailsPdfBuilder.transactionPrintDoc(_profileProvider,_transactionDetails, leadImage, sealImage);
-                                    // !Responsive.isMobile(context)?showDialog(
-                                    //   // barrierColor: Colors.transparent,
-                                    //     context: context,
-                                    //     //barrierDismissible: false,
-                                    //     builder: (BuildContext context1) {
-                                    //       return AlertDialog(
-                                    //           backgroundColor: Colors
-                                    //               .transparent,
-                                    //           contentPadding:
-                                    //           const EdgeInsets
-                                    //               .fromLTRB(12.0,
-                                    //               12.0, 12.0, 12.0),
-                                    //           // shape: RoundedRectangleBorder(
-                                    //           //     borderRadius:
-                                    //           //     BorderRadius.all(
-                                    //           //         Radius.circular(
-                                    //           //             32.0))),
-                                    //           elevation: 0,
-                                    //           content: AccountStatementViewer(profileProvider: _profileProvider, transactionDetails: _transactionDetails,));
-                                    //     }):
-                                  },
-                                  child: Container(
-                                    width: !Responsive.isMobile(context)?320:MediaQuery.of(context).size.width * 0.9,
-                                    height: !Responsive.isMobile(context)?73:45,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.all(
-                                          Radius.circular(15)),
-                                      border: Border.all(
-                                          color: HexColor('#0098DB'),
-                                          width: 3),
-                                    ),
-                                    child: Row(
-                                        mainAxisAlignment:
-                                        MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.download,
-                                            size: !Responsive.isMobile(context)?20:12,
-                                            color: HexColor('#0098DB'),
-                                          ),
-                                          SizedBox(
-                                            width: 8,
-                                          ),
-                                          Text(
-                                            'Download Account Statement',
-                                            style: GoogleFonts.poppins(
-                                                fontWeight:
-                                                FontWeight.w700,
-                                                color:
-                                                HexColor('#0098DB'),
-                                                fontSize: !Responsive.isMobile(context)?18:12),
-                                          )
-                                        ]),
-                                  ),
+                                      ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                              SizedBox(
+                                height:
+                                (!Responsive.isMobile(context)) ? 40 : 10,
+                              ),
 
-                            SizedBox(
-                              height:
-                              (!Responsive.isMobile(context)) ? 20 : 10,
-                            ),
-                            if (!Responsive.isMobile(context))
-                              Container(
-                                width: MediaQuery.of(context).size.width,
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 8.0, right: 8),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(top: 8.0),
-                                        child: Text(
-                                          'Filter by:',
-                                          textAlign: TextAlign.left,
-                                          style: TextStyle(
-                                              color: Color.fromRGBO(0, 0, 0, 1),
-                                              fontFamily: 'Poppins',
-                                              fontSize: 16,
-                                              letterSpacing:
-                                                  0 /*percentages not used in flutter. defaulting to zero*/,
-                                              fontWeight: FontWeight.normal,
-                                              height: 1),
-                                        ),
+                              OrientationSwitcher(
+                                orientation: Responsive.isMobile(context) ? 'Column' : 'Row',
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  InkWell(
+                                    onTap: () async{
+                                      Uint8List bytes = (await rootBundle.load('capsa_logo_blue.png')).buffer.asUint8List();
+                                      dynamic leadImage = await pr.networkImage('https://storage.googleapis.com/download/storage/v1/b/fir-anchor-creditassessment.appspot.com/o/2022-12-16_capsa_logo_blue.jpg?generation=1671182470802288&alt=media');
+                                      //dynamic leadImage = pw.MemoryImage(bytes);
+                                      dynamic sealImage = await pr.networkImage('https://storage.googleapis.com/download/storage/v1/b/fir-anchor-creditassessment.appspot.com/o/2022-12-15_seal.jpg?generation=1671114082119590&alt=media');
+                                      transactionDetailsPdfBuilder.transactionPrintDoc(_profileProvider,_transactionDetails, leadImage, sealImage);
+                                    },
+                                    child: Container(
+                                      width: !Responsive.isMobile(context)?340:MediaQuery.of(context).size.width * 0.9,
+                                      height: !Responsive.isMobile(context)?73:45,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(15)),
+                                        border: Border.all(
+                                            color: HexColor('#0098DB'),
+                                            width: 3),
                                       ),
-                                      SizedBox(width: 6),
-                                      Row(
-                                        children: [
-                                          Padding(
-                                            padding:
-                                                const EdgeInsets.only(top: 8.0),
-                                            child: Text(
-                                              'From',
-                                              textAlign: TextAlign.left,
-                                              style: TextStyle(
-                                                  color: Color.fromRGBO(
-                                                      0, 0, 0, 1),
-                                                  // fontFamily: 'Poppins',
-                                                  fontSize: 16,
-                                                  letterSpacing:
-                                                      0 /*percentages not used in flutter. defaulting to zero*/,
-                                                  fontWeight: FontWeight.normal,
-                                                  height: 1),
-                                            ),
-                                          ),
-                                          SizedBox(width: 3),
-                                          SizedBox(
-                                            width: 220,
-                                            child: UserTextFormField(
-                                              label: "",
-                                              readOnly: true,
-                                              controller: dateCont,
-                                              prefixIcon: (_selectedDate !=
-                                                      null)
-                                                  ? InkWell(
-                                                      onTap: () {
-                                                        setState(() {
-                                                          _selectedDate = null;
-                                                          dateCont.text =
-                                                              "DD/MM/YYYY";
-                                                        });
-                                                      },
-                                                      child: Icon(Icons.close))
-                                                  : null,
-                                              suffixIcon: Icon(
-                                                  Icons.date_range_outlined),
-                                              hintText: "DD/MM/YYYY",
-                                              onTap: () => _selectDate(context),
-                                              keyboardType:
-                                                  TextInputType.number,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(width: 6),
-                                      Row(
-                                        children: [
-                                          Padding(
-                                            padding:
-                                                const EdgeInsets.only(top: 8.0),
-                                            child: Text(
-                                              'To',
-                                              textAlign: TextAlign.left,
-                                              style: TextStyle(
-                                                  color: Color.fromRGBO(
-                                                      0, 0, 0, 1),
-                                                  // fontFamily: 'Poppins',
-                                                  fontSize: 16,
-                                                  letterSpacing:
-                                                      0 /*percentages not used in flutter. defaulting to zero*/,
-                                                  fontWeight: FontWeight.normal,
-                                                  height: 1),
-                                            ),
-                                          ),
-                                          SizedBox(width: 3),
-                                          SizedBox(
-                                            width: 220,
-                                            child: UserTextFormField(
-                                              label: "",
-                                              readOnly: true,
-                                              controller: dateCont2,
-                                              prefixIcon: (_selectedDate2 !=
-                                                      null)
-                                                  ? InkWell(
-                                                      onTap: () {
-                                                        setState(() {
-                                                          _selectedDate2 = null;
-                                                          dateCont2.text =
-                                                              "DD/MM/YYYY";
-                                                        });
-                                                      },
-                                                      child: Icon(Icons.close))
-                                                  : null,
-                                              suffixIcon: Icon(
-                                                  Icons.date_range_outlined),
-                                              hintText: "DD/MM/YYYY",
-                                              onTap: () =>
-                                                  _selectDate2(context),
-                                              keyboardType:
-                                                  TextInputType.number,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(width: 6),
-                                      Row(
-                                        children: [
-                                          Padding(
-                                            padding:
-                                                const EdgeInsets.only(top: 8.0),
-                                            child: Text(
-                                              'Transaction type',
-                                              textAlign: TextAlign.left,
-                                              style: TextStyle(
-                                                  color: Color.fromRGBO(
-                                                      0, 0, 0, 1),
-                                                  // fontFamily: 'Poppins',
-                                                  fontSize: 16,
-                                                  letterSpacing:
-                                                      0 /*percentages not used in flutter. defaulting to zero*/,
-                                                  fontWeight: FontWeight.normal,
-                                                  height: 1),
-                                            ),
-                                          ),
-                                          SizedBox(width: 3),
-                                          SizedBox(
-                                            width: 220,
-                                            child: UserTextFormField(
-                                              label: "",
-                                              hintText: "All transactions",
-                                              textFormField:
-                                                  DropdownButtonFormField(
-                                                isExpanded: true,
-                                                items:
-                                                    term.map((String category) {
-                                                  return DropdownMenuItem(
-                                                    value: category,
-                                                    child: Text(
-                                                        category.toString()),
-                                                  );
-                                                }).toList(),
-                                                onChanged: (v) {
-                                                  setState(() {
-                                                    _type = v;
-                                                  });
-                                                },
-                                                value: _type,
-                                                decoration: InputDecoration(
-                                                  border: InputBorder.none,
-                                                  filled: true,
-                                                  fillColor: Colors.white,
-                                                  hintText: "Select Anchor",
-                                                  hintStyle: TextStyle(
-                                                      color: Color.fromRGBO(
-                                                          130, 130, 130, 1),
-                                                      fontSize: 14,
-                                                      letterSpacing:
-                                                          0 /*percentages not used in flutter. defaulting to zero*/,
-                                                      fontWeight:
-                                                          FontWeight.normal,
-                                                      height: 1),
-                                                  contentPadding:
-                                                      const EdgeInsets.only(
-                                                          left: 8.0,
-                                                          bottom: 12.0,
-                                                          top: 12.0),
-                                                  focusedBorder:
-                                                      OutlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                        color: Colors.white),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            15.7),
-                                                  ),
-                                                  enabledBorder:
-                                                      UnderlineInputBorder(
-                                                    borderSide: BorderSide(
-                                                        color: Colors.white),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            15.7),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(width: 6),
-                                      InkWell(
-                                        onTap: () {
-                                          final find = ',';
-                                          final replaceWith = '';
-                                          List<List<dynamic>> rows = [];
-                                          rows.add([
-                                            "Date",
-                                            "Ref No",
-                                            "Type",
-                                            "Amount  (N)",
-                                            "Status",
-                                            "Remarks"
-                                          ]);
-                                          for (int i = 0;
-                                              i < _transactionDetails.length;
-                                              i++) {
-                                            List<dynamic> row = [];
-                                            row.add(DateFormat('d MMM, y')
-                                                .format(DateFormat(
-                                                        "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-                                                    .parse(
-                                                        _transactionDetails[i]
-                                                            .created_on))
-                                                .toString());
-                                            row.add(_transactionDetails[i]
-                                                .order_number
-                                                .replaceAll(find, replaceWith));
-                                            row.add(transactionType(
-                                                _transactionDetails[i]));
-
-                                            row.add(formatCurrency(
-                                                transactionAmount(
-                                                    _transactionDetails[i])));
-                                            row.add("Successful");
-                                            row.add(_transactionDetails[i]
-                                                .stat_txt
-                                                .replaceAll(find, replaceWith));
-                                            rows.add(row);
-                                          }
-
-                                          String dataAsCSV =
-                                              const ListToCsvConverter()
-                                                  .convert(
-                                            rows,
-                                          );
-                                          exportToCSV(dataAsCSV,
-                                              fName: "Transaction History");
-                                        },
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
                                         child: Row(
+                                            mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.download,
+                                                size: !Responsive.isMobile(context)?24:12,
+                                                color: HexColor('#0098DB'),
+                                              ),
+                                              SizedBox(
+                                                width: 8,
+                                              ),
+                                              Text(
+                                                'Download Account Statement',
+                                                style: GoogleFonts.poppins(
+                                                    fontWeight:
+                                                    FontWeight.w700,
+                                                    color:
+                                                    HexColor('#0098DB'),
+                                                    fontSize: !Responsive.isMobile(context)?18:12),
+                                              )
+                                            ]),
+                                      ),
+                                    ),
+                                  ),
+
+                                  SizedBox(width: 12, height: 12,),
+
+                                  if(_role == 'INVESTOR' && _role2 == 'CORPORATE')
+                                  InkWell(
+                                    onTap: () async{
+                                      //showTopupWalletDialog(context, _profileProvider.totalBalance.toString());
+
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.all(Radius.circular(32.0))),
+                                            backgroundColor: HexColor("#F5FBFF"),
+                                            content: ShowTopupWalletContentMyClass(_profileProvider.totalBalance.toString(), context),
+                                          );
+                                        },
+                                      ).then((value) {
+                                        _profileProvider.queryFewData();
+                                        setState(() {
+
+                                        });
+                                      });
+                                    },
+                                    child: Container(
+                                      width: !Responsive.isMobile(context)?340:MediaQuery.of(context).size.width * 0.9,
+                                      height: !Responsive.isMobile(context)?73:45,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(15)),
+                                        border: Border.all(
+                                            color: HexColor('#0098DB'),
+                                            width: 3),
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Row(
+                                            mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.add,
+                                                size: !Responsive.isMobile(context)?24:12,
+                                                color: HexColor('#0098DB'),
+                                              ),
+                                              SizedBox(
+                                                width: 8,
+                                              ),
+                                              Text(
+                                                'Topup API Wallet',
+                                                style: GoogleFonts.poppins(
+                                                    fontWeight:
+                                                    FontWeight.w700,
+                                                    color:
+                                                    HexColor('#0098DB'),
+                                                    fontSize: !Responsive.isMobile(context)?18:12),
+                                              )
+                                            ]),
+                                      ),
+                                    ),
+                                  ),
+
+                                ],
+                              ),
+
+                              SizedBox(
+                                height:
+                                (!Responsive.isMobile(context)) ? 20 : 10,
+                              ),
+                              if (!Responsive.isMobile(context))
+                                Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(
+                                        left: 8.0, right: 8),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 8.0),
+                                          child: Text(
+                                            'Filter by:',
+                                            textAlign: TextAlign.left,
+                                            style: TextStyle(
+                                                color: Color.fromRGBO(0, 0, 0, 1),
+                                                fontFamily: 'Poppins',
+                                                fontSize: 16,
+                                                letterSpacing:
+                                                    0 /*percentages not used in flutter. defaulting to zero*/,
+                                                fontWeight: FontWeight.normal,
+                                                height: 1),
+                                          ),
+                                        ),
+                                        SizedBox(width: 6),
+                                        Row(
                                           children: [
                                             Padding(
-                                              padding: const EdgeInsets.only(
-                                                  top: 8.0),
+                                              padding:
+                                                  const EdgeInsets.only(top: 8.0),
                                               child: Text(
-                                                'Export',
+                                                'From',
                                                 textAlign: TextAlign.left,
                                                 style: TextStyle(
                                                     color: Color.fromRGBO(
@@ -1335,162 +1161,416 @@ class _AccountPageState extends State<AccountPage> {
                                                     fontSize: 16,
                                                     letterSpacing:
                                                         0 /*percentages not used in flutter. defaulting to zero*/,
-                                                    fontWeight:
-                                                        FontWeight.normal,
+                                                    fontWeight: FontWeight.normal,
                                                     height: 1),
                                               ),
                                             ),
                                             SizedBox(width: 3),
-                                            Image.asset(
-                                              "assets/images/download.png",
-                                              height: 20,
-                                              width: 20,
+                                            SizedBox(
+                                              width: 220,
+                                              child: UserTextFormField(
+                                                label: "",
+                                                readOnly: true,
+                                                controller: dateCont,
+                                                prefixIcon: (_selectedDate !=
+                                                        null)
+                                                    ? InkWell(
+                                                        onTap: () {
+                                                          setState(() {
+                                                            _selectedDate = null;
+                                                            dateCont.text =
+                                                                "DD/MM/YYYY";
+                                                          });
+                                                        },
+                                                        child: Icon(Icons.close))
+                                                    : null,
+                                                suffixIcon: Icon(
+                                                    Icons.date_range_outlined),
+                                                hintText: "DD/MM/YYYY",
+                                                onTap: () => _selectDate(context),
+                                                keyboardType:
+                                                    TextInputType.number,
+                                              ),
                                             ),
                                           ],
                                         ),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            SizedBox(
-                              height: 20,
-                            ),
-                            if (!Responsive.isMobile(context))
-                              Container(
-                                width: MediaQuery.of(context).size.width,
-                                // height: MediaQuery.of(context).size.height,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(20.0),
-                                    topRight: Radius.circular(20.0),
-                                    bottomRight: Radius.circular(0.0),
-                                    bottomLeft: Radius.circular(20.0),
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Color.fromARGB(25, 0, 0, 0),
-                                      offset: Offset(5.0, 5.0),
-                                      blurRadius: 20.0,
-                                    ),
-                                    BoxShadow(
-                                      color: Color.fromARGB(255, 255, 255, 255),
-                                      offset: Offset(-5.0, -5.0),
-                                      blurRadius: 0.0,
-                                    )
-                                  ],
-                                ),
-                                child: DataTable(
-                                  columns: dataTableColumn([
-                                    "Date",
-                                    "Transaction Details",
-                                    "Opening Balance (N)",
-                                    "Amount (N)",
-                                    "Closing Balance (N)",
-                                    "Reference Number"
-                                  ]),
-                                  rows: <DataRow>[
-                                    // for (PendingTransactionDetails transaction
-                                    //     in _profileProvider
-                                    //         .pendingTransactionDetails)
-                                    //   DataRow(
-                                    //     cells: <DataCell>[
-                                    //       DataCell(Text(
-                                    //         // transaction.created_on,
-                                    //         DateFormat('d MMM, y')
-                                    //             .format(DateFormat(
-                                    //                     "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-                                    //                 .parse(
-                                    //                     transaction.created_on))
-                                    //             .toString(),
-                                    //         style: dataTableBodyTextStyle,
-                                    //       )),
-                                    //       DataCell(Text(
-                                    //         transaction.ref_no,
-                                    //         style: dataTableBodyTextStyle,
-                                    //       )),
-                                    //       DataCell(Text(
-                                    //         'Withdrawal',
-                                    //         style: dataTableBodyTextStyle,
-                                    //       )),
-                                    //       DataCell(Text(
-                                    //         formatCurrency(
-                                    //             transaction.trans_amt),
-                                    //         style: dataTableBodyTextStyle,
-                                    //       )),
-                                    //       DataCell(Text(
-                                    //         'NA',
-                                    //         style: dataTableBodyTextStyle,
-                                    //       )),
-                                    //       DataCell(Text(
-                                    //         'Pending',
-                                    //         style: TextStyle(
-                                    //             fontSize: 14,
-                                    //             fontWeight: FontWeight.normal,
-                                    //             color: Colors.yellow),
-                                    //       )),
-                                    //     ],
-                                    //   ),
-                                    for (TransactionDetails transaction
-                                        in _transactionDetails)
-                                      DataRow(
-                                        cells: <DataCell>[
-                                          DataCell(Container(
-                                            width: 120,
-                                            child: Text(
-                                              // transaction.created_on,
-                                              DateFormat('d MMM, y')
+                                        SizedBox(width: 6),
+                                        Row(
+                                          children: [
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.only(top: 8.0),
+                                              child: Text(
+                                                'To',
+                                                textAlign: TextAlign.left,
+                                                style: TextStyle(
+                                                    color: Color.fromRGBO(
+                                                        0, 0, 0, 1),
+                                                    // fontFamily: 'Poppins',
+                                                    fontSize: 16,
+                                                    letterSpacing:
+                                                        0 /*percentages not used in flutter. defaulting to zero*/,
+                                                    fontWeight: FontWeight.normal,
+                                                    height: 1),
+                                              ),
+                                            ),
+                                            SizedBox(width: 3),
+                                            SizedBox(
+                                              width: 220,
+                                              child: UserTextFormField(
+                                                label: "",
+                                                readOnly: true,
+                                                controller: dateCont2,
+                                                prefixIcon: (_selectedDate2 !=
+                                                        null)
+                                                    ? InkWell(
+                                                        onTap: () {
+                                                          setState(() {
+                                                            _selectedDate2 = null;
+                                                            dateCont2.text =
+                                                                "DD/MM/YYYY";
+                                                          });
+                                                        },
+                                                        child: Icon(Icons.close))
+                                                    : null,
+                                                suffixIcon: Icon(
+                                                    Icons.date_range_outlined),
+                                                hintText: "DD/MM/YYYY",
+                                                onTap: () =>
+                                                    _selectDate2(context),
+                                                keyboardType:
+                                                    TextInputType.number,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(width: 6),
+                                        Row(
+                                          children: [
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.only(top: 8.0),
+                                              child: Text(
+                                                'Transaction type',
+                                                textAlign: TextAlign.left,
+                                                style: TextStyle(
+                                                    color: Color.fromRGBO(
+                                                        0, 0, 0, 1),
+                                                    // fontFamily: 'Poppins',
+                                                    fontSize: 16,
+                                                    letterSpacing:
+                                                        0 /*percentages not used in flutter. defaulting to zero*/,
+                                                    fontWeight: FontWeight.normal,
+                                                    height: 1),
+                                              ),
+                                            ),
+                                            SizedBox(width: 3),
+                                            SizedBox(
+                                              width: 220,
+                                              child: UserTextFormField(
+                                                label: "",
+                                                hintText: "All transactions",
+                                                textFormField:
+                                                    DropdownButtonFormField(
+                                                  isExpanded: true,
+                                                  items:
+                                                      term.map((String category) {
+                                                    return DropdownMenuItem(
+                                                      value: category,
+                                                      child: Text(
+                                                          category.toString()),
+                                                    );
+                                                  }).toList(),
+                                                  onChanged: (v) {
+                                                    setState(() {
+                                                      _type = v;
+                                                    });
+                                                  },
+                                                  value: _type,
+                                                  decoration: InputDecoration(
+                                                    border: InputBorder.none,
+                                                    filled: true,
+                                                    fillColor: Colors.white,
+                                                    hintText: "Select Anchor",
+                                                    hintStyle: TextStyle(
+                                                        color: Color.fromRGBO(
+                                                            130, 130, 130, 1),
+                                                        fontSize: 14,
+                                                        letterSpacing:
+                                                            0 /*percentages not used in flutter. defaulting to zero*/,
+                                                        fontWeight:
+                                                            FontWeight.normal,
+                                                        height: 1),
+                                                    contentPadding:
+                                                        const EdgeInsets.only(
+                                                            left: 8.0,
+                                                            bottom: 12.0,
+                                                            top: 12.0),
+                                                    focusedBorder:
+                                                        OutlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                          color: Colors.white),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              15.7),
+                                                    ),
+                                                    enabledBorder:
+                                                        UnderlineInputBorder(
+                                                      borderSide: BorderSide(
+                                                          color: Colors.white),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              15.7),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(width: 6),
+                                        InkWell(
+                                          onTap: () {
+                                            final find = ',';
+                                            final replaceWith = '';
+                                            List<List<dynamic>> rows = [];
+                                            rows.add([
+                                              "Date",
+                                              "Ref No",
+                                              "Type",
+                                              "Amount  (N)",
+                                              "Status",
+                                              "Remarks"
+                                            ]);
+                                            for (int i = 0;
+                                                i < _transactionDetails.length;
+                                                i++) {
+                                              List<dynamic> row = [];
+                                              row.add(DateFormat('d MMM, y')
                                                   .format(DateFormat(
                                                           "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
                                                       .parse(
-                                                          transaction.created_on))
-                                                  .toString(),
-                                              style: dataTableBodyTextStyle,
-                                            ),
-                                          )),
-                                          DataCell(Text(
-                                            transaction.narration,
-                                            style: dataTableBodyTextStyle,
-                                          )),
-                                          DataCell(Text(
-                                            formatCurrency(transaction.opening_balance),
-                                            style: dataTableBodyTextStyle,
-                                          )),
-                                          DataCell(transactionTextWidget(
-                                              transaction)),
-                                          DataCell(Text(
-                                            formatCurrency(transaction.closing_balance),
-                                            style: dataTableBodyTextStyle,
-                                          )),
-                                          DataCell(Text(
-                                            transaction.order_number,
-                                            style: dataTableBodyTextStyle,
-                                          )),
-                                        ],
-                                      ),
-                                  ],
+                                                          _transactionDetails[i]
+                                                              .created_on))
+                                                  .toString());
+                                              row.add(_transactionDetails[i]
+                                                  .order_number
+                                                  .replaceAll(find, replaceWith));
+                                              row.add(transactionType(
+                                                  _transactionDetails[i]));
+
+                                              row.add(formatCurrency(
+                                                  transactionAmount(
+                                                      _transactionDetails[i])));
+                                              row.add("Successful");
+                                              row.add(_transactionDetails[i]
+                                                  .stat_txt
+                                                  .replaceAll(find, replaceWith));
+                                              rows.add(row);
+                                            }
+
+                                            String dataAsCSV =
+                                                const ListToCsvConverter()
+                                                    .convert(
+                                              rows,
+                                            );
+                                            exportToCSV(dataAsCSV,
+                                                fName: "Transaction History");
+                                          },
+                                          child: Row(
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    top: 8.0),
+                                                child: Text(
+                                                  'Export',
+                                                  textAlign: TextAlign.left,
+                                                  style: TextStyle(
+                                                      color: Color.fromRGBO(
+                                                          0, 0, 0, 1),
+                                                      // fontFamily: 'Poppins',
+                                                      fontSize: 16,
+                                                      letterSpacing:
+                                                          0 /*percentages not used in flutter. defaulting to zero*/,
+                                                      fontWeight:
+                                                          FontWeight.normal,
+                                                      height: 1),
+                                                ),
+                                              ),
+                                              SizedBox(width: 3),
+                                              Image.asset(
+                                                "assets/images/download.png",
+                                                height: 20,
+                                                width: 20,
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                              )
-                            else
-                              transactionHistory(context,
-                                  _transactionDetails.take(6).toList()),
-                            SizedBox(
-                              height: 22,
-                            ),
-                          ],
-                        ),
-                      );
-                    } else if (!snapshot.hasData) {
-                      return Center(child: Text("No history found."));
-                    } else {
-                      return Center(child: CircularProgressIndicator());
-                    }
-                  }),
-            ],
+                              SizedBox(
+                                height: 20,
+                              ),
+                              if (!Responsive.isMobile(context))
+                                Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  // height: MediaQuery.of(context).size.height,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(20.0),
+                                      topRight: Radius.circular(20.0),
+                                      bottomRight: Radius.circular(0.0),
+                                      bottomLeft: Radius.circular(20.0),
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Color.fromARGB(25, 0, 0, 0),
+                                        offset: Offset(5.0, 5.0),
+                                        blurRadius: 20.0,
+                                      ),
+                                      BoxShadow(
+                                        color: Color.fromARGB(255, 255, 255, 255),
+                                        offset: Offset(-5.0, -5.0),
+                                        blurRadius: 0.0,
+                                      )
+                                    ],
+                                  ),
+                                  child: PaginatedDataTable(
+                                      dataRowHeight: 60,
+                                      columnSpacing: 42,
+                                      onPageChanged: (value) {
+                                        // capsaPrint('$value');
+                                      },
+                                      // columnSpacing: 110,
+                                      availableRowsPerPage: _rowsPerPage > _transactionDetails.length ? [_transactionDetails.length] : [5, 10, 20],
+                                      rowsPerPage: _rowsPerPage > _transactionDetails.length ? _transactionDetails.length : _rowsPerPage,
+                                      onRowsPerPageChanged: (int value) {
+                                        setState(() {
+                                          _rowsPerPage = value;
+                                        });
+                                      },
+                                      // constrained : false,
+                                      sortColumnIndex: _sortColumnIndex,
+                                      sortAscending: _sortAscending,
+                                      columns: <DataColumn>[
+                                        DataColumn(
+                                          label: Text('Date',
+                                              style: tableHeadlineStyle),
+                                        ),
+                                        DataColumn(
+                                          label: Text('Transaction Details',
+                                              style: tableHeadlineStyle),
+                                        ),
+                                        DataColumn(
+                                          // numeric: true,
+                                          label: Text('Opening Balance (N)',
+                                              style: tableHeadlineStyle),
+                                        ),
+                                        // DataColumn(
+                                        //   // numeric: true,
+                                        //   label: Text('Seller', style: tableHeadlineStyle),
+                                        // ),
+                                        // DataColumn(
+                                        //   label: Text('Anchor', style: tableHeadlineStyle),
+                                        // ),
+                                        DataColumn(
+                                          label: Text('Amount (N)',
+                                              style: tableHeadlineStyle),
+                                        ),
+                                        // DataColumn(
+                                        //   label: Text('Buy Now\nAmount', style: tableHeadlineStyle),
+                                        // ),
+                                        DataColumn(
+                                          // numeric: true,
+                                          label: Text('Closing Balance (N)',
+                                              style: tableHeadlineStyle),
+                                        ),
+                                        DataColumn(
+                                          // numeric: true,
+                                          label: Text('Reference Number',
+                                              style: tableHeadlineStyle),
+                                        ),
+                                      ],
+                                      source: _historyDataSource)
+
+
+                                  // DataTable(
+                                  //   headingTextStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: HexColor("#0098DB")),
+                                  //   columns: dataTableColumn([
+                                  //     "Date",
+                                  //     "Transaction Details",
+                                  //     "Opening Balance (N)",
+                                  //     "Amount (N)",
+                                  //     "Closing Balance (N)",
+                                  //     "Reference Number"
+                                  //   ]),
+                                  //   rows: <DataRow>[
+                                  //     for (TransactionDetails transaction
+                                  //         in _transactionDetails)
+                                  //       DataRow(
+                                  //         cells: <DataCell>[
+                                  //           DataCell(Container(
+                                  //             width: 115,
+                                  //             child: Text(
+                                  //               // transaction.created_on,
+                                  //               DateFormat('d MMM, y')
+                                  //                   .format(DateFormat(
+                                  //                           "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                                  //                       .parse(
+                                  //                           transaction.created_on))
+                                  //                   .toString(),
+                                  //               style: dataTableBodyTextStyle,
+                                  //             ),
+                                  //           )),
+                                  //           DataCell(Text(
+                                  //             transaction.narration,
+                                  //             style: dataTableBodyTextStyle,
+                                  //           )),
+                                  //           DataCell(Text(
+                                  //             formatCurrency(transaction.opening_balance),
+                                  //             style: dataTableBodyTextStyle,
+                                  //           )),
+                                  //           DataCell(transactionTextWidget(
+                                  //               transaction)),
+                                  //           DataCell(Text(
+                                  //             formatCurrency(transaction.closing_balance),
+                                  //             style: dataTableBodyTextStyle,
+                                  //           )),
+                                  //           // DataCell(Text(
+                                  //           //   transaction.status,
+                                  //           //   style: dataTableBodyTextStyle,
+                                  //           // )),
+                                  //           DataCell(Text(
+                                  //             transaction.order_number,
+                                  //             style: dataTableBodyTextStyle,
+                                  //           )),
+                                  //         ],
+                                  //       ),
+                                  //   ],
+                                  // ),
+                                )
+                              else
+                                transactionHistory(context,
+                                    _transactionDetails.take(6).toList()),
+                              SizedBox(
+                                height: 22,
+                              ),
+                            ],
+                          ),
+                        );
+                      } else if (!snapshot.hasData) {
+                        return Center(child: Text("No history found."));
+                      } else {
+                        return Center(child: CircularProgressIndicator());
+                      }
+                    }),
+              ],
+            ),
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget transactionHistory(BuildContext context, List transactionDetails) {
@@ -1649,63 +1729,6 @@ class _AccountPageState extends State<AccountPage> {
                                                     FontWeight.normal,
                                                     height: 1),
                                               ),
-                                              // Container(
-                                              //   decoration: BoxDecoration(),
-                                              //   padding: EdgeInsets.symmetric(
-                                              //       horizontal: 0, vertical: 0),
-                                              //   child: Row(
-                                              //     mainAxisSize:
-                                              //         MainAxisSize.min,
-                                              //     mainAxisAlignment:
-                                              //         MainAxisAlignment
-                                              //             .spaceBetween,
-                                              //     crossAxisAlignment:
-                                              //         CrossAxisAlignment.center,
-                                              //     children: <Widget>[
-                                              //       Text(
-                                              //         transaction.order_number,
-                                              //         textAlign: TextAlign.left,
-                                              //         style: TextStyle(
-                                              //             color: Color.fromRGBO(
-                                              //                 51, 51, 51, 1),
-                                              //             // fontFamily: 'Poppins',
-                                              //             fontSize: 12,
-                                              //             letterSpacing:
-                                              //                 0 /*percentages not used in flutter. defaulting to zero*/,
-                                              //             fontWeight:
-                                              //                 FontWeight.normal,
-                                              //             height: 1),
-                                              //       ),
-                                              //       // SizedBox(width: 16),
-                                              //       // Text(
-                                              //       //   (num.parse(transaction
-                                              //       //               .blocked_amt) >
-                                              //       //           0)
-                                              //       //       ? "Blocked"
-                                              //       //       : 'Successful',
-                                              //       //   textAlign: TextAlign.left,
-                                              //       //   style: TextStyle(
-                                              //       //       color: (num.parse(
-                                              //       //                   transaction
-                                              //       //                       .blocked_amt) >
-                                              //       //               0)
-                                              //       //           ? Colors.red
-                                              //       //           : Color.fromRGBO(
-                                              //       //               33,
-                                              //       //               150,
-                                              //       //               83,
-                                              //       //               1),
-                                              //       //       // fontFamily: 'Poppins',
-                                              //       //       fontSize: 12,
-                                              //       //       letterSpacing:
-                                              //       //           0 /*percentages not used in flutter. defaulting to zero*/,
-                                              //       //       fontWeight:
-                                              //       //           FontWeight.normal,
-                                              //       //       height: 1),
-                                              //       // ),
-                                              //     ],
-                                              //   ),
-                                              // ),
                                             ],
                                           ),
                                         ),
@@ -1790,54 +1813,3 @@ class _AccountPageState extends State<AccountPage> {
   }
 }
 
-// class CreateAccountWarning extends StatelessWidget {
-//   String currency;
-//
-//   CreateAccountWarning({Key key,@required this.currency}) : super(key: key);
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       width: 584,
-//       height: 579,
-//       decoration: BoxDecoration(
-//           borderRadius: BorderRadius.circular(20), color: HexColor('#F5FBFF')),
-//       child: Column(
-//         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//         crossAxisAlignment: CrossAxisAlignment.center,
-//         children: [
-//           Image.asset(
-//             'assets/icons/warning.png',
-//             width: 80,
-//             height: 80,
-//           ),
-//           Text(
-//             '$currency account required',
-//             style:
-//             GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w600),
-//           ),
-//           Text(
-//             'To view your account details in $currency, you would need to create a $currency account with LeatherbackTM.',
-//             style:
-//             GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w400),
-//             textAlign: TextAlign.center,
-//           ),
-//           InkWell(
-//             onTap: (){
-//               // nav;
-//               //Beamer.of(context).beamToNamed('/confirmInvoice');
-//               Navigator.pop(context);
-//             },
-//             child: Container(
-//               height: 60,
-//               width: 342,
-//               decoration: BoxDecoration(
-//                   borderRadius: BorderRadius.circular(20), color: HexColor('#0098DB')),
-//               child: Center(child: Text('Okay',style: GoogleFonts.poppins(fontSize: 18,fontWeight: FontWeight.w500,color: Colors.white),textAlign: TextAlign.center,),),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }

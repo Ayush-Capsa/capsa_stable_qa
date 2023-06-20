@@ -6,6 +6,7 @@ import 'package:capsa/common/constants.dart';
 import 'package:capsa/common/responsive.dart';
 import 'package:capsa/functions/currency_format.dart';
 import 'package:capsa/functions/hexcolor.dart';
+import 'package:capsa/functions/show_toast.dart';
 import 'package:capsa/investor/data/show_kyc_dialog.dart';
 import 'package:capsa/investor/models/opendeal_model.dart';
 import 'package:capsa/investor/provider/invoice_providers.dart';
@@ -14,11 +15,13 @@ import 'package:capsa/providers/profile_provider.dart';
 import 'package:capsa/widgets/TopBarWidget.dart';
 import 'package:capsa/widgets/user_input.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';import 'package:capsa/functions/custom_print.dart';
+import 'package:flutter/material.dart';
+import 'package:capsa/functions/custom_print.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LiveDealsPage extends StatefulWidget {
   const LiveDealsPage({Key key}) : super(key: key);
@@ -27,18 +30,20 @@ class LiveDealsPage extends StatefulWidget {
   State<LiveDealsPage> createState() => _LiveDealsPageState();
 }
 
-class _LiveDealsPageState extends State<LiveDealsPage> {
+class _LiveDealsPageState extends State<LiveDealsPage> with SingleTickerProviderStateMixin {
+  bool onlyRF = false;
+  int selectedIndex = 0;
+  TabController controller;
+  bool loaded = false;
 
-
-  void checkSpeed(){
+  void checkSpeed() {
     var openDeal = Provider.of<OpenDealProvider>(context, listen: false);
     var result = openDeal.queryOpenDealList();
   }
 
-
-
   @override
   void initState() {
+    controller = TabController(length: 2, vsync: this);
     super.initState();
     Provider.of<ProfileProvider>(context, listen: false).queryPortfolioData2();
   }
@@ -47,7 +52,9 @@ class _LiveDealsPageState extends State<LiveDealsPage> {
   Widget build(BuildContext context) {
     // Future.delayed(Duration(milliseconds: 3000));
     // capsaPrint(Responsive.isMobile(context));
-    ProfileProvider _profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+    loaded = false;
+    ProfileProvider _profileProvider =
+        Provider.of<ProfileProvider>(context, listen: false);
     _profileProvider.queryPortfolioData2();
     return Container(
       height: MediaQuery.of(context).size.height,
@@ -67,10 +74,105 @@ class _LiveDealsPageState extends State<LiveDealsPage> {
           //   SizedBox(
           //     height: 22,
           //   ),
+
+          SizedBox(
+            height: (!Responsive.isMobile(context)) ? 8 : 15,
+          ),
+
+          // Padding(
+          //   padding: const EdgeInsets.fromLTRB(32, 24, 32, 24),
+          //   child: Row(
+          //     mainAxisAlignment: MainAxisAlignment.start,
+          //     children: [
+          //       InkWell(
+          //           onTap: () {
+          //             selectedIndex = 0;
+          //             setState(() {
+          //               onlyRF = false;
+          //             });
+          //             capsaPrint('pendong pressed');
+          //           },
+          //           child: Text(
+          //             'Invoices',
+          //             style: GoogleFonts.poppins(
+          //                 fontWeight: FontWeight.w600,
+          //                 fontSize: 20,
+          //                 color: selectedIndex == 0
+          //                     ? HexColor('#0098DB')
+          //                     : Colors.black),
+          //           )),
+          //
+          //       SizedBox(width: 20,),
+          //
+          //       InkWell(
+          //           onTap: () {
+          //             selectedIndex = 1;
+          //
+          //             setState(() {
+          //               onlyRF = true;
+          //             });
+          //           },
+          //           child: Text(
+          //             'Buy Now Invoices',
+          //             style: GoogleFonts.poppins(
+          //                 fontWeight: FontWeight.w600,
+          //                 fontSize: 20,
+          //                 color: selectedIndex == 1
+          //                     ? HexColor('#0098DB')
+          //                     : Colors.black),
+          //           )),
+          //     ],
+          //   ),
+          // ),
+
+          TabBar(
+            controller: controller,
+            isScrollable: true,
+            onTap: (v){
+              if(loaded){
+                if(v == 0){
+                  onlyRF = false;
+                }else{
+                  onlyRF = true;
+                }
+                setState(() {
+
+                });
+              }else{
+                controller.index = v==0 ? 1 : 0;
+              }
+
+            },
+            indicatorSize: TabBarIndicatorSize.tab,
+            indicatorColor: HexColor('#0098DB'),
+            indicatorWeight: 2,
+            labelColor: Colors.black,
+            unselectedLabelColor: HexColor('#828282'),
+            unselectedLabelStyle: const TextStyle(
+              fontSize: 14,
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+            ),
+            labelStyle: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+                letterSpacing: 1.2),
+            tabs: const [
+              Tab(
+                text: 'Invoices',
+              ),
+
+              Tab(
+                text: 'Buy-Only Invoices',
+              ),
+            ],
+          ),
+
           Expanded(
               child: FutureBuilder<Object>(
                   future: Provider.of<OpenDealProvider>(context, listen: false)
-                      .queryOpenDealList(),
+                      .queryOpenDealList(onlyRF: onlyRF),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState != ConnectionState.done) {
                       return Center(
@@ -86,6 +188,7 @@ class _LiveDealsPageState extends State<LiveDealsPage> {
                         ),
                       );
                     } else {
+                      loaded = true;
                       final _openDealProvider =
                           Provider.of<OpenDealProvider>(context);
                       final profileProvider =
@@ -93,45 +196,62 @@ class _LiveDealsPageState extends State<LiveDealsPage> {
                       return Container(
                         child: SingleChildScrollView(
                           child: Column(
-
                             children: [
 
+                              SizedBox(
+                                height: 10,
+                              ),
 
-                              SizedBox(height: 10,),
 
+                              SizedBox(
+                                height: 10,
+                              ),
                               Padding(
                                 padding: const EdgeInsets.only(bottom: 12),
                                 child: Container(
-                                  height: MediaQuery.of(context).size.height * 0.76,
-                                  child: StaggeredGridView.countBuilder(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.76,
+                                  child: _openDealProvider.invoicesCount > 0 ? StaggeredGridView.countBuilder(
                                       crossAxisCount:
                                           Responsive.isMobile(context) ? 1 : 3,
                                       crossAxisSpacing:
-                                          Responsive.isMobile(context) ? 20 : 30,
+                                          Responsive.isMobile(context)
+                                              ? 20
+                                              : 30,
                                       mainAxisSpacing:
-                                          Responsive.isMobile(context) ? 20 : 30,
+                                          Responsive.isMobile(context)
+                                              ? 20
+                                              : 30,
                                       padding: EdgeInsets.all(5),
                                       staggeredTileBuilder: (int index) =>
                                           StaggeredTile.fit(1),
                                       // shrinkWrap: true,
-                                      itemCount: _openDealProvider.invoicesCount,
+                                      itemCount:
+                                          _openDealProvider.invoicesCount,
                                       itemBuilder: (BuildContext ctx, index) {
                                         return LiveBibsCard(
-                                            _openDealProvider.openInvoices[index],
-                                            index,
-                                            _openDealProvider,_profileProvider,);
-                                      }),
+                                          context,
+                                          _openDealProvider.openInvoices[index],
+                                          index,
+                                          _openDealProvider,
+                                          _profileProvider,
+                                          onlyRF ? '1' : '0'
+                                        );
+                                      }) : Center(child: Padding(
+                                        padding: const EdgeInsets.all(22.0),
+                                        child: Text('No Invoices available!', style: GoogleFonts.poppins(fontSize: 22, color: Colors.black, fontWeight: FontWeight.w600),),
+                                      )),
                                 ),
                               ),
-
-                              SizedBox(height: 100,),
+                              SizedBox(
+                                height: 100,
+                              ),
                             ],
                           ),
                         ),
                       );
                     }
-                  })
-          )
+                  }))
         ],
       ),
     );
@@ -139,13 +259,17 @@ class _LiveDealsPageState extends State<LiveDealsPage> {
 }
 
 class LiveBibsCard extends StatelessWidget {
+  final BuildContext context1;
   final OpenDealModel openInvoices;
   final int index;
   final OpenDealProvider openDealProvider;
   final ProfileProvider _profileProvider;
   bool showViewDeals = false;
+  String onlyRF;
   //BuildContext context;
-  LiveBibsCard(this.openInvoices, this.index, this.openDealProvider, this._profileProvider,{Key key})
+  LiveBibsCard(this.context1, this.openInvoices, this.index,
+      this.openDealProvider, this._profileProvider, this.onlyRF,
+      {Key key})
       : super(key: key);
   final double width = 360;
 
@@ -520,75 +644,85 @@ class LiveBibsCard extends StatelessWidget {
                           children: <Widget>[
                             InkWell(
                               onTap: () {
-                                var userData = Map<String, dynamic>.from(box.get('userData'));
+                                var userData = Map<String, dynamic>.from(
+                                    box.get('userData'));
                                 // print('User Data $userData');
 
-                                int isBlackListed = int.parse(userData['isBlacklisted']);
+                                int isBlackListed =
+                                    int.parse(userData['isBlacklisted']);
 
-
-                                if(isBlackListed == 1){
+                                if (isBlackListed == 1) {
                                   showDialog(
                                       context: context,
-                                      builder: (BuildContext context) => AlertDialog(
-                                        title: const Text(
-                                          'Function Suspended',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold, fontSize: 16),
-                                        ),
-                                        content: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            mainAxisAlignment: MainAxisAlignment.start,
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              const Text(
-                                                'This functionality has been temporarily suspended',
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.normal,
-                                                    fontSize: 14),
-                                              ),
-                                              SizedBox(
-                                                height: 4,
-                                              ),
-
-                                            ],
-                                          ),
-                                        ),
-                                        actions: <Widget>[
-                                          Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: ElevatedButton(
-                                              child: Padding(
-                                                padding: const EdgeInsets.all(4),
-                                                child: Text("Close".toUpperCase(),
-                                                    style: TextStyle(fontSize: 14)),
-                                              ),
-                                              style: ButtonStyle(
-                                                  foregroundColor:
-                                                  MaterialStateProperty.all<Color>(
-                                                      Colors.white),
-                                                  backgroundColor:
-                                                  MaterialStateProperty.all<Color>(
-                                                      Theme.of(context).primaryColor),
-                                                  shape:
-                                                  MaterialStateProperty.all<RoundedRectangleBorder>(
-                                                      RoundedRectangleBorder(
-                                                          borderRadius:
-                                                          BorderRadius.circular(50),
-                                                          side: BorderSide(
-                                                              color: Theme.of(context)
-                                                                  .primaryColor)))),
-                                              onPressed: () =>
-                                                  Navigator.of(context, rootNavigator: true)
-                                                      .pop(),
+                                      builder: (BuildContext context) =>
+                                          AlertDialog(
+                                            title: const Text(
+                                              'Function Suspended',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16),
                                             ),
-                                          ),
-                                        ],
-                                      ));
+                                            content: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  const Text(
+                                                    'This functionality has been temporarily suspended',
+                                                    style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.normal,
+                                                        fontSize: 14),
+                                                  ),
+                                                  SizedBox(
+                                                    height: 4,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            actions: <Widget>[
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: ElevatedButton(
+                                                  child: Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(4),
+                                                    child: Text(
+                                                        "Close".toUpperCase(),
+                                                        style: TextStyle(
+                                                            fontSize: 14)),
+                                                  ),
+                                                  style: ButtonStyle(
+                                                      foregroundColor:
+                                                          MaterialStateProperty.all<Color>(
+                                                              Colors.white),
+                                                      backgroundColor:
+                                                          MaterialStateProperty.all<Color>(
+                                                              Theme.of(context)
+                                                                  .primaryColor),
+                                                      shape: MaterialStateProperty.all<
+                                                              RoundedRectangleBorder>(
+                                                          RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius.circular(50),
+                                                              side: BorderSide(color: Theme.of(context).primaryColor)))),
+                                                  onPressed: () => Navigator.of(
+                                                          context,
+                                                          rootNavigator: true)
+                                                      .pop(),
+                                                ),
+                                              ),
+                                            ],
+                                          ));
                                   return;
                                 }
-                                showBidDialog(context, index, openDealProvider,
+                                showBidDialog(context1, index, openDealProvider,
                                     buyNow: true);
                               },
                               child: Container(
@@ -647,7 +781,9 @@ class LiveBibsCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              if (openDealProvider.shwBid(openDealProvider.openInvoices[index]))
+              if (openDealProvider
+                      .shwBid(openDealProvider.openInvoices[index]) &&
+                  openDealProvider.openInvoices[index].RF.toString() != '1')
                 Container(
                   decoration: BoxDecoration(
                     color: Color.fromRGBO(255, 255, 255, 1),
@@ -656,93 +792,98 @@ class LiveBibsCard extends StatelessWidget {
                   child: Row(
                     children: <Widget>[
                       InkWell(
-                        onTap: () async{
+                        onTap: () async {
                           capsaPrint('Place bid pass 1');
-                          var userData = Map<String, dynamic>.from(box.get('userData'));
+                          var userData =
+                              Map<String, dynamic>.from(box.get('userData'));
                           // print('User Data $userData');
                           capsaPrint('Place bid pass 2');
 
-                          int isBlackListed = int.parse(userData['isBlacklisted']);
+                          int isBlackListed =
+                              int.parse(userData['isBlacklisted']);
 
                           capsaPrint('Place bid pass 3');
 
-
-                          if(isBlackListed == 1){
+                          if (isBlackListed == 1) {
                             capsaPrint('Place bid pass 4');
                             showDialog(
                                 context: context,
                                 builder: (BuildContext context) => AlertDialog(
-                                  title: const Text(
-                                    'Function Suspended',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold, fontSize: 16),
-                                  ),
-                                  content: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      mainAxisAlignment: MainAxisAlignment.start,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'This functionality has been temporarily suspended',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.normal,
-                                              fontSize: 14),
-                                        ),
-                                        SizedBox(
-                                          height: 4,
-                                        ),
-
-                                      ],
-                                    ),
-                                  ),
-                                  actions: <Widget>[
-                                    Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: ElevatedButton(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(4),
-                                          child: Text("Close".toUpperCase(),
-                                              style: TextStyle(fontSize: 14)),
-                                        ),
-                                        style: ButtonStyle(
-                                            foregroundColor:
-                                            MaterialStateProperty.all<Color>(
-                                                Colors.white),
-                                            backgroundColor:
-                                            MaterialStateProperty.all<Color>(
-                                                Theme.of(context).primaryColor),
-                                            shape:
-                                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                                                RoundedRectangleBorder(
-                                                    borderRadius:
-                                                    BorderRadius.circular(50),
-                                                    side: BorderSide(
-                                                        color: Theme.of(context)
-                                                            .primaryColor)))),
-                                        onPressed: () =>
-                                            Navigator.of(context, rootNavigator: true)
-                                                .pop(),
+                                      title: const Text(
+                                        'Function Suspended',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16),
                                       ),
-                                    ),
-                                  ],
-                                ));
+                                      content: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              'This functionality has been temporarily suspended',
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.normal,
+                                                  fontSize: 14),
+                                            ),
+                                            SizedBox(
+                                              height: 4,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      actions: <Widget>[
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: ElevatedButton(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(4),
+                                              child: Text("Close".toUpperCase(),
+                                                  style:
+                                                      TextStyle(fontSize: 14)),
+                                            ),
+                                            style: ButtonStyle(
+                                                foregroundColor:
+                                                    MaterialStateProperty.all<Color>(
+                                                        Colors.white),
+                                                backgroundColor:
+                                                    MaterialStateProperty.all<Color>(
+                                                        Theme.of(context)
+                                                            .primaryColor),
+                                                shape: MaterialStateProperty.all<
+                                                        RoundedRectangleBorder>(
+                                                    RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(50),
+                                                        side: BorderSide(color: Theme.of(context).primaryColor)))),
+                                            onPressed: () => Navigator.of(
+                                                    context,
+                                                    rootNavigator: true)
+                                                .pop(),
+                                          ),
+                                        ),
+                                      ],
+                                    ));
                             return;
                           }
                           capsaPrint('Place bid pass 5');
-                          if (kycErrorCondition(
-                              context, _profileProvider)) {
+                          if (kycErrorCondition(context, _profileProvider)) {
                             capsaPrint('Place bid pass 6');
-                            showKycError(
-                                context, _profileProvider);
+                            showKycError(context, _profileProvider);
                             return;
                           }
                           capsaPrint('SHow Bid Dialog passwd');
 
-                          showBidDialog(context, index, openDealProvider);
-
-
+                          showBidDialog(context1, index, openDealProvider);
+                          if (openDealProvider.openInvoices[index].RF == '1') {
+                            final prefs = await SharedPreferences.getInstance();
+                            showToast(prefs.getString('message'), context1,
+                                type: prefs.getString('type'));
+                          }
                         },
                         child: Container(
                           decoration: const BoxDecoration(
@@ -787,12 +928,11 @@ class LiveBibsCard extends StatelessWidget {
                   child: Row(
                     children: <Widget>[
                       InkWell(
-                        onTap: () async{
+                        onTap: () async {
                           await showPayDialog(
                               context,
                               openDealProvider.openInvoices[index],
                               openDealProvider);
-
                         },
                         child: Container(
                           decoration: BoxDecoration(
@@ -840,8 +980,12 @@ class LiveBibsCard extends StatelessWidget {
                       onTap: () async {
                         showViewDeals = false;
                         //await Future.delayed(Duration(milliseconds: 3000));
-                        context.beamToNamed('/live-deals/bid-details/' +
-                            openInvoices.invoice_number + '/' + openInvoices.isSplit,);
+                        context.beamToNamed(
+                          '/live-deals/bid-details/' +
+                              openInvoices.invoice_number +
+                              '/' +
+                              openInvoices.isSplit + '/' + onlyRF ,
+                        );
                       },
                       child: Container(
                         decoration: BoxDecoration(
@@ -886,4 +1030,3 @@ class LiveBibsCard extends StatelessWidget {
     );
   }
 }
-

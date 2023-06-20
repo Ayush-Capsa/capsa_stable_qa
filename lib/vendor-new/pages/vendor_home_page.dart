@@ -24,6 +24,7 @@ import 'package:capsa/functions/custom_print.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:beamer/beamer.dart';
+import 'package:web_smooth_scroll/web_smooth_scroll.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 class VendorHomePage extends StatefulWidget {
@@ -41,7 +42,7 @@ class _VendorHomePageState extends State<VendorHomePage> {
 
     capsaPrint('\n\nCheck passwrod : $response');
 
-    if(response['msg'] != 'success') {
+    if(response['msg'] != 'success' && response['messg'] != 'Connection Timed Out' && response['messg'] != 'Unable to proceed..Try again!') {
       showDialog(
           context: context,
           barrierDismissible: false,
@@ -140,8 +141,11 @@ class _VendorHomePageState extends State<VendorHomePage> {
   }
   dynamic userData;
 
+  ScrollController _scrollController;
+
   @override
   void initState(){
+    _scrollController = ScrollController();
     super.initState();
     userData = Map<String, dynamic>.from(box.get('userData'));
     capsaPrint('Data : 222 $userData');
@@ -569,6 +573,8 @@ class _VendorHomePageState extends State<VendorHomePage> {
         body: Container(
           decoration: bgDecoration,
           child: SingleChildScrollView(
+            //physics: const NeverScrollableScrollPhysics(),
+            //controller: _scrollController,
             child: Padding(
               padding: Responsive.isMobile(context)
                   ? EdgeInsets.fromLTRB(15, 15, 15, 15)

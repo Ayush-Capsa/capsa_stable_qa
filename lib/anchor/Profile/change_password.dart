@@ -366,7 +366,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                                     fontFamily: 'Poppins',
                                     fontSize: 18,
                                     letterSpacing:
-                                        0 /*percentages not used in flutter. defaulting to zero*/,
+                                    0 /*percentages not used in flutter. defaulting to zero*/,
                                     fontWeight: FontWeight.normal,
                                     height: 1),
                               ),
@@ -388,7 +388,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     bool hasDigits = _newPassword.contains(new RegExp(r'[0-9]'));
     bool hasLowercase = _newPassword.contains(new RegExp(r'[a-z]'));
     bool hasSpecialCharacters =
-        _newPassword.contains(new RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
+    _newPassword.contains(new RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -403,7 +403,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               fontFamily: 'Poppins',
               fontSize: 20,
               letterSpacing:
-                  0 /*percentages not used in flutter. defaulting to zero*/,
+              0 /*percentages not used in flutter. defaulting to zero*/,
               fontWeight: FontWeight.normal,
               height: 1),
         ),
@@ -416,7 +416,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               // fontFamily: 'Poppins',
               fontSize: 16,
               letterSpacing:
-                  0 /*percentages not used in flutter. defaulting to zero*/,
+              0 /*percentages not used in flutter. defaulting to zero*/,
               fontWeight: FontWeight.normal,
               height: 1),
         ),
@@ -437,7 +437,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                     // fontFamily: 'Poppins',
                     fontSize: 18,
                     letterSpacing:
-                        0 /*percentages not used in flutter. defaulting to zero*/,
+                    0 /*percentages not used in flutter. defaulting to zero*/,
                     fontWeight: FontWeight.normal,
                     height: 1),
               ),
@@ -461,7 +461,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                     // fontFamily: 'Poppins',
                     fontSize: 18,
                     letterSpacing:
-                        0 /*percentages not used in flutter. defaulting to zero*/,
+                    0 /*percentages not used in flutter. defaulting to zero*/,
                     fontWeight: FontWeight.normal,
                     height: 1),
               ),
@@ -485,7 +485,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                     // fontFamily: 'Poppins',
                     fontSize: 18,
                     letterSpacing:
-                        0 /*percentages not used in flutter. defaulting to zero*/,
+                    0 /*percentages not used in flutter. defaulting to zero*/,
                     fontWeight: FontWeight.normal,
                     height: 1),
               ),
@@ -509,7 +509,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                     // fontFamily: 'Poppins',
                     fontSize: 18,
                     letterSpacing:
-                        0 /*percentages not used in flutter. defaulting to zero*/,
+                    0 /*percentages not used in flutter. defaulting to zero*/,
                     fontWeight: FontWeight.normal,
                     height: 1),
               ),
@@ -533,7 +533,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                     // fontFamily: 'Poppins',
                     fontSize: 18,
                     letterSpacing:
-                        0 /*percentages not used in flutter. defaulting to zero*/,
+                    0 /*percentages not used in flutter. defaulting to zero*/,
                     fontWeight: FontWeight.normal,
                     height: 1),
               ),
@@ -547,48 +547,48 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   Widget checkBox({checked: false}) {
     if (checked) {
       return // Figma Flutter Generator CheckboxWidget - INSTANCE
-          Container(
-              width: 20,
-              height: 20,
-              child: Stack(children: <Widget>[
-                Positioned(
-                    top: 0,
-                    left: 0,
-                    child: Container(
-                        width: 20,
-                        height: 20,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(5),
-                            topRight: Radius.circular(5),
-                            bottomLeft: Radius.circular(5),
-                            bottomRight: Radius.circular(5),
-                          ),
-                          border: Border.all(
-                            color: Color.fromRGBO(0, 152, 219, 1),
-                            width: 2,
-                          ),
-                        ))),
-                Positioned(
-                    top: 4,
-                    left: 4,
-                    child: Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(5),
-                            topRight: Radius.circular(5),
-                            bottomLeft: Radius.circular(5),
-                            bottomRight: Radius.circular(5),
-                          ),
+        Container(
+            width: 20,
+            height: 20,
+            child: Stack(children: <Widget>[
+              Positioned(
+                  top: 0,
+                  left: 0,
+                  child: Container(
+                      width: 20,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(5),
+                          topRight: Radius.circular(5),
+                          bottomLeft: Radius.circular(5),
+                          bottomRight: Radius.circular(5),
+                        ),
+                        border: Border.all(
                           color: Color.fromRGBO(0, 152, 219, 1),
-                          border: Border.all(
-                            color: Color.fromRGBO(0, 152, 219, 1),
-                            width: 2,
-                          ),
-                        ))),
-              ]));
+                          width: 2,
+                        ),
+                      ))),
+              Positioned(
+                  top: 4,
+                  left: 4,
+                  child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(5),
+                          topRight: Radius.circular(5),
+                          bottomLeft: Radius.circular(5),
+                          bottomRight: Radius.circular(5),
+                        ),
+                        color: Color.fromRGBO(0, 152, 219, 1),
+                        border: Border.all(
+                          color: Color.fromRGBO(0, 152, 219, 1),
+                          width: 2,
+                        ),
+                      ))),
+            ]));
     }
 
     return Container(

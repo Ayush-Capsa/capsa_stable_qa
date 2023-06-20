@@ -7,13 +7,20 @@ import 'package:capsa/investor/widgets/bid_cards.dart';
 import 'package:capsa/models/bid_history_model.dart';
 import 'package:capsa/providers/bid_history_provider.dart';
 import 'package:capsa/widgets/user_input.dart';
+import 'package:csv/csv.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:intl/intl.dart';
 
 import 'package:capsa/widgets/TopBarWidget.dart';
 import 'package:capsa/widgets/datatable_dynamic.dart';
-import 'package:flutter/material.dart';import 'package:capsa/functions/custom_print.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../../admin/common/constants.dart';
+import '../../common/constants.dart';
+import '../../functions/export_to_csv.dart';
+import '../data/transaction_data.dart';
 
 class MyTransactions extends StatefulWidget {
   const MyTransactions({Key key}) : super(key: key);
@@ -57,8 +64,48 @@ class _MyBidsPageState extends State<MyTransactions> {
     }
   }
 
+  void exportCSV(List<BidHistoryModel> dataSource) {
+    {
+      var userData = Map<String, dynamic>.from(box.get('userData'));
+      final find = ',';
+      final replaceWith = '';
+      List<List<dynamic>> rows = [];
+      //capsaPrint('Length : ${bids.length}');
+      rows.add([
+        "S/N", "Vendor Name", "Bid Amount", "Transaction Date", "Status", ""
+      ]);
+      int i = 0;
+      //List<ClosingBalanceModel> finalList = sortList();
+      for (var bids in dataSource) {
+        List<dynamic> row = [];
+        row.add(
+          (++i).toString(),
+        );
+        row.add(
+          bids.companyName,
+        );
+        row.add(
+          bids.discountVal,
+        );
+        row.add(
+              DateFormat('d MMM, y').format(bids.discountedDate).toString(),
+        );
+        row.add(
+          _statusString(bids),
+        );
+        rows.add(row);
+      }
+
+      String dataAsCSV = const ListToCsvConverter().convert(
+        rows,
+      );
+      exportToCSV(dataAsCSV, fName: "Transaction_History_${userData['panNumber']}");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    List<BidHistoryModel> dataSource = [];
     return Container(
       height: MediaQuery.of(context).size.height,
       padding: EdgeInsets.all(Responsive.isMobile(context) ? 15 : 25.0),
@@ -186,6 +233,32 @@ class _MyBidsPageState extends State<MyTransactions> {
                             keyboardType: TextInputType.number,
                           ),
                         ),
+
+                        SizedBox(width: 8),
+
+                        InkWell(
+                            onTap: () {
+                              exportCSV(dataSource);
+                            },
+                            child: Container(
+                              child: Row(
+                                children: [
+                                  Text(
+                                    'Export  ',
+                                    style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 18,
+                                        color: HexColor('#0098DB')),
+                                  ),
+                                  Icon(Icons.download,
+                                      size: Responsive.isMobile(context)
+                                          ? 12
+                                          : 26,
+                                      color: HexColor('#0098DB')),
+                                ],
+                              ),
+                            ))
+
                       ],
                     ),
                   ),
@@ -198,7 +271,7 @@ class _MyBidsPageState extends State<MyTransactions> {
           Expanded(
             child: FutureBuilder<Object>(
                 future: Provider.of<BidHistoryProvider>(context, listen: false)
-                    .myBidHistoryList(search: _search, date: _selectedDate, isonlyAccept: true),
+                    .myBidHistoryList(search: _search, date: _selectedDate, isonlyAccept: true, sortByDiscountedDate: true),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState != ConnectionState.done) {
                     return Center(
@@ -215,7 +288,14 @@ class _MyBidsPageState extends State<MyTransactions> {
                     );
                   } else if (snapshot.hasData) {
                     final bidHistoryProvider = Provider.of<BidHistoryProvider>(context, listen: false);
-                    List<BidHistoryModel> dataSource = bidHistoryProvider.bidHistoryDataList;
+                    dataSource = bidHistoryProvider.bidHistoryDataList;
+                    final MyTransactionDataSource _historyDataSource =
+                    MyTransactionDataSource(
+                        dataSource, context
+                    );
+                    int _rowsPerPage = 10;
+                    int _sortColumnIndex;
+                    bool _sortAscending = true;
 
                     return Container(
                       width: double.infinity,
@@ -242,22 +322,76 @@ class _MyBidsPageState extends State<MyTransactions> {
                       ),
                       child: SingleChildScrollView(
                         child: (Responsive.isMobile(context))
-                            ? Column(
-                                children: [
-                                  for (var bids in dataSource)
-                                    InkWell(
-                                      onTap: () {
-                                        Beamer.of(context).beamToNamed('/transaction-details/' + bids.invoiceNumber);
-                                      },
-                                      child: Container(
-                                        margin: EdgeInsets.all(10),
-                                        padding: EdgeInsets.all(1),
-                                        child: BibsCard(bids,false),
-                                      ),
-                                    )
-                                ],
-                              )
-                            : DataTable(
+                            ? Container(
+                              width: MediaQuery.of(context).size.width * 0.9,
+                              height: MediaQuery.of(context).size.height * 0.85,
+                              child: ListView(
+                                  children: [
+                                    for (var bids in dataSource)
+                                      InkWell(
+                                        onTap: () {
+                                          Beamer.of(context).beamToNamed('/transaction-details/' + bids.invoiceNumber);
+                                        },
+                                        child: Container(
+                                          margin: EdgeInsets.all(10),
+                                          padding: EdgeInsets.all(1),
+                                          child: BibsCard(bids,false),
+                                        ),
+                                      )
+                                  ],
+                                ),
+                            )
+                            : dataSource.length > 10? PaginatedDataTable(
+                            dataRowHeight: 60,
+                            columnSpacing: 42,
+                            onPageChanged: (value) {
+                              // capsaPrint('$value');
+
+                            },
+                            //showCheckboxColumn: false,
+                            // columnSpacing: 110,
+                            //availableRowsPerPage: _rowsPerPage > dataSource.length ? [dataSource.length] : [5, 10, 20],
+                            rowsPerPage: _rowsPerPage > dataSource.length ? dataSource.length : _rowsPerPage,
+                            // onRowsPerPageChanged: (int value) {
+                            //   setState(() {
+                            //     _rowsPerPage = value;
+                            //   });
+                            // },
+                            // constrained : false,
+                            sortColumnIndex: _sortColumnIndex,
+                            sortAscending: _sortAscending,
+                            columns: <DataColumn>[
+                              DataColumn(
+                                label: Text('S/N',
+                                    style: tableHeadlineStyle),
+                              ),
+                              DataColumn(
+                                // numeric: true,
+                                label: Text('Anchor Name',
+                                    style: tableHeadlineStyle),
+                              ),
+                              DataColumn(
+                                // numeric: true,
+                                label: Text('Bid Amount',
+                                    style: tableHeadlineStyle),
+                              ),
+                              DataColumn(
+                                // numeric: true,
+                                label: Text('Transaction Date',
+                                    style: tableHeadlineStyle),
+                              ),
+                              DataColumn(
+                                // numeric: true,
+                                label: Text('Status',
+                                    style: tableHeadlineStyle),
+                              ),
+                              DataColumn(
+                                // numeric: true,
+                                label: Text('',
+                                    style: tableHeadlineStyle),
+                              ),
+                            ],
+                            source: _historyDataSource) : DataTable(
                                 dataRowHeight: 60,
                                 columns: dataTableColumn(["S/N", "Vendor Name", "Bid Amount", "Transaction Date", "Status", ""]),
                                 rows: <DataRow>[
@@ -352,5 +486,25 @@ class _MyBidsPageState extends State<MyTransactions> {
           fontWeight: FontWeight.normal,
           height: 1),
     );
+  }
+
+  String _statusString(BidHistoryModel bids) {
+    // return Text(bids.historyStatus);
+    String _text = 'Pending';
+    dynamic clr = HexColor('#F2994A');
+    if (bids.paymentStatus == '1') {
+      _text = 'Closed';
+      clr = HexColor("#EB5757");
+    } else {
+      if (bids.discount_status == 'true') {
+        _text = 'Open';
+        clr = Colors.green;
+      } else {
+        _text = 'Pending';
+        clr = HexColor('#F2994A');
+      }
+    }
+
+    return _text;
   }
 }

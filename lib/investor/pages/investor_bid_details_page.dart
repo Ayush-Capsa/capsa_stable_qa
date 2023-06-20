@@ -23,8 +23,9 @@ import 'package:provider/provider.dart';
 class InvestorBidDetailsPage extends StatefulWidget {
   final invNum;
   bool isSplit;
+  bool onlyRF;
 
-  InvestorBidDetailsPage(this.invNum, {this.isSplit = false,Key key})
+  InvestorBidDetailsPage(this.invNum, {this.isSplit = false, this.onlyRF = false,Key key})
       : super(key: key);
   @override
   State<InvestorBidDetailsPage> createState() => _LiveBidDetailsPageState();
@@ -42,6 +43,11 @@ class _LiveBidDetailsPageState extends State<InvestorBidDetailsPage> {
   //     '/live-deals/bid-details/' + invNo,
   //   );
   // }
+
+  bool paymentRec = false;
+  bool payDone = false;
+  bool isAccepted = false;
+  bool ispending = false;
 
   Future<void> splitInvoice(String invoiceNumber) async {
     if (widget.isSplit) {
@@ -73,6 +79,7 @@ class _LiveBidDetailsPageState extends State<InvestorBidDetailsPage> {
           height: 36,
         ));
         data.forEach((element) {
+          print('Split Data pass  2');
           splitInvoices.add(
             drawSplitInvoicesInfo(
               formatCurrency(element['invoice_value'].toString()),
@@ -87,6 +94,7 @@ class _LiveBidDetailsPageState extends State<InvestorBidDetailsPage> {
           splitInvoices.add(const SizedBox(
             height: 18,
           ));
+          print('Split Data pass  2.1');
           setState(() {
             isSplit = true;
           });
@@ -95,8 +103,307 @@ class _LiveBidDetailsPageState extends State<InvestorBidDetailsPage> {
     }
   }
 
+  OpenDealModel openInvoices;
+
   void getData() async {
-    await splitInvoice(widget.invNum);
+
+    capsaPrint('Inv data pass 0.11');
+
+    await Provider.of<OpenDealProvider>(context, listen: false).queryOpenDealList(onlyRF: widget.onlyRF);
+    capsaPrint('Inv data pass 0.22');
+    await Provider.of<ProfileProvider>(context, listen: false).queryPortfolioData2();
+
+    capsaPrint('Inv data pass 0.33');
+
+    int index =
+    Provider.of<OpenDealProvider>(context, listen: false).openInvoices.indexWhere((element) {
+      return element.invoice_number == invNum;
+    });
+
+    capsaPrint('inv data 0.44 ${Provider.of<OpenDealProvider>(context, listen: false).openInvoices[index].prop_amt}');
+
+    dynamic data = await Provider.of<InvoiceProvider>(context, listen: false)
+        .loadInVData(widget.invNum, Provider.of<OpenDealProvider>(context, listen: false).openInvoices[index].prop_amt, );
+
+    capsaPrint('\n\ninvoice data : $data\n\n');
+
+    var _data;
+    if (data['res'] == 'success') {
+      capsaPrint('Inv data pass 2.1');
+      _data = data['data'];
+      var element = _data['ilplist'].isEmpty
+          ? null
+          : _data['ilplist'][0];
+
+      capsaPrint('Inv data pass 2.2 $element');
+
+      openInvoices = element != null
+          ? OpenDealModel(
+          invoice_value:
+          element['invoice_value'].toString(),
+          isRevenue: element['isRevenue'].toString(),
+          start_date: element['start_date'],
+          due_date: element['due_date'],
+          eff_due_date: element['eff_due_date'],
+          minimum_investment:
+          element['minimum_investment'].toString(),
+          invoice_number: element['invoice_number'],
+          trans_his: element['trans_his'],
+          description: element['description'],
+          customer_name: element['customer_name'],
+          comp_contract_address:
+          element['comp_contract_address'],
+          child_address: element['child_address'],
+          discount_percentage:
+          element['discount_percentage'].toString(),
+          discount_status:
+          element['discount_status'].toString(),
+          companyName: element['companyName'],
+          companyPAN: element['companyPAN'],
+          companySafePercentage:
+          element['companySafePercentage'].toString(),
+          customerCIN: element['customerCIN'],
+          industry: element['industry'],
+          founded: element['founded'],
+          key_person: element['key_person'],
+          about: element['about'],
+          colour: element['colour'],
+          city: element['city'],
+          state: element['state'],
+          website: element['website'],
+          linkedin: element['linkedin'],
+          fb: element['fb'],
+          twitter: element['twitter'],
+          insta: element['insta'],
+          customer_pan:
+          element['customer_pan'].toString(),
+          sel_CIN: element['sel_CIN'],
+          sel_industry: element['sel_industry'],
+          sel_founded: element['sel_founded'],
+          sel_key_person: element['sel_key_person'],
+          sel_about: element['sel_about'],
+          sel_website: element['sel_website'],
+          sel_linkedin: element['sel_linkedin'],
+          sel_fb: element['sel_fb'],
+          sel_twitte: element['sel_twitte'],
+          sel_insta: element['sel_insta'],
+          ask_amt: element['ask_amt']!=null ? element['ask_amt'].toString() : '0',
+          ask_rate: element['ask_rate'].toString(),
+          totalDiscount:
+          element['totalDiscount'].toString(),
+          alcptdy: element['alcptdy'].toString(),
+          prop_amt: element['prop_amt'].toString(),
+          RF: element['RF'].toString())
+          : null;
+
+      capsaPrint('Inv data pass 3 ${_data['ispending']}');
+
+      paymentRec = _data['paymentRec'] == 'true' ? true : false;
+      payDone = _data['payDone'] == 'true' ? true : false;
+      isAccepted = _data['isAccepted'] == 'true' ? true : false;
+      ispending = _data['ispending'] == 'true' ? true : false;
+
+      capsaPrint('isPending $ispending ${openInvoices.RF}');
+
+    }
+
+
+
+
+   capsaPrint('Inv data pass 0.4 ');
+
+    // bool x = Provider.of<OpenDealProvider>(context, listen: false).showPay(
+    //     openInvoices);
+    // capsaPrint('Inv data pass xx $x ');
+
+    data = await Provider.of<InvoiceProvider>(context, listen: false)
+        .loadInVData(widget.invNum, openInvoices.prop_amt, );
+
+    capsaPrint('\n\ninvoice data : $data\n\n');
+
+    _data;
+    if (data['res'] == 'success') {
+      capsaPrint('Inv data pass 2.1');
+      _data = data['data'];
+      var element = _data['ilplist'].isEmpty
+          ? null
+          : _data['ilplist'][0];
+
+      capsaPrint('Inv data pass 2.2 $element');
+
+      openInvoices = element != null
+          ? OpenDealModel(
+          invoice_value:
+          element['invoice_value'].toString(),
+          isRevenue: element['isRevenue'].toString(),
+          start_date: element['start_date'],
+          due_date: element['due_date'],
+          eff_due_date: element['eff_due_date'],
+          minimum_investment:
+          element['minimum_investment'].toString(),
+          invoice_number: element['invoice_number'],
+          trans_his: element['trans_his'],
+          description: element['description'],
+          customer_name: element['customer_name'],
+          comp_contract_address:
+          element['comp_contract_address'],
+          child_address: element['child_address'],
+          discount_percentage:
+          element['discount_percentage'].toString(),
+          discount_status:
+          element['discount_status'].toString(),
+          companyName: element['companyName'],
+          companyPAN: element['companyPAN'],
+          companySafePercentage:
+          element['companySafePercentage'].toString(),
+          customerCIN: element['customerCIN'],
+          industry: element['industry'],
+          founded: element['founded'],
+          key_person: element['key_person'],
+          about: element['about'],
+          colour: element['colour'],
+          city: element['city'],
+          state: element['state'],
+          website: element['website'],
+          linkedin: element['linkedin'],
+          fb: element['fb'],
+          twitter: element['twitter'],
+          insta: element['insta'],
+          customer_pan:
+          element['customer_pan'].toString(),
+          sel_CIN: element['sel_CIN'],
+          sel_industry: element['sel_industry'],
+          sel_founded: element['sel_founded'],
+          sel_key_person: element['sel_key_person'],
+          sel_about: element['sel_about'],
+          sel_website: element['sel_website'],
+          sel_linkedin: element['sel_linkedin'],
+          sel_fb: element['sel_fb'],
+          sel_twitte: element['sel_twitte'],
+          sel_insta: element['sel_insta'],
+          ask_amt: element['ask_amt']!=null ? element['ask_amt'].toString() : '0',
+          ask_rate: element['ask_rate'].toString(),
+          totalDiscount:
+          element['totalDiscount'].toString(),
+          alcptdy: element['alcptdy'].toString(),
+          prop_amt: element['prop_amt'].toString(),
+          RF: element['RF'].toString())
+          : null;
+
+      capsaPrint('Inv data pass 3 ${_data['ispending']}');
+
+      paymentRec = _data['paymentRec'] == 'true' ? true : false;
+      payDone = _data['payDone'] == 'true' ? true : false;
+      isAccepted = _data['isAccepted'] == 'true' ? true : false;
+      ispending = _data['ispending'] == 'true' ? true : false;
+      capsaPrint('isPending $ispending ${openInvoices.RF}');
+
+
+      await splitInvoice(widget.invNum);
+
+      setState(() {
+
+      });
+    }
+
+    // bool x = Provider.of<OpenDealProvider>(context, listen: false).showPay(
+    //     openInvoices);
+    // capsaPrint('Inv data pass 1 $x ');
+  //
+  //
+  //
+  //   data = await Provider.of<InvoiceProvider>(context, listen: false)
+  //       .loadInVData(widget.invNum, Provider.of<OpenDealProvider>(context, listen: false).showPay(
+  //       Provider.of<OpenDealProvider>(context).openInvoices[index]) ? null : Provider.of<OpenDealProvider>(context, listen: false).openInvoices[index].prop_amt.toString(), );
+  //
+  //   capsaPrint('Inv data pass 2');
+  //
+  //   //ispending = false;
+  //
+  //
+  //
+  //   capsaPrint('Inv data pass 2.0 \n$data');
+  //   if (data['res'] == 'success') {
+  //     capsaPrint('Inv data pass 2.1');
+  //     _data = data['data'];
+  //     var element = _data['ilplist'].isEmpty
+  //         ? null
+  //         : _data['ilplist'][0];
+  //
+  //     capsaPrint('Inv data pass 2.2 $element');
+  //
+  //     openInvoices = element != null
+  //         ? OpenDealModel(
+  //         invoice_value:
+  //         element['invoice_value'].toString(),
+  //         isRevenue: element['isRevenue'].toString(),
+  //         start_date: element['start_date'],
+  //         due_date: element['due_date'],
+  //         eff_due_date: element['eff_due_date'],
+  //         minimum_investment:
+  //         element['minimum_investment'].toString(),
+  //         invoice_number: element['invoice_number'],
+  //         trans_his: element['trans_his'],
+  //         description: element['description'],
+  //         customer_name: element['customer_name'],
+  //         comp_contract_address:
+  //         element['comp_contract_address'],
+  //         child_address: element['child_address'],
+  //         discount_percentage:
+  //         element['discount_percentage'].toString(),
+  //         discount_status:
+  //         element['discount_status'].toString(),
+  //         companyName: element['companyName'],
+  //         companyPAN: element['companyPAN'],
+  //         companySafePercentage:
+  //         element['companySafePercentage'].toString(),
+  //         customerCIN: element['customerCIN'],
+  //         industry: element['industry'],
+  //         founded: element['founded'],
+  //         key_person: element['key_person'],
+  //         about: element['about'],
+  //         colour: element['colour'],
+  //         city: element['city'],
+  //         state: element['state'],
+  //         website: element['website'],
+  //         linkedin: element['linkedin'],
+  //         fb: element['fb'],
+  //         twitter: element['twitter'],
+  //         insta: element['insta'],
+  //         customer_pan:
+  //         element['customer_pan'].toString(),
+  //         sel_CIN: element['sel_CIN'],
+  //         sel_industry: element['sel_industry'],
+  //         sel_founded: element['sel_founded'],
+  //         sel_key_person: element['sel_key_person'],
+  //         sel_about: element['sel_about'],
+  //         sel_website: element['sel_website'],
+  //         sel_linkedin: element['sel_linkedin'],
+  //         sel_fb: element['sel_fb'],
+  //         sel_twitte: element['sel_twitte'],
+  //         sel_insta: element['sel_insta'],
+  //         ask_amt: element['ask_amt']!=null ? element['ask_amt'].toString() : '0',
+  //         ask_rate: element['ask_rate'].toString(),
+  //         totalDiscount:
+  //         element['totalDiscount'].toString(),
+  //         alcptdy: element['alcptdy'].toString(),
+  //         prop_amt: element['prop_amt'].toString(),
+  //         RF: element['RF'].toString())
+  //         : null;
+  //
+  //     capsaPrint('Inv data pass 3 ${_data['ispending']} 23');
+  //
+  //     paymentRec = _data['paymentRec'];
+  //     payDone = _data['payDone'];
+  //     isAccepted = _data['isAccepted'];
+  //     ispending = _data['ispending'];
+  //
+  //     capsaPrint('isPending $ispending ${openInvoices.RF}');
+  //
+  //
+  //     await splitInvoice(widget.invNum);
+  // }
+
   }
 
 
@@ -107,14 +414,14 @@ class _LiveBidDetailsPageState extends State<InvestorBidDetailsPage> {
     invNum = widget.invNum;
     print('invoice no. $invNum');
     //openDeal = Provider.of<OpenDealProvider>(context);
-    Provider.of<OpenDealProvider>(context, listen: false).queryOpenDealList();
-    Provider.of<ProfileProvider>(context, listen: false).queryPortfolioData2();
+    // Provider.of<OpenDealProvider>(context, listen: false).queryOpenDealList(fetchAllInvoices: true);
+    // Provider.of<ProfileProvider>(context, listen: false).queryPortfolioData2();
 
     getData();
 
   }
 
-  OpenDealModel openInvoices;
+
 
   @override
   Widget build(BuildContext context) {
@@ -134,7 +441,7 @@ class _LiveBidDetailsPageState extends State<InvestorBidDetailsPage> {
                 SizedBox(
                   height: 22,
                 ),
-              TopBarWidget("Bid Details", ""),
+              TopBarWidget("Invoice Details", ""),
               if (!Responsive.isMobile(context))
                 SizedBox(
                   height: 18,
@@ -147,16 +454,20 @@ class _LiveBidDetailsPageState extends State<InvestorBidDetailsPage> {
                 ))
               else
                 Builder(builder: (context) {
+                  capsaPrint('bid details pass 1');
                   int index =
                       _openDealProvider.openInvoices.indexWhere((element) {
                     return element.invoice_number == invNum;
                   });
-                  openInvoices = _openDealProvider.openInvoices[index];
+                  //capsaPrint('bid details pass 2 ${openInvoices.is}');
+                  // openInvoices = _openDealProvider.openInvoices[index];
                   if (index == -1) {
                     return Container(
                       child: Center(child: Text("No data found")),
                     );
                   }
+                  capsaPrint('bid details pass 3 ${_openDealProvider.openInvoices[index].companySafePercentage} ${_openDealProvider.openInvoices[index].ask_amt} ${_openDealProvider.openInvoices[index].customer_name}');
+
                   return Container(
                     width: MediaQuery.of(context).size.width,
                     child: Column(
@@ -168,7 +479,7 @@ class _LiveBidDetailsPageState extends State<InvestorBidDetailsPage> {
                             Flexible(
                               flex: 4,
                               child: bidDetailsFrameTopInfo(
-                                  context, openInvoices,
+                                  context, _openDealProvider.openInvoices[index],
                                   isDetails: true),
                             ),
                             SizedBox(
@@ -300,7 +611,8 @@ class _LiveBidDetailsPageState extends State<InvestorBidDetailsPage> {
                                       ),
                                       if (_openDealProvider.shwBid(
                                           _openDealProvider
-                                              .openInvoices[index]))
+                                              .openInvoices[index]) && _openDealProvider
+                                          .openInvoices[index].RF != '1')
                                         InkWell(
                                           onTap: () async{
                                             var userData = Map<String, dynamic>.from(box.get('userData'));
@@ -419,7 +731,8 @@ class _LiveBidDetailsPageState extends State<InvestorBidDetailsPage> {
                                         ),
                                       if (_openDealProvider.showPay(
                                           _openDealProvider
-                                              .openInvoices[index]))
+                                              .openInvoices[index]) && _openDealProvider
+                                          .openInvoices[index].RF != '1')
                                         InkWell(
                                           onTap: () {
                                             if (kycErrorCondition(
@@ -467,16 +780,134 @@ class _LiveBidDetailsPageState extends State<InvestorBidDetailsPage> {
                                                 ),
                                               )),
                                         ),
+
+                                      if(!_openDealProvider.showPay(
+                                          _openDealProvider
+                                              .openInvoices[index]) && !_openDealProvider.shwBid(
+                                          _openDealProvider
+                                              .openInvoices[index]) && _openDealProvider
+                                          .openInvoices[index].RF != '1')
+                                      Padding(
+                                        padding: const EdgeInsets.all(12.0),
+                                        child: InkWell(
+                                          onTap: () async {
+                                            capsaPrint(openInvoices);
+                                            await showEditBidDialog(
+                                              context,
+                                              _openDealProvider.openInvoices[index],
+                                              _openDealProvider.openInvoices[index].prop_amt,
+                                            );
+                                            setState(() {});
+                                          },
+                                          child: Container(
+                                            width: double.infinity,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                              BorderRadius.only(
+                                                topLeft:
+                                                Radius.circular(15),
+                                                topRight:
+                                                Radius.circular(15),
+                                                bottomLeft:
+                                                Radius.circular(15),
+                                                bottomRight:
+                                                Radius.circular(15),
+                                              ),
+                                              color: HexColor('#F2994A'),
+                                            ),
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 15,
+                                                vertical: 15),
+                                            child: Center(
+                                              child: Text(
+                                                'Edit Bid',
+                                                textAlign:
+                                                TextAlign.center,
+                                                style: TextStyle(
+                                                    color: Color.fromRGBO(
+                                                        242, 242, 242, 1),
+                                                    fontSize: 16,
+                                                    letterSpacing:
+                                                    0 /*percentages not used in flutter. defaulting to zero*/,
+                                                    fontWeight:
+                                                    FontWeight.normal,
+                                                    height: 1),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+
+                                      if(!_openDealProvider.showPay(
+                                          _openDealProvider
+                                              .openInvoices[index]) && !_openDealProvider.shwBid(
+                                          _openDealProvider
+                                              .openInvoices[index]) && _openDealProvider
+                                          .openInvoices[index].RF != '1')
+                                      Padding(
+                                        padding: const EdgeInsets.all(12.0),
+                                        child: InkWell(
+                                          onTap: () async {
+                                            //capsaPrint(_proposalModel.invoice_number);
+                                            await showDeleteBidDialog(
+                                              context,
+                                              _openDealProvider.openInvoices[index],
+                                              _openDealProvider.openInvoices[index].prop_amt,
+                                            );
+                                            setState(() {});
+                                          },
+                                          child: Container(
+                                            width: double.infinity,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                              BorderRadius.only(
+                                                topLeft:
+                                                Radius.circular(15),
+                                                topRight:
+                                                Radius.circular(15),
+                                                bottomLeft:
+                                                Radius.circular(15),
+                                                bottomRight:
+                                                Radius.circular(15),
+                                              ),
+                                              border: Border.all(
+                                                  color: Colors.red,
+                                                  width: 3),
+                                              color: Colors.transparent,
+                                            ),
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 15,
+                                                vertical: 15),
+                                            child: Center(
+                                              child: Text(
+                                                'Cancel Bid',
+                                                textAlign:
+                                                TextAlign.center,
+                                                style: TextStyle(
+                                                    color: Colors.red,
+                                                    fontSize: 16,
+                                                    letterSpacing:
+                                                    0 /*percentages not used in flutter. defaulting to zero*/,
+                                                    fontWeight:
+                                                    FontWeight.normal,
+                                                    height: 1),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+
                                     ],
                                   ),
                                 ),
                               )
                           ],
                         ),
+
                         SizedBox(
                           height: 20,
                         ),
-                        bidDetailsInfo(openInvoices, context),
+                        bidDetailsInfo(_openDealProvider.openInvoices[index], context),
                         if (Responsive.isMobile(context))
                           SizedBox(
                             height: 20,
@@ -559,7 +990,7 @@ class _LiveBidDetailsPageState extends State<InvestorBidDetailsPage> {
                                       }
                                       showBidDialog(
                                           context, index, _openDealProvider,
-                                          buyNow: true);
+                                          buyNow: true, pop: true);
                                     },
                                     child: Container(
                                       width: double.infinity,

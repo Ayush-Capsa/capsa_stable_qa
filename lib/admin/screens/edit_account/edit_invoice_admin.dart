@@ -42,10 +42,13 @@ class _EditInvoiceAdminState extends State<EditInvoiceAdmin> {
   final Box box = Hive.box('capsaBox');
   final dueDateCont = TextEditingController();
   final dateCont = TextEditingController();
+  final extDateCont = TextEditingController();
   final fileCont = TextEditingController(text: '');
   DateTime _selectedDate;
   DateTime _selectedDueDate;
+  DateTime _selectedExtDueDate;
   var _cuGst;
+  dynamic daysDiff;
 
   bool saving = false;
 
@@ -91,6 +94,8 @@ class _EditInvoiceAdminState extends State<EditInvoiceAdmin> {
     _body['payment_terms'] = tenureController.text;
     _body['rate'] = rateController2.text;
     _body['buyNowPrice'] = buyAmtController.text;
+    _body['invoice_date'] = dateCont.text;
+    _body['ext_due_date'] = extDateCont.text;
 
     String _url = apiUrl + '/admin/';
     dynamic _uri = _url + 'updateInvoice';
@@ -107,10 +112,11 @@ class _EditInvoiceAdminState extends State<EditInvoiceAdmin> {
     capsaPrint('Update Invoice e: ${response.body}');
     if(data['res'] == 'success'){
       showToast('Update Successful', context);
+      Navigator.pop(context);
     }else{
       showToast(data['msg'], context, type: 'error');
     }
-    Navigator.pop(context);
+
   }
 
   Future getCompanyName() async {
@@ -193,6 +199,11 @@ class _EditInvoiceAdminState extends State<EditInvoiceAdmin> {
         ..text = DateFormat('yyyy-MM-dd').format(_selectedDueDate)
         ..selection = TextSelection.fromPosition(TextPosition(
             offset: dueDateCont.text.length, affinity: TextAffinity.upstream));
+      _selectedExtDueDate = _selectedDueDate.add(Duration(days: daysDiff));
+      extDateCont
+        ..text = DateFormat('yyyy-MM-dd').format(_selectedExtDueDate)
+        ..selection = TextSelection.fromPosition(TextPosition(
+            offset: extDateCont.text.length, affinity: TextAffinity.upstream));
       calculateRate();
     }
   }
@@ -221,7 +232,7 @@ class _EditInvoiceAdminState extends State<EditInvoiceAdmin> {
     if (newSelectedDate != null) {
       _selectedDate = newSelectedDate;
       dateCont
-        ..text = DateFormat.yMMMd().format(_selectedDate)
+        ..text = DateFormat('yyyy-MM-dd').format(_selectedDate)
         ..selection = TextSelection.fromPosition(TextPosition(
             offset: dateCont.text.length, affinity: TextAffinity.upstream));
       calculateRate();
@@ -288,14 +299,19 @@ class _EditInvoiceAdminState extends State<EditInvoiceAdmin> {
           .parse(widget.invoice.invoiceDueDate);
       //tenureDaysDiff = num.parse(invoiceFormData["tenureDaysDiff"]);
       //rateController2.text = widget.invoice.askRate;
-      dueDateCont.text = DateFormat('yyyy-MM-dd')
+      extDateCont.text = DateFormat('yyyy-MM-dd')
           .format(DateFormat("yyyy-MM-dd")
-          .parse(widget.invoice.invoiceDueDate))
+          .parse(widget.invoice.extendedDueDate))
           .toString();
       //fileCont.text = invoiceFormData["fileCont"];
       //_selectedDate = invoiceFormData["_selectedDate"];
       _selectedDueDate = DateFormat("yyyy-MM-dd")
           .parse(widget.invoice.invoiceDueDate);
+      _selectedExtDueDate = DateFormat("yyyy-MM-dd")
+          .parse(widget.invoice.extendedDueDate);
+      daysDiff = DateFormat("yyyy-MM-dd")
+          .parse(widget.invoice.extendedDueDate).difference(DateFormat("yyyy-MM-dd")
+          .parse(widget.invoice.invoiceDueDate)).inDays;
       //file = invoiceFormData["file"];
       //_cuGst = invoiceFormData["cuGst"];
 
@@ -381,7 +397,7 @@ class _EditInvoiceAdminState extends State<EditInvoiceAdmin> {
                     // SizedBox(
                     //   height: (!Responsive.isMobile(context)) ? 8 : 15,
                     // ),
-                    if (Responsive.isMobile(context)) mobileFormSteper(),
+                    //if (Responsive.isMobile(context)) mobileFormSteper(),
                     FutureBuilder<Object>(
                         future: getCompanyNames(context),
                         builder: (context, snapshot) {
@@ -409,14 +425,30 @@ class _EditInvoiceAdminState extends State<EditInvoiceAdmin> {
 
                             capsaPrint('Data $_items');
 
+
+
                             if (_data['res'] == 'success') {
                               anchorNameList = _items;
                               term = [];
                               _items.forEach((element) {
-                                if(widget.invoice.customerName == element['name']){
+                                term.add(element['name'].toString());
+                                _isBlackListed[element['name'].toString()] =
+                                element['isBlacklisted'] != null
+                                    ? element['isBlacklisted'] == '1'
+                                    ? true
+                                    : false
+                                    : false;
+                                if(widget.invoice.anchorName == element['name']){
+                                  anchorNameController.text = element['name'];
+                                  anchor = element['name'];
                                   anchorController.text = element['name_address'];
                                 }
+
                               });
+                              if(anchorNameController.text == ''){
+                                anchorNameController.text = widget.invoice.anchorName;
+                                anchorController.text = 'NA';
+                              }
                             } else {
                               return Center(
                                 child: Text(
@@ -622,8 +654,8 @@ class _EditInvoiceAdminState extends State<EditInvoiceAdmin> {
                                                         .date_range_outlined),
                                                     hintText:
                                                         "Invoice Issue date",
-                                                    // onTap: () =>
-                                                    //     _selectDate(context),
+                                                    onTap: () =>
+                                                        _selectDate(context),
                                                     keyboardType:
                                                         TextInputType.number,
                                                   ),
@@ -644,6 +676,32 @@ class _EditInvoiceAdminState extends State<EditInvoiceAdmin> {
                                                 ),
                                               ],
                                             ),
+
+                                            if(daysDiff == const Duration(days: 0))
+                                            OrientationSwitcher(
+                                              mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                              crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                              children: [
+                                                Flexible(
+                                                  child: UserTextFormField(
+                                                    label: "Extended Due Date",
+                                                    readOnly: true,
+                                                    controller: extDateCont,
+                                                    suffixIcon: Icon(Icons
+                                                        .date_range_outlined),
+                                                    hintText:
+                                                    "Extended Due Date",
+                                                    // onTap: () =>
+                                                    //     _selectDate(context),
+                                                    keyboardType:
+                                                    TextInputType.number,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+
                                             OrientationSwitcher(
                                               mainAxisAlignment:
                                                   MainAxisAlignment.start,
@@ -666,7 +724,18 @@ class _EditInvoiceAdminState extends State<EditInvoiceAdmin> {
                                                         "assets/images/currency.png"),
                                                     controller:
                                                         invoiceAmtController,
+                                                    readOnly: widget.invoice.isSplit.toString() == '1' ? true : false,
                                                     onChanged: (v) {
+                                                      if (num.parse(v) <
+                                                          num.parse(
+                                                              buyAmtController.text)) {
+                                                        invoiceAmtController.text =
+                                                        "";
+                                                        buyAmtController.text = '';
+                                                        showToast(
+                                                            'Invoice Amount cannot be less than sell now price',
+                                                            context, type: 'warning');
+                                                      }
                                                       calculateRate();
                                                     },
                                                     keyboardType: TextInputType
@@ -717,8 +786,8 @@ class _EditInvoiceAdminState extends State<EditInvoiceAdmin> {
                                                         buyAmtController.text =
                                                             "";
                                                         showToast(
-                                                            'Sell Now Price cann\'t be greater then invoice amount',
-                                                            context);
+                                                            'Sell Now Price can\'t be greater then invoice amount',
+                                                            context, type: 'warning');
                                                       }
                                                       calculateRate();
                                                     },
@@ -796,6 +865,11 @@ class _EditInvoiceAdminState extends State<EditInvoiceAdmin> {
                                                         .validate()) {
                                                       updateInvoice(widget.invoice.companyPan);
                                                     }
+
+                                                    setState(() {
+                                                      saving = false;
+                                                    });
+
                                                   },
                                                   child: Container(
                                                     width: 230,

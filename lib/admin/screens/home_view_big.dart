@@ -93,12 +93,60 @@ class _HomeViewBigState extends State<HomeViewBig>
         size: 18,
       ),
       selectedIcon: Icon(
+        LineAwesomeIcons.list,
+        size: 18,
+        color: Colors.blue,
+      ),
+      label: Text(
+        'Vendor\nReverse Factoring',
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 12),
+      ),
+    ),
+    const NavigationRailDestination(
+      icon: Icon(
+        LineAwesomeIcons.tag,
+        size: 18,
+      ),
+      selectedIcon: Icon(
         LineAwesomeIcons.tag,
         size: 18,
         color: Colors.blue,
       ),
       label: Text(
         'Anchor\nList',
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 12),
+      ),
+    ),
+    const NavigationRailDestination(
+      icon: Icon(
+        LineAwesomeIcons.tag,
+        size: 18,
+      ),
+      selectedIcon: Icon(
+        LineAwesomeIcons.list,
+        size: 18,
+        color: Colors.blue,
+      ),
+      label: Text(
+        'Anchor\nInvoice List',
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 12),
+      ),
+    ),
+    const NavigationRailDestination(
+      icon: Icon(
+        LineAwesomeIcons.tag,
+        size: 18,
+      ),
+      selectedIcon: Icon(
+        LineAwesomeIcons.list,
+        size: 18,
+        color: Colors.blue,
+      ),
+      label: Text(
+        'Anchor\nReverse Factoring',
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 12),
       ),
@@ -365,7 +413,10 @@ class _HomeViewBigState extends State<HomeViewBig>
     'DA',
     'BL',
     'VL',
+    'VRF',
     'AL',
+    'AIL',
+    'ARF',
     'RT',
     'TT',
     'PI',
@@ -520,7 +571,7 @@ class _HomeViewBigState extends State<HomeViewBig>
 
     //capsaPrint('\n\nCheck passwrod : $response');
 
-    if(response['msg'] != 'success') {
+    if(response['msg'] != 'success' && response['messg'] != 'Connection Timed Out' && response['messg'] != 'Unable to proceed..Try again!') {
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -555,6 +606,18 @@ class _HomeViewBigState extends State<HomeViewBig>
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+
+                    SizedBox(height: 12,),
+
+                    Text(
+                      'Your GetCapsa Password has not been changed for more than 90 days!\nKindly change password to continue.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
                         color: Colors.black,
                       ),
                     ),

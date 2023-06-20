@@ -166,6 +166,7 @@ class _RevenueScreenState extends State<RevenueScreen> {
 
                             if (_data['res'] == 'success') {
                               num gTotal = 0;
+                              int i = 0;
                               var _results = _data['data'];
                               _results.forEach((element) {
                                 // capsaPrint('total Start');
@@ -176,10 +177,14 @@ class _RevenueScreenState extends State<RevenueScreen> {
 
                                 // capsaPrint(total);
                                 gTotal = gTotal + total;
+                                if(i == 0){
+                                  capsaPrint('Revenue Amnount Data : $element');
+                                  i++;
+                                }
 
                                 _enquiryDataList.add(RevenueAmountData(
                                   sysID: element['sysID'].toString(),
-                                  created_at: element['discounted_date'].toString(),
+                                  created_at: element['revenue_date'].toString(),
                                   invoice_no: element['invoice_no'].toString(),
                                   investor_pan: element['investor_pan'].toString(),
                                   investor_name: element['investorname'].toString(),

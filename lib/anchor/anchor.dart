@@ -1,5 +1,6 @@
 import 'package:beamer/beamer.dart';
 import 'package:capsa/anchor/pages/homepage.dart';
+import 'package:capsa/anchor/provider/anchor_invoice_provider.dart';
 
 import 'package:capsa/common/MyCustomScrollBehavior.dart';
 import 'package:capsa/common/app_theme.dart';
@@ -97,6 +98,9 @@ class _AnchorAppState extends State<AnchorApp> {
       providers: [
         ChangeNotifierProvider<AnchorActionProvider>(
           create: (_) => AnchorActionProvider(),
+        ),
+        ChangeNotifierProvider<AnchorInvoiceProvider>(
+          create: (_) => AnchorInvoiceProvider(),
         ),
 
       ],

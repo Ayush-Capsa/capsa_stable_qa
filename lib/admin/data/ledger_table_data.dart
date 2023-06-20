@@ -1,18 +1,18 @@
+import 'package:capsa/admin/screens/edit_transaction.dart';
 import 'package:capsa/functions/currency_format.dart';
 import 'package:capsa/models/profile_model.dart';
-import 'package:flutter/material.dart';import 'package:capsa/functions/custom_print.dart';
+import 'package:flutter/material.dart';
+import 'package:capsa/functions/custom_print.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
-
+import 'package:capsa/admin/providers/profile_provider.dart';
 
 class AcctTableDataSource extends DataTableSource {
-
-
   List<TransactionDetails> data = <TransactionDetails>[];
   String title;
 
-  AcctTableDataSource(this.data,{title});
-
+  AcctTableDataSource(this.data, {title});
 
   int _selectedCount = 0;
   final cellStyle = TextStyle(
@@ -41,7 +41,8 @@ class AcctTableDataSource extends DataTableSource {
           DataCell(Text(
             // '${d.created_on}',
             DateFormat('yyyy-MM-dd')
-                .format(DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse(d.created_on))
+                .format(DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                    .parse(d.created_on))
                 .toString(),
             style: cellStyle,
           )),
@@ -50,7 +51,7 @@ class AcctTableDataSource extends DataTableSource {
           //   style: cellStyle,
           // )),
           DataCell(Text(
-            formatCurrency(d.opening_balance) ,
+            formatCurrency(d.opening_balance),
             style: cellStyle,
           )),
           DataCell(Text(
@@ -58,11 +59,15 @@ class AcctTableDataSource extends DataTableSource {
             style: cellStyle,
           )),
           DataCell(Text(
-            formatCurrency(d.withdrawl_amt) ,
+            formatCurrency(d.withdrawl_amt),
             style: cellStyle,
           )),
           DataCell(Text(
-            formatCurrency(d.closing_balance)  ,
+            formatCurrency(d.closing_balance),
+            style: cellStyle,
+          )),
+          DataCell(Text(
+            d.status ?? '',
             style: cellStyle,
           )),
           // DataCell(Text(
@@ -73,6 +78,48 @@ class AcctTableDataSource extends DataTableSource {
             '${d.narration}',
             style: cellStyle,
           )),
+
+          (d.status == 'PENDING' || d.status == 'FAILED')
+              ? DataCell(PopupMenuButton(
+                  icon: Icon(Icons.more_vert),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                        child: InkWell(
+                      onTap: () {
+                        capsaPrint('view Tapped');
+
+                        Navigator.pop(context);
+
+                        Navigator.of(context)
+                            .push(MaterialPageRoute(
+                                builder: (context) =>
+                                    EditTransaction(id: d.id)))
+                            .then((value) => Provider.of<ProfileProvider>(
+                                    context,
+                                    listen: false)
+                                .getAllAccountTransactions());
+                      },
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit),
+                          RichText(
+                            text: TextSpan(
+                              text: 'Edit',
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w400,
+                                  color: Color.fromRGBO(51, 51, 51, 1)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )),
+                  ],
+                ))
+              : DataCell(Text(
+                  '',
+                  style: cellStyle,
+                )),
         ]);
   }
 

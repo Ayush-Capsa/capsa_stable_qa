@@ -6,7 +6,7 @@ import 'package:hive/hive.dart';
 import 'package:universal_html/html.dart' as html;
 
 Future callApi(url, {body, method: 'POST', header: false}) async {
-  //capsaPrint('Pass 2.1 check password reset');
+  capsaPrint('Pass 2.1 check password reset');
   if (body == null) {
     body = {};
     body['n'] = 'true';
@@ -18,7 +18,7 @@ Future callApi(url, {body, method: 'POST', header: false}) async {
   //capsaPrint('Pass 2.1 check password reset $_uri');
   try {
     //print('reponse : $_uri ');
-    //capsaPrint('Pass 2.2 check password reset ');
+    capsaPrint('Pass 2.2 check password reset $_uri $body');
     var response = await http.post(_uri,
         headers: <String, String>{
           'Authorization': 'Basic ' + box.get('token', defaultValue: '0')

@@ -5,6 +5,7 @@ import 'package:capsa/admin/dialogs/pdf_dialog_box.dart';
 import 'package:capsa/admin/providers/action_model.dart';
 import 'package:capsa/admin/providers/profile_provider.dart';
 import 'package:capsa/admin/screens/edit_account/edit_ben_details_screen.dart';
+import 'package:capsa/admin/screens/pending-account/edit_bvn.dart';
 import 'package:capsa/admin/screens/pending-account/view_account_letter_screen.dart';
 import 'package:capsa/admin/screens/pending-account/view_kyc_doc_screen.dart';
 
@@ -25,6 +26,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
+import '../../../functions/call_api.dart';
 import '../edit_email_preferences_admin/email_preference_investor_admin_page.dart';
 import '../edit_email_preferences_admin/email_preference_vendor_admin_page.dart';
 
@@ -415,7 +417,7 @@ class _EditAccountState extends State<PendingAccountScreen> {
                       ? Container(
                           child: DataTable(
                             columns: dataTableColumn([
-                              "S/L No.",
+                              "S/N",
                               "Name",
                               "BVN",
                               "Email",
@@ -441,12 +443,21 @@ class _EditAccountState extends State<PendingAccountScreen> {
                                         fontWeight: FontWeight.normal,
                                         color: HexColor("#333333")),
                                   )),
-                                  DataCell(Text(
-                                    formatPanNumber(data[i].panNumber),
-                                    style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.normal,
-                                        color: HexColor("#333333")),
+                                  DataCell(Row(
+                                    children: [
+                                      Text(
+                                        formatPanNumber(data[i].panNumber),
+                                        style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.normal,
+                                            color: HexColor("#333333")),
+                                      ),
+                                      SizedBox(width: 4,),
+                                      if(data[i].bvnVerifyStatus == '0')
+                                       Icon(Icons.warning_amber, color: Colors.amber,),
+                                      if(data[i].bvnVerifyStatus == '2')
+                                        Icon(Icons.cancel_outlined, color: Colors.red,)
+                                    ],
                                   )),
                                   DataCell(Text(
                                     data[i].email,
@@ -478,7 +489,8 @@ class _EditAccountState extends State<PendingAccountScreen> {
                                             176, 183, 2, 1.0):data[i].isApproved == '1'?Color.fromRGBO(
                                             18, 190, 0, 1.0):Colors.red,),
                                   )),
-                                  DataCell( (data[i].isApproved == '0' || data[i].isApproved == '1')?PopupMenuButton(
+                                  DataCell( (data[i].isApproved == '0' || data[i].isApproved == '1')?
+                                  PopupMenuButton(
                                           icon: const Icon(Icons.more_vert),
                                           itemBuilder: (context) => [
                                             // dropdownvalue!='ANCHOR'?PopupMenuItem(
@@ -605,7 +617,221 @@ class _EditAccountState extends State<PendingAccountScreen> {
                                                   ],
                                                 ),
                                               ),
-                                            )
+                                            ),
+
+                                            if(data[i].bvnVerifyStatus == '0')
+                                              PopupMenuItem(
+                                                child: InkWell(
+                                                  onTap: () {
+                                                    Navigator.pop(context);
+
+                                                    showDialog(
+                                                        context: context,
+                                                        barrierDismissible: false,
+                                                        builder: (context) => AlertDialog(
+                                                          // title: Text(
+                                                          //   '',
+                                                          //   style: TextStyle(
+                                                          //     fontSize: 24,
+                                                          //     fontWeight: FontWeight.bold,
+                                                          //     color: Theme.of(context).primaryColor,
+                                                          //   ),
+                                                          // ),
+                                                          content: Container(
+                                                            // width: 800,
+                                                              height: Responsive.isMobile(context)?340:300,
+                                                              child: Padding(
+                                                                padding: const EdgeInsets.all(16.0),
+                                                                child: Column(
+                                                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                                                  children:  [
+
+                                                                    SizedBox(height: 12,),
+
+                                                                    Image.asset('assets/icons/warning.png'),
+
+                                                                    SizedBox(height: 12,),
+
+                                                                    Text(
+                                                                      'Verify BVN',
+                                                                      textAlign: TextAlign.center,
+                                                                      style: TextStyle(
+                                                                        fontSize: 16,
+                                                                        fontWeight: FontWeight.bold,
+                                                                        color: Colors.black,
+                                                                      ),
+                                                                    ),
+
+                                                                    SizedBox(height: 12,),
+
+                                                                    Text(
+                                                                      'Do you want to manually verify BVN?',
+                                                                      textAlign: TextAlign.center,
+                                                                      style: TextStyle(
+                                                                        fontSize: 14,
+                                                                        fontWeight: FontWeight.w400,
+                                                                        color: Colors.black,
+                                                                      ),
+                                                                    ),
+
+                                                                    SizedBox(height: 12,),
+
+                                                                    Row(
+                                                                      children: [
+                                                                        InkWell(
+                                                                          onTap: () async{
+                                                                            showToast('Please Wait!', context, type: 'warning');
+                                                                            dynamic _body = {'panNumber' : data[i].panNumber};
+                                                                            dynamic response =  await callApi('admin/manualBvnVerification', body: _body);
+                                                                            capsaPrint('BVN verify response : $response');
+                                                                            if(response['res'] == 'success' || response['msg'] == 'success'){
+
+                                                                              Navigator.pop(context);
+                                                                              showToast('BVN verified successfully', context,);
+                                                                            }else{
+
+                                                                              Navigator.pop(context);
+                                                                              showToast('Something went wrong!', context, type: 'warning');
+                                                                            }
+
+                                                                          },
+                                                                          child: Container(
+                                                                            width: Responsive.isMobile(context)?140 : 220,
+                                                                            decoration: BoxDecoration(
+                                                                                color: Colors.transparent,
+                                                                                borderRadius: BorderRadius.all(Radius.circular(10))
+                                                                            ),
+                                                                            child: Center(
+                                                                              child: Padding(
+                                                                                padding: const EdgeInsets.all(12.0),
+                                                                                child: Text(
+                                                                                  'Yes',
+                                                                                  style: TextStyle(
+                                                                                    fontSize: 16,
+                                                                                    fontWeight: FontWeight.w400,
+                                                                                    color: Colors.green,
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                        ),
+
+                                                                        InkWell(
+                                                                          onTap: (){
+                                                                            Navigator.pop(context);
+                                                                          },
+                                                                          child: Container(
+                                                                            width: Responsive.isMobile(context)?140 : 220,
+                                                                            decoration: BoxDecoration(
+                                                                                color: Colors.transparent,
+                                                                                borderRadius: BorderRadius.all(Radius.circular(10))
+                                                                            ),
+                                                                            child: Center(
+                                                                              child: Padding(
+                                                                                padding: const EdgeInsets.all(12.0),
+                                                                                child: Text(
+                                                                                  'No',
+                                                                                  style: TextStyle(
+                                                                                    fontSize: 16,
+                                                                                    fontWeight: FontWeight.w400,
+                                                                                    color: Colors.red,
+                                                                                  ),
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+
+                                                                  ],
+                                                                ),
+                                                              )
+                                                          ),
+                                                          //actions: <Widget>[],
+                                                        )).then((value){
+                                                      setState(() {
+
+                                                      });
+                                                    });
+
+                                                    // Navigator.of(context).push(
+                                                    //     MaterialPageRoute(
+                                                    //         builder: (context) =>
+                                                    //             ));
+                                                  },
+                                                  child: Row(
+                                                    children: [
+                                                      const Icon(Icons.check),
+                                                      RichText(
+                                                        text: const TextSpan(
+                                                          text: 'Verify BVN',
+                                                          style: TextStyle(
+                                                              fontSize: 18,
+                                                              fontWeight:
+                                                              FontWeight.w400,
+                                                              color:
+                                                              Color.fromRGBO(
+                                                                  51,
+                                                                  51,
+                                                                  51,
+                                                                  1)),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+
+                                            if(data[i].bvnVerifyStatus == '2')
+                                              PopupMenuItem(
+                                                child: InkWell(
+                                                  onTap: () {
+                                                    Navigator.pop(context);
+
+                                                    Navigator.of(context).push(
+                                                        MaterialPageRoute(
+                                                          builder: (context) =>ChangeNotifierProvider(
+                                                              create: (context) => ProfileProvider(),
+                                                              child:EditBvnScreen(
+                                                                data: data[i],
+                                                              )),
+                                                        )).then((value){
+                                                      setState(() {
+
+                                                      });
+                                                    });
+
+                                                    // Navigator.of(context).push(
+                                                    //     MaterialPageRoute(
+                                                    //         builder: (context) =>
+                                                    //             ));
+                                                  },
+                                                  child: Row(
+                                                    children: [
+                                                      const Icon(Icons.edit),
+                                                      RichText(
+                                                        text: const TextSpan(
+                                                          text: 'Edit BVN',
+                                                          style: TextStyle(
+                                                              fontSize: 18,
+                                                              fontWeight:
+                                                              FontWeight.w400,
+                                                              color:
+                                                              Color.fromRGBO(
+                                                                  51,
+                                                                  51,
+                                                                  51,
+                                                                  1)),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+
                                           ],
                                         )
                                       : Container())

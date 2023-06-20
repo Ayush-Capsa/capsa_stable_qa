@@ -8,7 +8,8 @@ import 'package:flutter/material.dart';import 'package:capsa/functions/custom_pr
 import 'package:hive/hive.dart';
 
 class SelectAccountType extends StatefulWidget {
-  const SelectAccountType({Key key}) : super(key: key);
+  String uniqueId;
+  SelectAccountType({Key key, this.uniqueId}) : super(key: key);
 
   @override
   _CreateAccountPageState createState() => _CreateAccountPageState();

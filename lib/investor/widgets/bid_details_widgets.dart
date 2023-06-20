@@ -477,27 +477,6 @@ Widget bidDetailsFrameTopInfo(BuildContext context, OpenDealModel openInvoices,
                       ],
                     ),
                   )
-                // else
-                //   Container(
-                //     decoration: BoxDecoration(),
-                //     padding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-                //     child: Row(
-                //       children: <Widget>[
-                //         Text(
-                //           "Over",
-                //           textAlign: TextAlign.left,
-                //           style: TextStyle(
-                //               color: Color.fromRGBO(0, 152, 219, 1),
-                //               fontFamily: 'Poppins',
-                //               fontSize: Responsive.isMobile(context) ? 15 : 18,
-                //               letterSpacing:
-                //                   0 /*percentages not used in flutter. defaulting to zero*/,
-                //               fontWeight: FontWeight.normal,
-                //               height: 1),
-                //         ),
-                //       ],
-                //     ),
-                //   ),
               ],
             ),
           ),

@@ -20,6 +20,7 @@ class UserTextFormField extends StatelessWidget {
   final dynamic inputFormatters;
   final onTap;
   final onActionTap;
+  final onInfoTap;
   final bool readOnly;
   final String hintText;
   final String errorText;
@@ -42,6 +43,8 @@ class UserTextFormField extends StatelessWidget {
   final int maxLength;
   final maxLengthEnforcement;
   final double borderRadius;
+  final bool transparentNote;
+  final int infoFontSize;
 
   // final  Widget pre ;
 
@@ -56,6 +59,7 @@ class UserTextFormField extends StatelessWidget {
     this.validator,
     this.onTap,
     this.onActionTap,
+    this.onInfoTap,
     this.readOnly = false,
     this.keyboardType,
     this.textInputAction,
@@ -80,6 +84,8 @@ class UserTextFormField extends StatelessWidget {
     this.borderRadius,
     this.fontSize,
     this.info,
+    this.transparentNote = false,
+    this.infoFontSize = 18,
     Key key,
   }) : super(key: key);
 
@@ -227,26 +233,32 @@ class UserTextFormField extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start
               , children: [
             Text(
-              'Note: ',
-              style: TextStyle(
-                  color: Colors.red, fontSize: isMobile ? 10 : 14),
+                'Note: ',
+                style: TextStyle(
+                    color: transparentNote ? Colors.transparent:Colors.red, fontSize: isMobile ? 10 : 14),
             ),
             Container(
 
-              child: Text(
-                note,
-                style: TextStyle(
-                    color: Colors.black, fontSize: isMobile ? 10 : 14),
-              ),
+                child: Text(
+                  note,
+                  style: TextStyle(
+                      color: transparentNote ? Colors.transparent:Colors.black, fontSize: isMobile ? 10 : 14),
+                ),
             ),
           ])
               : Container(),
           (info != "" && info != null)
               ? Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-            Text(
-              info,
-              style: TextStyle(
-                  color: Colors.black, fontSize: !Responsive.isMobile(context) ? 18 : 8),
+            InkWell(
+              onTap: () => onInfoTap,
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Text(
+                  info,
+                  style: TextStyle(
+                      color: Colors.black, fontSize: Responsive.isMobile(context) ? infoFontSize : infoFontSize ?? 8),
+                ),
+              ),
             ),
           ])
               : Container(),

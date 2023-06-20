@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:capsa/common/constants.dart';
 import 'package:capsa/functions/call_api.dart';
 import 'package:capsa/functions/custom_print.dart';
@@ -190,6 +192,19 @@ class AnchorActionProvider extends ChangeNotifier {
 
     return null;
   }
+
+  Future getCompanyName() async {
+    dynamic _uri = _url + 'getCompanyName';
+    _uri = Uri.parse(_uri);
+    var _body = {};
+    var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
+    _body['panNumber'] = userData['panNumber'];
+    var response = await http.post(_uri, headers: <String, String>{'Authorization': 'Basic ' + box.get('token', defaultValue: '0')}, body: _body);
+    var data = jsonDecode(response.body);
+    capsaPrint(data);
+    return data;
+  }
+
 }
 
 

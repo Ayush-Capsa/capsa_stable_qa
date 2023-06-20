@@ -24,8 +24,8 @@ class GeneratedFrame150Widget extends StatelessWidget {
           top: 10.0,
           right: null,
           bottom: null,
-          width: Responsive.isMobile(context) ? 20 : 24.0,
-          height: Responsive.isMobile(context) ? 20 : 24.0,
+          width: Responsive.isMobile(context) ? 18 : 24.0,
+          height: Responsive.isMobile(context) ? 18 : 24.0,
           child: GeneratedIconsWidget(data),
         )
       ]),

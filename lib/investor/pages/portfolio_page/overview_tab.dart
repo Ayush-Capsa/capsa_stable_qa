@@ -49,8 +49,9 @@ class _OverViewState extends State<OverView> {
 
         // capsaPrint('xAxis');
         // capsaPrint(xAxis);
+        DateTime now = DateTime.now();
 
-           if(xAxis[0] == 2022) {
+           if(xAxis[0] == now.year) {
           data.add(TimeSeriesSales2(
               DateTime(xAxis[0], xAxis[1], xAxis[2]).month.toString(),
               num.parse(yAxis)/1000,

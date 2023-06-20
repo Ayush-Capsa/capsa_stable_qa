@@ -26,8 +26,8 @@ class GeneratedFrame153Widget extends StatelessWidget {
               top: 0.0,
               right: null,
               bottom: null,
-              width:  (data['sTabWidth'] != null) ? data['sTabWidth'] : 140.0,
-              height: 44.0,
+              width:  (data['sTabWidth'] != null) ? data['sTabWidth'] : 130.0,
+              height: Responsive.isMobile(context) ? 40 : 44.0,
               child: GeneratedFrame151Widget(data),
             ),
             Positioned(

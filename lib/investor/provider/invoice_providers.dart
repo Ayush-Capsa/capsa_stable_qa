@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:capsa/common/constants.dart';
 import 'package:capsa/functions/call_api.dart';
+import 'package:capsa/functions/custom_print.dart';
 import 'package:capsa/investor/models/invoice_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hive/hive.dart';
@@ -24,11 +25,12 @@ class InvoiceProvider extends ChangeNotifier {
       _body['panNumber'] = userData['panNumber'];
       _body['role'] = userData['role'];
       _body['invNum'] = invNum;
-      if (amt != null) _body['Amt'] = amt;
+      if (amt != null && amt != 'null') _body['Amt'] = amt;
 
       dynamic _uri;
       _uri = _url + 'dashboard/i/bid-status';
       _uri = Uri.parse(_uri);
+      capsaPrint('calling : $_uri $_body');
       var response = await http.post(_uri, headers: <String, String>{'Authorization': 'Basic ' + box.get('token', defaultValue: '0')}, body: _body);
       var data = jsonDecode(response.body);
 

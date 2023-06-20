@@ -9,8 +9,10 @@ import 'package:capsa/admin/screens/RevenueScreen.dart';
 import 'package:capsa/admin/screens/TransferAmount.dart';
 import 'package:capsa/admin/screens/account_screen.dart';
 import 'package:capsa/admin/screens/anchor_grading.dart';
+import 'package:capsa/admin/screens/anchor_invoice_list.dart';
 import 'package:capsa/admin/screens/anchor_list/anchor_list.dart';
 import 'package:capsa/admin/screens/anchor_onboarding.dart';
+import 'package:capsa/admin/screens/anchor_reverse_factoring.dart';
 import 'package:capsa/admin/screens/block_account_screen.dart';
 import 'package:capsa/admin/screens/edit_account_screen.dart';
 import 'package:capsa/admin/screens/edit_invoice_screen.dart';
@@ -27,6 +29,7 @@ import 'package:capsa/admin/screens/transaction_ledger.dart';
 import 'package:capsa/admin/screens/transaction_tracker.dart';
 import 'package:capsa/admin/screens/vendor_edit.dart';
 import 'package:capsa/admin/screens/vendor_list.dart';
+import 'package:capsa/admin/screens/vendor_reverse_factoring.dart';
 import 'package:capsa/functions/logout.dart';
 import 'package:flutter/material.dart';import 'package:capsa/functions/custom_print.dart';
 import 'package:provider/provider.dart';
@@ -39,7 +42,14 @@ final desktopWidgetList = <Widget>[
 
   InvestorList(title: 'Buyers List'),
   VendorList(title: 'Vendors List'),
+
+  VendorReverseFactoring(title: 'Vendor Reverse Factoring',),
+
   AnchorList(title: 'Anchor List'),
+
+  AnchorInvoiceList(title: 'Anchor Invoice List'),
+
+  AnchorReverseFactoring(title: 'Anchor Reverse Factoring'),
 
   RevenueTracker(title: 'Revenue'),
 

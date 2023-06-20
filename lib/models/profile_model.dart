@@ -325,6 +325,7 @@ class PendingAccountData {
   String cacCertificateExt;
   String validIdExt;
   String createdDate;
+  String bvnVerifyStatus;
 
 
   PendingAccountData(
@@ -344,7 +345,8 @@ class PendingAccountData {
       this.cacFormExt,
       this.validIdExt,
       this.cacCertificateExt,
-      this.createdDate});
+      this.createdDate,
+      this.bvnVerifyStatus});
 }
 
 class ClosingBalanceModel{

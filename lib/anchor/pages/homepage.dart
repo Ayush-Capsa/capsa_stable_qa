@@ -39,7 +39,7 @@ class _AnchorHomePageState extends State<AnchorHomePage> {
 
     capsaPrint('\n\nCheck passwrod : $response');
 
-    if(response['msg'] != 'success') {
+    if(response['msg'] != 'success' && response['messg'] != 'Connection Timed Out' && response['messg'] != 'Unable to proceed..Try again!') {
       showDialog(
           context: context,
           barrierDismissible: false,
@@ -74,6 +74,18 @@ class _AnchorHomePageState extends State<AnchorHomePage> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+
+                      SizedBox(height: 12,),
+
+                      Text(
+                        'Your GetCapsa Password has not been changed for more than 90 days!\nKindly change password to continue.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
                           color: Colors.black,
                         ),
                       ),
@@ -661,7 +673,7 @@ class _ContainerViewState extends State<ContainerView> {
 
                                 // return;
 
-                                dynamic _data = await _invoiceProvider.approve(  date.toString(), effDueDateCont.text, payableAmountCont.text, widget.invoice);
+                                dynamic _data = await _invoiceProvider.approve(  date.toString(), effDueDateCont.text, payableAmountCont.text, widget.invoice, '', '', '');
 
                                 if (_data['res'] == 'success') {
                                   // setState(() {
@@ -720,7 +732,7 @@ class _ContainerViewState extends State<ContainerView> {
                                 });
                                 // return;
 
-                                dynamic _data = await _invoiceProvider.reject( widget.invoice);
+                                dynamic _data = await _invoiceProvider.reject( widget.invoice, '', '', '');
 
                                 if (_data['res'] == 'success') {
                                   ScaffoldMessenger.of(context).showSnackBar(

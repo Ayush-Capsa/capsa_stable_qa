@@ -1,3 +1,6 @@
+import 'package:capsa/anchor/Invoice%20Builder/add_invoice_anchor.dart';
+import 'package:capsa/anchor/Invoice%20Builder/uploaded_invoice.dart';
+import 'package:capsa/anchor/Vendor/vendor_list.dart';
 import 'package:capsa/common/responsive.dart';
 import 'package:capsa/providers/profile_provider.dart';
 import 'package:capsa/anchor/pages/homepage.dart';
@@ -11,6 +14,9 @@ import 'package:capsa/anchor/Payments/payments.dart';
 import 'package:capsa/anchor/Profile/profile.dart';
 import 'package:capsa/anchor/Trade/trade.dart';
 import 'package:provider/provider.dart';
+
+import '../common/constants.dart';
+import '../functions/hexcolor.dart';
 
 class anchorHomePage extends StatefulWidget {
   const anchorHomePage({Key key}) : super(key: key);
@@ -26,9 +32,9 @@ class _anchorHomePageState extends State<anchorHomePage> {
     dynamic response = await Provider.of<AnchorActionProvider>(context, listen: false)
         .checkLastPasswordReset();
 
-    capsaPrint('\n\nCheck passwrod : $response');
+    capsaPrint('\n\nCheck passwrod 2 : $response');
 
-    if(response['msg'] != 'success') {
+    if(response['msg'] != 'success' && response['messg'] != 'Connection Timed Out' && response['messg'] != 'Unable to proceed..Try again!') {
       showDialog(
           context: context,
           barrierDismissible: false,
@@ -43,7 +49,7 @@ class _anchorHomePageState extends State<anchorHomePage> {
             // ),
             content: Container(
               // width: 800,
-                height: Responsive.isMobile(context)?260:180,
+                height: Responsive.isMobile(context)?340:300,
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -53,23 +59,27 @@ class _anchorHomePageState extends State<anchorHomePage> {
 
                       SizedBox(height: 12,),
 
+                      Image.asset('assets/icons/warning.png'),
+
+                      SizedBox(height: 12,),
+
                       Text(
                         'Action Required',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.yellow,
+                          color: Colors.black,
                         ),
                       ),
 
                       SizedBox(height: 12,),
 
                       Text(
-                        'Password has not been changed for more than 90 days!\nChange password to continue.',
+                        'Your GetCapsa Password has not been changed for more than 90 days!\nKindly change password to continue.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 14,
                           fontWeight: FontWeight.w400,
                           color: Colors.black,
                         ),
@@ -91,12 +101,24 @@ class _anchorHomePageState extends State<anchorHomePage> {
                             ),
                           );
                         },
-                        child: Text(
-                          'OK',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.blue,
+                        child: Container(
+                          width: Responsive.isMobile(context)?140 : 220,
+                          decoration: BoxDecoration(
+                              color: HexColor('#0098DB'),
+                              borderRadius: BorderRadius.all(Radius.circular(10))
+                          ),
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Text(
+                                'Okay',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -120,6 +142,9 @@ class _anchorHomePageState extends State<anchorHomePage> {
   Widget build(BuildContext context) {
     var anchorsActions = Provider.of<AnchorActionProvider>(context,listen: false);
     anchorsActions.getAllPayments();
+    var userData = Map<String, dynamic>.from(box.get('userData'));
+    capsaPrint('$userData');
+    String RF = userData['RF'] == null ? '0' : userData['RF'].toString();
     return Scaffold(
       body: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -196,6 +221,57 @@ class _anchorHomePageState extends State<anchorHomePage> {
                           ),
                         ),
                       ),
+
+                      if(RF == '1')
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
+                        child: SizedBox(
+                          width: 157,
+                          height: 59,
+                          child: TextButton.icon(
+                            icon: Icon(Icons.file_upload_outlined),
+                            label: Padding(
+                              padding: const EdgeInsets.fromLTRB(0, 16, 12, 16),
+                              child: Text('Upload', style: TextStyle(fontSize: 18)),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _selectedIndex = 2;
+                              });
+                            },
+                            style: _selectedIndex == 2?
+                            selectedButton()
+                                :
+                            normalButton(),
+                          ),
+                        ),
+                      ),
+
+                      if(RF == '1')
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(12, 0, 12, 24),
+                          child: SizedBox(
+                            width: 157,
+                            height: 59,
+                            child: TextButton.icon(
+                              icon: Icon(Icons.supervisor_account_sharp),
+                              label: Padding(
+                                padding: const EdgeInsets.fromLTRB(0, 16, 12, 16),
+                                child: Text('Vendor', style: TextStyle(fontSize: 18)),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _selectedIndex = 3;
+                                });
+                              },
+                              style: _selectedIndex == 3?
+                              selectedButton()
+                                  :
+                              normalButton(),
+                            ),
+                          ),
+                        ),
+
                       /*Padding(
                         padding: const EdgeInsets.fromLTRB(8, 0, 12, 24),
                         child: SizedBox(
@@ -232,10 +308,10 @@ class _anchorHomePageState extends State<anchorHomePage> {
                             ),
                             onPressed: () {
                               setState(() {
-                                _selectedIndex = 3;
+                                _selectedIndex = 4;
                               });
                             },
-                            style: _selectedIndex == 3?
+                            style: _selectedIndex == 4?
                             selectedButton()
                                 :
                             normalButton(),
@@ -277,8 +353,11 @@ class _anchorHomePageState extends State<anchorHomePage> {
                 paymentScreen()
                     :
                 _selectedIndex == 2?
-                tradeScreen()
+                UploadedInvoiceScreen()
                     :
+                _selectedIndex == 3?
+                VendorList()
+                :
                 profileScreen(),
               ),
             )

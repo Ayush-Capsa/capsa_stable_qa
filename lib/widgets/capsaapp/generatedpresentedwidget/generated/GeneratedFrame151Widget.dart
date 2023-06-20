@@ -15,8 +15,8 @@ class GeneratedFrame151Widget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 140.0,
-      height: 44.0,
+      width: 130,
+      height: Responsive.isMobile(context) ? 40 : 44.0,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15.0),
         boxShadow: [

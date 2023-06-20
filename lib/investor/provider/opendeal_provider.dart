@@ -4,6 +4,7 @@ import 'package:capsa/common/constants.dart';
 // import 'package:capsa/investor/providers/proposal_provider.dart';
 import 'package:capsa/common/responsive.dart';
 import 'package:capsa/functions/custom_print.dart';
+import 'package:capsa/functions/show_toast.dart';
 import 'package:capsa/investor/models/opendeal_model.dart';
 import 'package:capsa/investor/models/proposal_model.dart';
 import 'package:flutter/cupertino.dart';
@@ -41,7 +42,7 @@ class OpenDealProvider extends ChangeNotifier {
 
   String _url = apiUrl;
 
-  Future<Object> queryOpenDealList({String currency = 'NGN'}) async {
+  Future<Object> queryOpenDealList({String currency = 'NGN', bool onlyRF = false, bool fetchAllInvoices = false,}) async {
     //capsaPrint('CUrrency called $currency');
     _loadingDeals = true;
     notifyListeners();
@@ -68,7 +69,7 @@ class OpenDealProvider extends ChangeNotifier {
       capsaPrint('Response open deal list 1 $data ${data['invoice']}');
       /// commented by ayush to reduce delay
       await Future.delayed(Duration(milliseconds: 5000));
-      await queryOpenDealFinalList(currency: currency);
+      await queryOpenDealFinalList(currency: currency, onlyRF: onlyRF, fetchAllInvoices: fetchAllInvoices);
       return null;
     }
 
@@ -94,7 +95,8 @@ class OpenDealProvider extends ChangeNotifier {
     return data;
   }
 
-  Future<Object> queryOpenDealFinalList({String currency = 'NGN'}) async {
+  Future<Object> queryOpenDealFinalList({String currency = 'NGN', bool onlyRF, bool fetchAllInvoices = false}) async {
+    capsaPrint('fetch allll invoices : $fetchAllInvoices');
     _openDeal = [];
     if (box.get('isAuthenticated', defaultValue: false)) {
       var userData = Map<String, dynamic>.from(box.get('userData'));
@@ -117,7 +119,7 @@ class OpenDealProvider extends ChangeNotifier {
           body: _body);
       var data = jsonDecode(response.body);
 
-      capsaPrint('Response open deal list 2 $data ${data['data']['invoicelist'].length}');
+      //capsaPrint('Response open deal list 2 $data ${data['data']['invoicelist'].length}');
 
       if (data['res'] == 'success') {
         var _data = data['data'];
@@ -128,12 +130,17 @@ class OpenDealProvider extends ChangeNotifier {
         //
 
         // capsaPrint(invoiceList);
+        int i = 0;
 
         invoiceList.forEach((element) {
 
-          print('$element \n\n');
+          if(i == 0){
+            capsaPrint('\n\nopen deal $element ${element['RF']} \n\n');
+            i++;
+          }
+          OpenDealModel _openDealModel;
 
-          OpenDealModel _openDealModel = OpenDealModel(
+            _openDealModel = OpenDealModel(
             invoice_value: element['invoice_value'].toString(),
             isRevenue: element['isRevenue'].toString(),
             start_date: element['start_date'],
@@ -180,12 +187,29 @@ class OpenDealProvider extends ChangeNotifier {
             totalDiscount: element['totalDiscount'].toString(),
             alcptdy: element['alcptdy'].toString(),
             isSplit: element['isSplit'].toString(),
+            RF: element['RF'].toString(),
+              prop_amt: element['prop_amt'].toString()
           );
+          capsaPrint('$onlyRF ${showBuyNow(_openDealModel)} ${element['RF']}');
 
-          _openDealList.add(_openDealModel);
+            if(fetchAllInvoices){
+              _openDealList.add(_openDealModel);
+            }
+
+
+          else if(onlyRF && showBuyNow(_openDealModel) && element['RF'].toString() == '1') {
+
+            //capsaPrint('${onlyRF} ${showBuyNow(_openDealModel)}');
+
+            _openDealList.add(_openDealModel);
+          }else if(!onlyRF && element['RF'].toString() != '1'){
+            _openDealList.add(_openDealModel);
+          }
         });
 
         _openDeal.addAll(_openDealList);
+
+
 
         // capsaPrint('_openDeal');
         // capsaPrint(_openDeal);
@@ -345,19 +369,21 @@ class OpenDealProvider extends ChangeNotifier {
     return null;
   }
 
-  Future<void> bidActionCall(
+  Future<Object> bidActionCall(
       context, OpenDealModel openInvoice, int clickType, index,
       {String rate, String amt, String tRate, buyNow = false}) async {
     // capsaPrint('bidActionCall');
+    dynamic _result2 = {};
 
     dynamic _result = await checkBalance(openInvoice);
     if (_result['res'] == 'success') {
       if (_result['data']['passok'].toString() == 'true') {
-        dynamic _result2 = await bidAction(openInvoice, clickType,
+        _result2 = await bidAction(openInvoice, clickType,
             rate: rate, amt: amt, tRate: tRate, buyNow : buyNow);
 
         if (_result2['res'] == 'success') {
           await queryOpenDealList();
+          if(openInvoice.RF != '1')
           Navigator.of(context, rootNavigator: true).pop();
 
           // ScaffoldMessenger.of(context).showSnackBar(
@@ -372,7 +398,8 @@ class OpenDealProvider extends ChangeNotifier {
           //   ),
           // );
 
-          await showDialog(
+          if(openInvoice.RF != '1') {
+            await showDialog(
               context: context,
               // barrierDismissible: false,
               builder: (context) => AlertDialog(
@@ -417,19 +444,27 @@ class OpenDealProvider extends ChangeNotifier {
                       ),
                     ),
                   ));
+          }else{
+            // if(openInvoice.RF == '1') {
+            //   showToast('Bid Placed Successfully', context);
+            // }
+            return _result2;
+          }
         } else {
           Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Something Wrong. Try again later'),
-              action: SnackBarAction(
-                label: 'Ok',
-                onPressed: () {
-                  // Code to execute.
-                },
-              ),
-            ),
-          );
+          showToast(_result2['messg'], context, type: 'warning');
+          // ScaffoldMessenger.of(context).showSnackBar(
+          //   SnackBar(
+          //     content: Text(_result2['messg']),
+          //     action: SnackBarAction(
+          //       label: 'Ok',
+          //       onPressed: () {
+          //         // Code to execute.
+          //       },
+          //     ),
+          //   ),
+          // );
+          return _result2;
         }
 
         // html.window.location.reload();
@@ -589,7 +624,9 @@ class OpenDealProvider extends ChangeNotifier {
                   ),
                 ),
               ));
+
     }
+    return _result2;
   }
 
   Future<Object> bidEdit(OpenDealModel invoice,
@@ -931,8 +968,70 @@ class OpenDealProvider extends ChangeNotifier {
   //
   // }
 
-  Future<void> payClick(context, OpenDealModel openInvoice) async {
-    // capsaPrint('payClick');
+  Future<Object> loadPurchaseAgreement(OpenDealModel invoice, download, {dName}) async {
+    if (box.get('isAuthenticated', defaultValue: false)) {
+      var userData = Map<String, dynamic>.from(box.get('userData'));
+
+      var _body = {};
+      capsaPrint('loadPurchaseAgreement');
+      // capsaPrint('userData');
+      // capsaPrint(invoice.cust_pan);
+
+      // _body['panNumber'] = userData['panNumber'];
+      // _body['role'] = userData['role'];
+      //
+      // _body['hidden_download'] = download;
+      // _body['hidden_comp_pan'] = invoice.companyPAN;
+      // _body['hidden_cust_pan'] = invoice.cust_pan;
+      // _body['hidden_inv_pan'] = invoice.lender_pan;
+      // _body['hidden_inv_no'] = invoice.invoice_number;
+
+      capsaPrint('pass 1 pa');
+
+      _body = {
+        "panNumber": userData['panNumber'],
+        "role": userData['role'],
+        "comp_pan": invoice.companyPAN,
+        "cust_pan": invoice.customer_pan,
+        "inv_no": invoice.invoice_number,
+        "prop_amt": invoice.ask_amt,
+        "due_dt": DateFormat('yyyy-MM-dd HH:mm:ss.SSS').format(DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+            .parse(invoice.due_date))
+      };
+
+      capsaPrint('pass 1 pa $_body');
+
+      //if (dName != null) _body['hidden_digisign'] = dName;
+
+      // _body['hidden_digisign'] = '';
+
+      //_body['hidden_adata'] = jsonEncode(invoice.toJson());
+
+      // capsaPrint('_body');
+      // capsaPrint(_body);
+
+      dynamic _uri;
+      _uri = apiUrl + 'dashboard/i/loadPurchaseAgreementInvestor';
+      _uri = Uri.parse(_uri);
+      capsaPrint('pass 2 pa');
+      var response = await http.post(_uri,  headers: <String, String>{
+        'Authorization': 'Basic '+box.get('token',defaultValue: '0')
+      }, body: _body);
+      capsaPrint('pass 3 pa');
+      var data = jsonDecode(response.body);
+
+      capsaPrint('agreement data  : $data');
+
+      // if(download)
+
+      return data;
+    }
+
+    return null;
+  }
+
+  Future<Object> payClick(OpenDealModel openInvoice) async {
+    capsaPrint('payClick');
 
     // capsaPrint(openInvoice.)
 
@@ -953,10 +1052,12 @@ class OpenDealProvider extends ChangeNotifier {
     // }
 
     DateTime invoiceDate =
-        new DateFormat("yyyy-MM-dd").parse(openInvoice.start_date);
+        DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+            .parse(openInvoice.start_date);
 
     DateTime invoiceDueDate =
-        new DateFormat("yyyy-MM-dd").parse(openInvoice.due_date);
+        DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+            .parse(openInvoice.due_date);
 
     // invoice.invDate = DateFormat.yMMMd('en_US').format(invoiceDate);
     // invoice.invDueDate = DateFormat.yMMMd('en_US').format(invoiceDueDate);
@@ -977,33 +1078,33 @@ class OpenDealProvider extends ChangeNotifier {
 
     // return;
 
-    _body['panNumber'] = userData['panNumber'];
-    _body['role'] = userData['role'];
-    _body['invoicenum'] = openInvoice.invoice_number;
+    _body['panNumber'] = userData['panNumber'] ?? '';
+    _body['role'] = userData['role'] ?? '';
+    _body['invoicenum'] = openInvoice.invoice_number ?? '';
 
-    _body['panNumber'] = userData['panNumber'];
-    _body['userName'] = userData['userName'];
-    _body['role'] = userData['role'];
-    _body['discount_val'] = purchaseprice.toString();
-    _body['discount_percentage'] = rate.toString();
+    _body['panNumber'] = userData['panNumber'] ?? '';
+    _body['userName'] = userData['userName'] ?? '';
+    _body['role'] = userData['role'] ?? '';
+    _body['discount_val'] = purchaseprice.toString() ?? '';
+    _body['discount_percentage'] = rate.toString() ?? '';
 
     _body['pay_amt'] = '';
     // _body['discount_val'] = openInvoice.;
     _body['plt_fee'] = '';
     _body['pay_amt'] = '';
     _body['from_popup'] = '1';
-    _body['compcin1'] = openInvoice.sel_CIN;
-    _body['custcin1'] = openInvoice.customerCIN;
+    _body['compcin1'] = openInvoice.sel_CIN ?? '';
+    _body['custcin1'] = openInvoice.customerCIN ?? '';
     // _body['discper1'] = openInvoice.discper;
     // _body['childcontract1'] = openInvoice.childcontract;
-    _body['duedate1'] = openInvoice.due_date;
-    _body['invoicenum1'] = openInvoice.invoice_number;
-    _body['invval1'] = openInvoice.invoice_value;
-    _body['start_date'] = openInvoice.start_date;
-    _body['due_date'] = openInvoice.due_date;
-    _body['comp_pan'] = openInvoice.companyPAN;
-    _body['minimum_invest'] = openInvoice.minimum_investment;
-    _body['company_name'] = openInvoice.companyName;
+    _body['duedate1'] = openInvoice.due_date ?? '';
+    _body['invoicenum1'] = openInvoice.invoice_number ?? '';
+    _body['invval1'] = openInvoice.invoice_value ?? '';
+    _body['start_date'] = openInvoice.start_date ?? '';
+    _body['due_date'] = openInvoice.due_date ?? '';
+    _body['comp_pan'] = openInvoice.companyPAN ?? '';
+    _body['minimum_invest'] = openInvoice.minimum_investment ?? '';
+    _body['company_name'] = openInvoice.companyName ?? '';
 
     _body['plt_fee'] = plt_fee.round().toString();
 
@@ -1025,6 +1126,125 @@ class OpenDealProvider extends ChangeNotifier {
     var data = jsonDecode(response.body);
     await queryOpenDealList();
     return data;
+  }
+
+  Future actionOnProposal(OpenDealModel invoice, String step, String digitalName) async {
+    capsaPrint('function action on proposal');
+    if (box.get('isAuthenticated', defaultValue: false)) {
+      var userData = Map<String, dynamic>.from(box.get('userData'));
+
+      var _body = {};
+
+      // capsaPrint('userData');
+
+      // _body['panNumber'] = userData['panNumber'];
+      // _body['role'] = userData['role'];
+      // _body['userName'] = userData['userName'];
+      //
+      // _body['invoice'] = invoice.invoice_number;
+      // _body['step'] = step;
+      // _body['digital_name'] = digitalName;
+      //
+      // _body['company_pan'] = invoice.companyPAN;
+      // _body['cust_pan'] = invoice.customer_pan;
+      // _body['inv_pan'] = userData['panNumber'];
+      // _body['inv_no'] = invoice.invoice_number;
+      // _body['dis_amt'] = invoice.ask_amt;
+      // _body['rate'] = invoice.ask_rate;
+      // _body['hidden_step'] = 'ACCEPT';
+      // _body['hidden_comp_pan'] = invoice.companyPAN;
+      // _body['hidden_cust_pan'] = invoice.customer_pan;
+      // _body['hidden_inv_pan'] = userData['panNumber'];
+      // _body['hidden_inv_no'] = invoice.invoice_number;
+      // _body['hidden_prop_amt'] = invoice.ask_amt;
+      // _body['hidden_int_rate'] = invoice.ask_rate;
+      // _body['hidden_due_dt'] = invoice.due_date;
+      // _body['hidden_invc_dt'] = invoice.start_date;
+      // _body['hidden_datapass'] = jsonEncode(invoice.toJson());
+
+      _body = {
+        "panNumber": userData['panNumber'],
+        "role": userData['role'],
+        "comp_pan": invoice.companyPAN,
+        "cust_pan": invoice.customer_pan,
+        "inv_no": invoice.invoice_number,
+        "prop_amt": invoice.ask_amt,
+        "due_dt": DateFormat('yyyy-MM-dd HH:mm:ss.SSS').format(DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+            .parse(invoice.due_date)),
+        'digital_name': digitalName
+      };
+
+      capsaPrint(_body);
+      dynamic _uri;
+      _uri = _url + 'dashboard/i/digitalsignatureInvestor';
+      _uri = Uri.parse(_uri);
+      capsaPrint('$_uri \n$_body');
+      var response = await http.post(_uri, headers: <String, String>{'Authorization': 'Basic ' + box.get('token', defaultValue: '0')}, body: _body);
+      capsaPrint('response digital ${response.body}');
+      var data = jsonDecode(response.body);
+      return data;
+    }
+    return null;
+  }
+
+
+  Future actionOnProposal2(OpenDealModel invoice, String step, String digitalName) async {
+    capsaPrint('function action on proposal');
+    if (box.get('isAuthenticated', defaultValue: false)) {
+      var userData = Map<String, dynamic>.from(box.get('userData'));
+
+      var _body = {};
+
+      // capsaPrint('userData');
+
+      // _body['panNumber'] = userData['panNumber'];
+      // _body['role'] = userData['role'];
+      // _body['userName'] = userData['userName'];
+      //
+      // _body['invoice'] = invoice.invoice_number;
+      // _body['step'] = step;
+      // _body['digital_name'] = digitalName;
+      //
+      // _body['company_pan'] = invoice.companyPAN;
+      // _body['cust_pan'] = invoice.customer_pan;
+      // _body['inv_pan'] = userData['panNumber'];
+      // _body['inv_no'] = invoice.invoice_number;
+      // _body['dis_amt'] = invoice.ask_amt;
+      // _body['rate'] = invoice.ask_rate;
+      // _body['hidden_step'] = 'ACCEPT';
+      // _body['hidden_comp_pan'] = invoice.companyPAN;
+      // _body['hidden_cust_pan'] = invoice.customer_pan;
+      // _body['hidden_inv_pan'] = userData['panNumber'];
+      // _body['hidden_inv_no'] = invoice.invoice_number;
+      // _body['hidden_prop_amt'] = invoice.ask_amt;
+      // _body['hidden_int_rate'] = invoice.ask_rate;
+      // _body['hidden_due_dt'] = invoice.due_date;
+      // _body['hidden_invc_dt'] = invoice.start_date;
+      // _body['hidden_datapass'] = jsonEncode(invoice.toJson());
+
+      _body = {
+        "panNumber": userData['panNumber'],
+        "role": userData['role'],
+        "comp_pan": invoice.companyPAN,
+        "cust_pan": invoice.customer_pan,
+        "invoice_number": invoice.invoice_number,
+        "prop_amt": invoice.ask_amt,
+        "due_dt": DateFormat('yyyy-MM-dd HH:mm:ss.SSS').format(DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+            .parse(invoice.due_date)),
+        'digital_name': digitalName
+      };
+
+      capsaPrint(_body);
+      dynamic _uri;
+      _uri = _url + 'dashboard/a/setPropStat';
+      _uri = Uri.parse(_uri);
+      capsaPrint('$_uri \n$_body');
+      var response = await http.post(_uri, headers: <String, String>{'Authorization': 'Basic ' + box.get('token', defaultValue: '0')}, body: _body);
+      capsaPrint('response digital 2 ${response.body}');
+      var data = jsonDecode(response.body);
+      return data;
+    }
+    return null;
   }
 
   bool showBuyNow(OpenDealModel openInvoice) {
@@ -1091,7 +1311,9 @@ class OpenDealProvider extends ChangeNotifier {
 
   bool showPay(OpenDealModel openInvoice) {
     // if (propDet[y][3] == 1) {
+    //capsaPrint('pass 1 showPay');
     int y = getYValue(openInvoice);
+    //capsaPrint('pass 2 showPay');
     if (y >= 0) {
       if (_propDet[y][3].toString() == '1') {
         return true;
@@ -1119,4 +1341,5 @@ class OpenDealProvider extends ChangeNotifier {
 
     return false;
   }
+
 }

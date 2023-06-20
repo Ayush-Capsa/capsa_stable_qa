@@ -255,6 +255,8 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                           if (snapshot.hasData) {
                             dynamic _data = snapshot.data;
 
+                            capsaPrint('Invoice List Response : $_data');
+
                             if (_data['res'] == 'success') {
                               var _results = _data['data']['results'];
                               // capsaPrint(_results);

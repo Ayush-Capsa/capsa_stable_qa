@@ -25,7 +25,7 @@ import 'package:intl/intl.dart';
 
 import '../model/bids_model.dart';
 import '../vendor_new.dart';
-import 'edit_built_invoice.dart';
+import 'EditInvoice/edit_built_invoice.dart';
 
 class InvoiceBuilderPage extends StatefulWidget {
   const InvoiceBuilderPage({Key key}) : super(key: key);

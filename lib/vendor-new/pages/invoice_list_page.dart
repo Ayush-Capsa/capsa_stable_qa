@@ -9,12 +9,13 @@ import 'package:capsa/functions/hexcolor.dart';
 import 'package:capsa/functions/show_toast.dart';
 import 'package:capsa/providers/profile_provider.dart';
 import 'package:capsa/vendor-new/model/invoice_model.dart';
-import 'package:capsa/vendor-new/pages/edit_invoice.dart';
+import 'package:capsa/vendor-new/pages/EditInvoice/edit_invoice.dart';
 import 'package:capsa/vendor-new/provider/invoice_providers.dart';
 import 'package:capsa/widgets/TopBarWidget.dart';
 import 'package:capsa/widgets/datatable_dynamic.dart';
 import 'package:capsa/widgets/popup_action_info.dart';
 import 'package:capsa/widgets/user_input.dart';
+import 'package:csv/csv.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:capsa/functions/custom_print.dart';
@@ -25,7 +26,8 @@ import 'package:beamer/beamer.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
-import 'edit_pending_invoice.dart';
+import '../../functions/export_to_csv.dart';
+import 'EditInvoice/edit_pending_invoice.dart';
 import 'invoice_details.dart';
 
 class InvoiceListPage extends StatefulWidget {
@@ -79,6 +81,31 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
     'all': '',
   };
 
+  String _status(int status, String discountStatus) {
+    String s = status == 1
+        ? 'Not Presented'
+        : status == 2
+            ? 'Pending'
+            : status == 3
+                ? 'Live'
+                : 'Rejected';
+    Color c = status == 1
+        ? HexColor('#828282')
+        : status == 2
+            ? !Responsive.isMobile(context)
+                ? Colors.yellow
+                : HexColor('#F2994A')
+            : status == 3
+                ? HexColor('#219653')
+                : HexColor('#EB5757');
+
+    if (discountStatus == 'true') {
+      s = 'Sold';
+      c = HexColor('#EB5757');
+    }
+    return s;
+  }
+
   Text status(int status, String discountStatus) {
     String s = status == 1
         ? 'Not Presented'
@@ -118,6 +145,7 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
     dynamic _uri;
 
     _uri = _url + 'requestApproval';
+    capsaPrint('request approval 3');
     _uri = Uri.parse(_uri);
     var response = await http.post(_uri,
         headers: <String, String>{
@@ -204,10 +232,13 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
       //     .toLowerCase()
       //     .compareTo(search.toLowerCase());
       if (element['invoice_number']
-          .toString()
-          .toLowerCase().contains(search.toLowerCase()) || element['customer_name']
-          .toString()
-          .toLowerCase().contains(search.toLowerCase())) {
+              .toString()
+              .toLowerCase()
+              .contains(search.toLowerCase()) ||
+          element['customer_name']
+              .toString()
+              .toLowerCase()
+              .contains(search.toLowerCase())) {
         result.add(element);
       }
     });
@@ -233,14 +264,6 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
     if (fetchedData == null || reload == true) {
       fetchedData = await _invoiceProvider.queryInvoiceList(type);
     }
-    // fetchedData == null
-    //     ?
-    //     : fetchedData = fetchedData;
-    //
-    // // final invoiceProvider =
-    // // Provider.of<InvoiceProvider>(context, listen: false);
-    //
-    // fetchedData == null?_data = await _invoiceProvider.getCurrencies():_data = _data;
 
     capsaPrint('Pass 1');
     data = searchData(
@@ -251,23 +274,6 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
     total_pages =
         data.length % 10 == 0 ? (data.length ~/ 10) : ((data.length ~/ 10) + 1);
 
-    //print('Data : $data');
-
-    // data['data']['invoicelist'].forEach((_element){
-    //  print('$_element \n\n') ;
-    // }
-    // );
-    //print('Invoice Data : ${data['data']['invoicelist']}');
-
-    // int x = 0,y = 0;
-    // while(x<5 || y>=data['data']['invoiceList'].length){
-    //   if(data['data']['invoiceList'][y]['isSplit'] == '1'){
-    //     print('DATA $y \n${data['data']['invoiceList'][y]}\n\n');
-    //     x++;
-    //   }
-    //   y++;
-    // }
-    //data = [];
     if (data.length > 0) {
       mobileCards.add(Container());
       for (var invoices in data) {
@@ -295,33 +301,6 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
                       invVoiceNumber: invoices['invoice_number'],
                       data: invoices,
                       type: widget.type),
-                  // VendorMain(
-                  //   pageUrl: "/viewInvoice/" + invoices['invoice_number'],
-                  //   menuList: false,
-                  //   mobileTitle: 'Invoice Details',
-                  //   body: InvoiceDetails(invVoiceNumber: invoices['invoice_number'],),
-                  //   backButton: true,
-                  // ),
-                  // MultiProvider(
-                  //   providers: [
-                  //     ChangeNotifierProvider<ProfileProvider>(
-                  //       create: (_) => ProfileProvider(),
-                  //     ),
-                  //     ChangeNotifierProvider<VendorInvoiceProvider>(
-                  //       create: (_) => VendorInvoiceProvider(),
-                  //     ),
-                  //     ChangeNotifierProvider<VendorActionProvider>(
-                  //       create: (_) => VendorActionProvider(),
-                  //     ),
-                  //   ],
-                  //   child:   VendorMain(
-                  //     pageUrl: "/viewInvoice/" + invoices.invNo,
-                  //     menuList: false,
-                  //     mobileTitle: 'Invoice Details',
-                  //     body: ConfirmInvoice(invVoiceNumber: invoices.invNo),
-                  //     backButton: true,
-                  //   ),
-                  // ),
                 ))
                     .then((value) {
                   setState(() {
@@ -408,18 +387,6 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
                                   invoices['discount_status'] == null
                                       ? ' '
                                       : invoices['discount_status'].toString()),
-                          // Text(
-                          //   // invoices.invDate,
-                          //   statusShow(invoices),
-                          //   textAlign: TextAlign.right,
-                          //   style: TextStyle(
-                          //       color: Color.fromRGBO(33, 150, 83, 1),
-                          //       // fontFamily: 'roboto',
-                          //       fontSize: 14,
-                          //       letterSpacing: 0 /*percentages not used in flutter. defaulting to zero*/,
-                          //       fontWeight: FontWeight.normal,
-                          //       height: 1),
-                          // ),
                         ],
                       ),
                     ),
@@ -1571,6 +1538,53 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
     });
   }
 
+  void exportCSV() {
+    {
+      var userData = Map<String, dynamic>.from(box.get('userData'));
+      final find = ',';
+      final replaceWith = '';
+      List<List<dynamic>> rows = [];
+      //capsaPrint('Length : ${bids.length}');
+      rows.add([
+        "S/N",
+        "Invoice No",
+        "Issue Date",
+        "Due Date",
+        "Anchor",
+        "Invoice Amount",
+        "Status",
+      ]);
+      int i = 0;
+      //List<ClosingBalanceModel> finalList = sortList();
+      for (var element in data) {
+        List<dynamic> row = [];
+        row.add(
+          (++i).toString(),
+        );
+        row.add(element['invoice_number']);
+        row.add(DateFormat.yMMMd('en_US')
+            .format(DateFormat("yyyy-MM-dd").parse((element['invoice_date']))));
+        row.add(DateFormat.yMMMd('en_US').format(
+            DateFormat("yyyy-MM-dd").parse((element['invoice_due_date']))));
+        row.add(element['customer_name']);
+        row.add(
+          formatCurrency(element['invoice_value'].toString(), withIcon: false),
+        );
+        row.add(_status(
+            int.parse(element['status'].toString()),
+            element['discount_status'] == null
+                ? ' '
+                : element['discount_status'].toString()));
+        rows.add(row);
+      }
+
+      String dataAsCSV = const ListToCsvConverter().convert(
+        rows,
+      );
+      exportToCSV(dataAsCSV, fName: "${title}_${userData['panNumber']}");
+    }
+  }
+
   void initialise() {
     var _type = widget.type;
     capsaPrint('Type : $_type');
@@ -1596,8 +1610,9 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
             ? 'Pending Invoices'
             : _type == 'notPresented'
                 ? 'Not Presented Invoices'
-                : _type == 'live'? 'Live Invoices'
-                : 'Sold Invoices';
+                : _type == 'live'
+                    ? 'Live Invoices'
+                    : 'Sold Invoices';
 
     super.initState();
     getData(_type, current_index);
@@ -1721,9 +1736,26 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
                                   ),
                                   !Responsive.isMobile(context)
                                       ? SizedBox(
-                                          width: 40,
+                                          width: 20,
                                         )
                                       : Container(),
+                                  InkWell(
+                                      onTap: () {
+                                        exportCSV();
+                                      },
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.download),
+                                          SizedBox(
+                                            width: 4,
+                                          ),
+                                          Text(
+                                            'Download',
+                                            style: GoogleFonts.poppins(
+                                                fontWeight: FontWeight.w500),
+                                          ),
+                                        ],
+                                      )),
                                   // InkWell(
                                   //   onTap: () {
                                   //     context.beamToNamed("/addInvoice");
@@ -2083,20 +2115,6 @@ class PageBody1 extends StatelessWidget {
   Widget mobileViewList(BuildContext context, List<InvoiceModel> invList) {
     return Container(
       width: MediaQuery.of(context).size.width,
-      // decoration: BoxDecoration(
-      //   borderRadius : BorderRadius.only(
-      //     topLeft: Radius.circular(25),
-      //     topRight: Radius.circular(25),
-      //     bottomLeft: Radius.circular(25),
-      //     bottomRight: Radius.circular(25),
-      //   ),
-      //   boxShadow : [BoxShadow(
-      //       color: Color.fromRGBO(0, 0, 0, 0.15000000596046448),
-      //       offset: Offset(0,2),
-      //       blurRadius: 4
-      //   )],
-      //   color : Color.fromRGBO(255, 255, 255, 1),
-      // ),
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -2107,10 +2125,10 @@ class PageBody1 extends StatelessWidget {
             width: MediaQuery.of(context).size.width,
             decoration: BoxDecoration(),
             padding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+            child: ListView(
+              // mainAxisAlignment: MainAxisAlignment.start,
+              // crossAxisAlignment: CrossAxisAlignment.start,
+              // mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 for (var invoices in invList)
                   Container(
@@ -2200,18 +2218,6 @@ class PageBody1 extends StatelessWidget {
                                   ),
                                   SizedBox(height: 8),
                                   statusShow(invoices),
-                                  // Text(
-                                  //   // invoices.invDate,
-                                  //   statusShow(invoices),
-                                  //   textAlign: TextAlign.right,
-                                  //   style: TextStyle(
-                                  //       color: Color.fromRGBO(33, 150, 83, 1),
-                                  //       // fontFamily: 'Poppins',
-                                  //       fontSize: 14,
-                                  //       letterSpacing: 0 /*percentages not used in flutter. defaulting to zero*/,
-                                  //       fontWeight: FontWeight.normal,
-                                  //       height: 1),
-                                  // ),
                                 ],
                               ),
                             ),
@@ -2268,14 +2274,6 @@ class ViewAction extends StatelessWidget {
                 child: Text("Download"),
                 value: 2,
               )
-            ]
-
-        // child: Image.asset("assets/icons/dot_menu.png",width: 24,height: 24,),
-        );
+            ]);
   }
 }
-
-// class InvoiceListMode{
-//   String invNo;
-//   String
-// }

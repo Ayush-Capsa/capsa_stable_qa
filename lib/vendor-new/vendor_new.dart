@@ -28,7 +28,6 @@ import 'package:capsa/pages/change_password_page.dart';
 import 'package:capsa/vendor-new/pages/confirm_invoice_page.dart';
 import 'package:capsa/pages/edit_profile_page.dart';
 import 'package:capsa/pages/faq-page.dart';
-import 'package:capsa/vendor-new/pages/invoices_list_page_2.dart';
 import 'package:capsa/pages/profile_page.dart';
 import 'package:capsa/providers/bid_history_provider.dart';
 import 'package:capsa/vendor-new/pages/bids_details_page.dart';
@@ -50,8 +49,10 @@ import 'package:capsa/widgets/DesktopMainMenuWidget.dart';
 // import 'package:capsa/vendor-new/widgets/TopBarWidget.dart';
 import 'package:flutter/material.dart';
 import 'package:capsa/functions/custom_print.dart';
+import 'package:local_session_timeout/local_session_timeout.dart';
 import 'package:provider/provider.dart';
 
+import '../functions/logout.dart';
 import '../main.dart';
 // import 'package:hive/hive.dart';
 
@@ -74,7 +75,7 @@ class _VendorNewAppState extends State<VendorNewApp> {
     mobileTitle = mobileTitle.capitalize();
     return BeamPage(
       key: ValueKey('invoice-list-' + type),
-      title: mobileTitle + " Invoice's",
+      title: mobileTitle + " Invoices",
       // popToNamed: '/',
       type: BeamPageType.fadeTransition,
 
@@ -504,6 +505,21 @@ class _VendorNewAppState extends State<VendorNewApp> {
 
   @override
   Widget build(BuildContext context) {
+
+    final sessionConfig = SessionConfig(
+        invalidateSessionForAppLostFocus: const Duration(seconds: 5),
+        invalidateSessionForUserInactiviity: const Duration(seconds: 5));
+
+    sessionConfig.stream.listen((SessionTimeoutState timeoutEvent) {
+      if (timeoutEvent == SessionTimeoutState.userInactivityTimeout) {
+       // logout(context);
+      } else if (timeoutEvent == SessionTimeoutState.appFocusTimeout) {
+       // logout(context);
+        // handle user  app lost focus timeout
+        // Navigator.of(context).pushNamed("/auth");
+      }
+    });
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<VendorActionProvider>(
@@ -522,7 +538,11 @@ class _VendorNewAppState extends State<VendorNewApp> {
           create: (_) => InvoiceBuilderProvider(),
         ),
       ],
-      child: MaterialApp.router(
+      child:
+      SessionTimeoutManager(
+      sessionConfig: sessionConfig,
+    child:
+      MaterialApp.router(
         onGenerateTitle: (context) {
           return 'Dashboard';
         },
@@ -533,7 +553,7 @@ class _VendorNewAppState extends State<VendorNewApp> {
         routerDelegate: routerDelegate,
         debugShowCheckedModeBanner: false,
         theme: appTheme,
-      ),
+      ),)
     );
   }
 }

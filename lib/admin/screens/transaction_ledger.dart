@@ -25,6 +25,7 @@ class _TransactionLedgerState extends State<TransactionLedger> {
   List ledgerAccNamesList = [];
   String _selectedOption;
   bool loading = false;
+  String searchInvoiceText = '';
 
   num _tBal = 0;
 
@@ -167,7 +168,52 @@ class _TransactionLedgerState extends State<TransactionLedger> {
                           header: Row(
                             children: [
                               if (_selectedValue != null) Text('Total balance : ' + formatCurrency(_tBal.toStringAsFixed(2))),
-                              const Spacer(),
+                              Expanded(
+                                child: Container(
+                                  child: Stack(
+                                    alignment: Alignment.centerRight,
+                                    children: <Widget>[
+                                      TextFormField(
+                                        // onFieldSubmitted: (value) {
+                                        //   // after pressing enter
+                                        //   capsaPrint(value);
+                                        // },
+                                        onChanged: (value) {
+                                          searchInvoiceText = value;
+                                          if (value == "") setState(() {});
+                                        },
+                                        decoration: InputDecoration(
+                                          hintText: 'Search by name',
+                                          // suffixIcon: Icon(
+                                          //   Icons.search,
+                                          //   color: Colors.blueGrey.withOpacity(0.9),
+                                          //
+                                          // ),
+                                        ),
+                                        // onTap: () {
+
+                                        // capsaPrint("Invoice");
+
+                                        // },
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.search,
+                                          color: Colors.blueGrey.withOpacity(0.9),
+                                        ),
+                                        onPressed: () {
+                                          // do something
+
+                                          Provider.of<ProfileProvider>(context, listen: false).getAllAccountTransactions(search: searchInvoiceText);
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                               IconButton(
                                 icon: Icon(Icons.download_rounded),
                                 onPressed: () {
@@ -249,11 +295,18 @@ class _TransactionLedgerState extends State<TransactionLedger> {
                               numeric: true,
                               label: Text('Closing Balance', style: tableHeadlineStyle),
                             ),
+                            DataColumn(
+                              //numeric: true,
+                              label: Text('Status', style: tableHeadlineStyle),
+                            ),
                             // DataColumn(
                             //   label: Text('Status', style: tableHeadlineStyle),
                             // ),
                             DataColumn(
                               label: Text('Narration', style: tableHeadlineStyle),
+                            ),
+                            DataColumn(
+                              label: Text('', style: tableHeadlineStyle),
                             ),
                           ],
                           source: _historyDataSource),

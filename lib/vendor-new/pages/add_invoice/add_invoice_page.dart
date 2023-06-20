@@ -994,6 +994,7 @@ class _AddInvoiceState extends State<AddInvoice> {
                                               "_selectedDate": _selectedDate,
                                               "_selectedDueDate":
                                                   _selectedDueDate,
+                                              "_extendedDueDate": _extentedDueDate,
                                               "file": file,
                                               "cuGst": _cuGst,
                                               "showExtendedDueDate":
@@ -1001,7 +1002,7 @@ class _AddInvoiceState extends State<AddInvoice> {
                                               "grade": grade,
                                             };
 
-                                            // capsaPrint(invoiceFormData);
+                                            capsaPrint('Invoice FOrm Data - ${invoiceFormData['extendedDueDateString']}');
 
                                             invoiceProvider.setInvoiceFormData(
                                                 invoiceFormData);

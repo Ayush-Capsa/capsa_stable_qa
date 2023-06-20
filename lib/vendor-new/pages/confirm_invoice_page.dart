@@ -36,6 +36,7 @@ class _ConfirmInvoiceState extends State<ConfirmInvoice> {
   bool processing = false;
   bool complete = false;
   bool isEditShow = false;
+  bool saving = false;
 
   Future<void> submitInvoiceData(dynamic invoiceFormData, BuildContext context, VendorActionProvider _actionProvider, InvoiceProvider invoiceProvider,
       {present: false, onlyPresent: false}) async {
@@ -561,12 +562,19 @@ class _ConfirmInvoiceState extends State<ConfirmInvoice> {
         SizedBox(
           width: 5,
         ),
-        InkWell(
+
+        saving ? CircularProgressIndicator() : InkWell(
           onTap: () async {
+            setState(() {
+              saving = true;
+            });
             if ((!isSaved))
               await submitInvoiceData(invoiceFormData, context, _actionProvider, invoiceProvider, present: true);
             else
               await submitInvoiceData(invoiceFormData, context, _actionProvider, invoiceProvider, present: true, onlyPresent: true);
+            setState(() {
+              saving = false;
+            });
           },
           child: Container(
             // width: double.infinity,

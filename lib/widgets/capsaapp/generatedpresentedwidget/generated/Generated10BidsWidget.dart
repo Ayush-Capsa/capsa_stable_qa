@@ -30,7 +30,7 @@ class Generated10BidsWidget extends StatelessWidget {
               text:  data['number'].toString(),
               style: TextStyle(
                 height: 1.171875,
-                fontSize: Responsive.isMobile(context) ?  12 :  14.0,
+                fontSize: Responsive.isMobile(context) ?  10 :  14.0,
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.w500,
                 color: Color.fromARGB(255, 246, 246, 246),

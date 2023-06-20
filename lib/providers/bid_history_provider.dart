@@ -290,7 +290,7 @@ class BidHistoryProvider extends ChangeNotifier {
     return _text;
   }
 
-  String transactionStatus(BidHistoryModel bids){
+  String transactionStatus(BidHistoryModel bids) {
     // return Text(bids.historyStatus);
     String _text = 'Pending';
     dynamic clr = HexColor('#F2994A');
@@ -314,9 +314,12 @@ class BidHistoryProvider extends ChangeNotifier {
     String search,
     date,
     date2,
-    bool isonlyAccept: false,
+    bool isonlyAccept = false,
     String currency = 'All',
     String status = 'All',
+    bool sortByEffectiveDueDate = false,
+    bool onlyRF = false,
+    bool sortByDiscountedDate = false,
   }) async {
     _bidHistoryDataList = [];
 
@@ -364,77 +367,98 @@ class BidHistoryProvider extends ChangeNotifier {
         bidsHistoryList.forEach((element) {
           if (i == 0)
             capsaPrint(
-                '\n\n\n history respones = \n $element \n${element['edd']}');
+                '\n\n\n history respones = \n $element \n${element['RF']}');
           i++;
-          BidHistoryModel _bidHistoryModel = BidHistoryModel(
-            discountedDate: DateTime.parse(element['prop_datetime']),
-            invoiceNumber: element['inv_no'].toString(),
-            paymentStatus: element['payment_status'].toString(),
-            discount_status: element['discount_status'].toString(),
-            discountVal: element['prop_amt'].toString(),
-            companyPan: element['company_pan'].toString(),
-            investor_pan: element['inv_pan'].toString(),
-            cust_pan: element['cust_pan'].toString(),
-            companyName: element['reqName'].toString(),
-            effectiveDueDate: element['effective_due_date'].toString(),
-            transactionsStatus: element['transactionStatus'].toString(),
-            address: '',
-            customerName: element['customer_name'],
-            investorName: '',
-            startDate: element['invoice_date'].toString(),
-            endDate: element['invoice_due_date'].toString(),
-            tenure: "",
-            email: "",
-            historyStatus: element['prop_stat'].toString(),
-            invoiceValue: element['invoice_value'].toString(),
-            fileName: '',
-            netReturn: '',
-            askRate: element['ask_rate'].toStringAsFixed(2),
-            platFormFee: '',
-            currency: element['currency'] != null ? element['currency'] : 'NGN',
-          );
+          BidHistoryModel _bidHistoryModel;
+          if (true) {
+            _bidHistoryModel = BidHistoryModel(
+              discountedDate: DateTime.parse(element['discounted_date']),
+              invoiceNumber: element['inv_no'].toString(),
+              paymentStatus: element['payment_status'].toString(),
+              discount_status: element['discount_status'].toString(),
+              discountVal: element['prop_amt'].toString(),
+              companyPan: element['company_pan'].toString(),
+              investor_pan: element['inv_pan'].toString(),
+              cust_pan: element['cust_pan'].toString(),
+              companyName: element['reqName'].toString(),
+              effectiveDueDate: element['effective_due_date'].toString(),
+              transactionsStatus: element['transactionStatus'].toString(),
+              address: '',
+              customerName: element['customer_name'],
+              investorName: '',
+              startDate: element['invoice_date'].toString(),
+              endDate: element['invoice_due_date'].toString(),
+              tenure: "",
+              email: "",
+              historyStatus: element['prop_stat'].toString(),
+              invoiceValue: element['invoice_value'].toString(),
+              fileName: '',
+              netReturn: '',
+              askRate: element['ask_rate'].toStringAsFixed(2),
+              platFormFee: '',
+              currency:
+                  element['currency'] != null ? element['currency'] : 'NGN',
+            );
+          }
 
           if (status.toLowerCase() == '' ||
               status.toLowerCase() == 'all' ||
               status.toLowerCase() ==
-                  statusString(_bidHistoryModel).toLowerCase())
-            _bidHistoryList.add(_bidHistoryModel);
+                  statusString(_bidHistoryModel).toLowerCase()) {
+            capsaPrint(
+                'adding ${DateFormat('d MMM, y').format(_bidHistoryModel.discountedDate)} ');
+            if (!onlyRF || (onlyRF && element['RF'].toString() != '1')) {
+              _bidHistoryList.add(_bidHistoryModel);
+            }
+          }
         });
 
-        _bidHistoryList.sort((a, b) {
-          //DateFormat x =
-          int aDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-              .parse(a.effectiveDueDate)
-              .microsecondsSinceEpoch;
-          int bDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-              .parse(b.effectiveDueDate)
-              .microsecondsSinceEpoch;
-          return bDate.compareTo(aDate);
-        });
+        if (sortByDiscountedDate) {
+          _bidHistoryList.sort((a, b) {
+            //DateFormat x =
+            int aDate = a.discountedDate.microsecondsSinceEpoch;
+            int bDate = b.discountedDate.microsecondsSinceEpoch;
+            return bDate.compareTo(aDate);
+          });
+        } else if (!sortByEffectiveDueDate) {
+          _bidHistoryList.sort((a, b) {
+            //DateFormat x =
+            int aDate = DateTime.parse(a.startDate).microsecondsSinceEpoch;
+            int bDate = DateTime.parse(b.startDate).microsecondsSinceEpoch;
+            return bDate.compareTo(aDate);
+          });
+        } else {
+          _bidHistoryList.sort((a, b) {
+            //DateFormat x =
+            int aDate = DateTime.parse(a.endDate).microsecondsSinceEpoch;
+            int bDate = DateTime.parse(b.endDate).microsecondsSinceEpoch;
+            return bDate.compareTo(aDate);
+          });
+        }
 
         if (date != null || date2 != null) {
           _bidHistoryList = _bidHistoryList.where((element) {
-            var isDate = true;
-            // if (date != null && date2 != null) {
-            //   DateTime createdOn = element.discountedDate;
-            //   if ((date.isBefore(createdOn) || date == createdOn) && (date2.isAfter(createdOn) || date2 == createdOn)) {
-            //     isDate = true;
-            //   }
-            //   // capsaPrint("createdOn"+createdOn.toString());
-            // }
-            // else if (date != null) {
-            //   DateTime createdOn = element.discountedDate;
-            //   if (date.isBefore(createdOn) || date == createdOn) {
-            //     isDate = true;
-            //   }
-            //   // capsaPrint("createdOn"+createdOn.toString());
-            // } else if (date2 != null) {
-            //   DateTime createdOn = element.discountedDate;
-            //   if (date2.isAfter(createdOn) || date2 == createdOn) {
-            //     isDate = true;
-            //   }
-            //   // capsaPrint("createdOn"+createdOn.toString());
-            // }
+            var isDate = false;
+            if (date != null && date2 != null) {
+              DateTime createdOn = DateTime.parse(element.startDate);
+              if ((date.isBefore(createdOn) || date == createdOn) &&
+                  (date2.isAfter(createdOn) || date2 == createdOn)) {
+                isDate = true;
+              }
+              // capsaPrint("createdOn"+createdOn.toString());
+            } else if (date != null) {
+              DateTime createdOn = DateTime.parse(element.startDate);
+              if (date.isBefore(createdOn) || date == createdOn) {
+                isDate = true;
+              }
+              // capsaPrint("createdOn"+createdOn.toString());
+            } else if (date2 != null) {
+              DateTime createdOn = DateTime.parse(element.startDate);
+              if (date2.isAfter(createdOn) || date2 == createdOn) {
+                isDate = true;
+              }
+              // capsaPrint("createdOn"+createdOn.toString());
+            }
 
             return isDate;
 
@@ -445,13 +469,17 @@ class BidHistoryProvider extends ChangeNotifier {
         if (search != null) {
           _bidHistoryList = _bidHistoryList.where((element) {
             if (element.invoiceNumber.contains(search) ||
+                element.companyName
+                    .toLowerCase()
+                    .contains(search.toLowerCase()) ||
                 element.customerName
                     .toLowerCase()
                     .contains(search.toLowerCase()) ||
                 bidStatus(element).toLowerCase() == search.toLowerCase() ||
-                transactionStatus(element).toLowerCase() == search.toLowerCase()) {
-              capsaPrint(
-                  'xx ${bidStatus(element).toLowerCase()} xx ${search.toLowerCase()}');
+                transactionStatus(element).toLowerCase() ==
+                    search.toLowerCase()) {
+              // capsaPrint(
+              //     'xx ${bidStatus(element).toLowerCase()} xx ${search.toLowerCase()}');
               return true;
             }
             return false;

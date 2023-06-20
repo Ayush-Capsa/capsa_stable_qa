@@ -1,11 +1,13 @@
 import 'package:capsa/common/responsive.dart';
 import 'package:capsa/functions/hexcolor.dart';
+import 'package:capsa/functions/logout.dart';
 import 'package:capsa/functions/pan_format.dart';
 import 'package:capsa/functions/show_toast.dart';
 
 import 'package:capsa/widgets/orientation_switcher.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';import 'package:capsa/functions/custom_print.dart';
+import 'package:flutter/material.dart';
+import 'package:capsa/functions/custom_print.dart';
 import 'package:capsa/common/constants.dart';
 import 'package:capsa/signup/provider/action_provider.dart';
 import 'package:capsa/widgets/user_input.dart';
@@ -74,8 +76,6 @@ class _OnBoardPageState extends State<EnterInformationPage> {
 
     var _body = box.get('signUpData') ?? {};
 
-
-
     bvnController0.text = panFormat(_body['panNumber']);
     panNumber = _body['panNumber'];
     //bvnController0.text = panFormat('34561234234-2');
@@ -104,6 +104,7 @@ class _OnBoardPageState extends State<EnterInformationPage> {
   var bankName;
   BankList bank;
   var bankID;
+  var bankSlug;
   var accountNo;
   bool isloaded = false;
   dynamic idFileExtension;
@@ -145,10 +146,11 @@ class _OnBoardPageState extends State<EnterInformationPage> {
     // _body[''] =
 
     if (_data['res'] == 'success') {
+      capsaPrint('\n\nBank List Data \n$_data \n');
       capsaPrint(_data['data']);
       _data['data'].forEach((element) {
-        BankList _bb =
-            BankList(element['id'].toString(), element['name'].toString());
+        BankList _bb = BankList(element['id'].toString(),
+            element['name'].toString(), element['bankSlug'].toString());
 
         bankList.add(_bb);
       });
@@ -321,6 +323,7 @@ class _OnBoardPageState extends State<EnterInformationPage> {
         hintText: 'Capsa Technology',
         controller: directorNameController0,
         // initialValue: '',
+        note: 'Director\'s name should be written as "First Name" "Last Name"',
         errorText: _errorMsg2,
         validator: (value) {
           if (value.trim().isEmpty) {
@@ -343,6 +346,8 @@ class _OnBoardPageState extends State<EnterInformationPage> {
               hintText: "+234",
               readOnly: true,
               controller: codePhoneController,
+              note: 'qwe',
+              transparentNote: true,
               // initialValue: '',
               // errorText: _errorMsg3,
               validator: (value) {
@@ -371,6 +376,8 @@ class _OnBoardPageState extends State<EnterInformationPage> {
               controller: phoneController,
               // initialValue: '',
               errorText: _errorMsg3,
+              note: 'qwe',
+              transparentNote: true,
               validator: (value) {
                 // if (value.trim().isEmpty) {
                 //   return 'Phone Number is required';
@@ -425,7 +432,8 @@ class _OnBoardPageState extends State<EnterInformationPage> {
         UserTextFormField(
           padding: EdgeInsets.only(bottom: 25, top: 2),
           label: "Bank Name",
-          note: 'This should be a personal bank account',
+          note:
+          'This should be a personal bank account of a Director in the company',
           // prefixIcon: Image.asset("assets/images/currency.png"),
           hintText: '',
           textFormField: DropdownButtonFormField<BankList>(
@@ -442,14 +450,15 @@ class _OnBoardPageState extends State<EnterInformationPage> {
             items: bankList
                 .map<DropdownMenuItem<BankList>>(
                     (data) => new DropdownMenuItem<BankList>(
-                          value: data,
-                          child: Text(data.name),
-                        ))
+                  value: data,
+                  child: Text(data.name),
+                ))
                 .toList(),
             onChanged: (BankList newValue) {
               bank = newValue;
               bankName = newValue.name;
               bankID = newValue.id;
+              bankSlug = newValue.slug;
             },
 
             decoration: InputDecoration(
@@ -461,11 +470,11 @@ class _OnBoardPageState extends State<EnterInformationPage> {
                   color: Color.fromRGBO(130, 130, 130, 1),
                   fontSize: 14,
                   letterSpacing:
-                      0 /*percentages not used in flutter. defaulting to zero*/,
+                  0 /*percentages not used in flutter. defaulting to zero*/,
                   fontWeight: FontWeight.normal,
                   height: 1),
               contentPadding:
-                  const EdgeInsets.only(left: 8.0, bottom: 12.0, top: 12.0),
+              const EdgeInsets.only(left: 8.0, bottom: 12.0, top: 12.0),
               focusedBorder: OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.white),
                 borderRadius: BorderRadius.circular(15.7),
@@ -477,12 +486,14 @@ class _OnBoardPageState extends State<EnterInformationPage> {
             ),
           ),
         ),
+
       // if (role == "COMPANY")
       if (_directorModelSelected == null)
         UserTextFormField(
           padding: EdgeInsets.only(bottom: 2, top: 2),
           label: "Bank Account Number",
-          note: 'This should be a personal bank account',
+          note:
+          'This should be a personal bank account of a Director in the company',
           // prefixIcon: Image.asset("assets/images/currency.png"),
           hintText: '0022334455',
           controller: accountController0,
@@ -504,22 +515,37 @@ class _OnBoardPageState extends State<EnterInformationPage> {
             LengthLimitingTextInputFormatter(10),
           ],
         ),
-      UserTextFormField(
-        padding: EdgeInsets.only(bottom: 2, top: 2),
-        label: "Bank Verification Number (BVN)",
-        // prefixIcon: Image.asset("assets/images/currency.png"),
-        hintText: '22*********',
-        controller: bvnController0,
-        // initialValue: '',
-        readOnly: true,
-        errorText: _errorMsg6,
-        validator: (value) {
-          if (value.trim().isEmpty) {
-            return '  Number is required';
-          }
 
-          return null;
-        },
+
+
+
+      Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: 22,),
+
+          UserTextFormField(
+            padding: EdgeInsets.only(bottom: 2, top: 2),
+            label: "Bank Verification Number (BVN)",
+            // prefixIcon: Image.asset("assets/images/currency.png"),
+            hintText: '22*********',
+            controller: bvnController0,
+            // initialValue: '',
+            //readOnly: true,
+            errorText: _errorMsg6,
+            validator: (value) {
+              if (value.trim().isEmpty) {
+                return '  Number is required';
+              }
+
+              return null;
+            },
+          ),
+          Text(
+              "Accepted Valid ID: National ID Card, Voter’s Card,  Driver’s licence, or Passport.",
+              style: TextStyle(fontSize: 12, color: Colors.transparent)),
+        ],
       ),
       // UserTextFormField(
       //   padding: EdgeInsets.only(bottom: 2, top: 2),
@@ -694,7 +720,9 @@ class _OnBoardPageState extends State<EnterInformationPage> {
                               itemCount: _widget.length,
                               itemBuilder: (BuildContext ctx, index) {
                                 return Padding(
-                                  padding: Responsive.isMobile(context)?EdgeInsets.all(8):EdgeInsets.all(16),
+                                  padding: Responsive.isMobile(context)
+                                      ? EdgeInsets.all(8)
+                                      : EdgeInsets.all(16),
                                   child: _widget[index],
                                 );
                               }),
@@ -759,12 +787,9 @@ class _OnBoardPageState extends State<EnterInformationPage> {
                                                 });
                                                 var _body = {};
 
-                                                _body['bvnNumber'] =
-                                                    panNumber;
-                                                _body['panNumber'] =
-                                                    panNumber;
-                                                _body['bvnNo'] =
-                                                    panNumber;
+                                                _body['bvnNumber'] = panNumber;
+                                                _body['panNumber'] = panNumber;
+                                                _body['bvnNo'] = panNumber;
                                                 _body['email'] =
                                                     emailController0.text;
 
@@ -782,11 +807,13 @@ class _OnBoardPageState extends State<EnterInformationPage> {
                                                     emailControllerNew.text;
 
                                                 _body['role'] = role;
-                                                _body['extensionValid_id'] = idFile.extension;
+                                                _body['extensionValid_id'] =
+                                                    idFile.extension;
 
                                                 _body['acctType'] = type2;
                                                 _body['userType'] = type;
-                                                _body['extension'] = idFileExtension;
+                                                _body['extension'] =
+                                                    idFileExtension;
                                                 var _dataSend = {};
                                                 capsaPrint('Pass 1');
                                                 final _actionProvider = Provider
@@ -798,8 +825,15 @@ class _OnBoardPageState extends State<EnterInformationPage> {
                                                 var _body1 = {};
                                                 capsaPrint('Pass 2');
 
+                                                _body1['bvn'] = panNumber;
+                                                _body1['bvn_original'] =
+                                                    panNumber;
+
                                                 if (bankName != null)
                                                   _body1['bankName'] = bankName;
+
+                                                if (bankSlug != null)
+                                                  _body1['bankSlug'] = bankSlug;
 
                                                 if (bankID != null)
                                                   _body1['bankID'] = bankID;
@@ -819,40 +853,40 @@ class _OnBoardPageState extends State<EnterInformationPage> {
                                                       directorNameController0
                                                           .text;
 
-                                                if (_directorModelSelected ==
-                                                    null) {
-                                                  var _response1 =
-                                                      await _actionProvider
-                                                          .verifyAccountBVN(
-                                                              _body1);
-
-                                                  capsaPrint('Pass 3 $_response1');
-
-                                                  if (_response1['res'] !=
-                                                      'success') {
-                                                    // if(_response1['messg'] == ""){
-                                                    //   _errorMsg2 = "";
-                                                    // }
-
-                                                    _errorMsg2 =
-                                                        _response1['messg'];
-                                                    showToast(
-                                                        _response1['messg'],
-                                                        context,
-                                                        type: 'warning');
-
-                                                    setState(() {
-                                                      processing = false;
-                                                    });
-                                                    return;
-                                                  }
-                                                  _dataSend =
-                                                      _response1['data'];
-                                                } else {
-                                                  _dataSend['num'] =
-                                                      _directorModelSelected
-                                                          .phone;
-                                                }
+                                                // if (_directorModelSelected ==
+                                                //     null) {
+                                                //   var _response1 =
+                                                //       await _actionProvider
+                                                //           .verifyAccountBVN(
+                                                //               _body1);
+                                                //
+                                                //   capsaPrint('Pass 3 $_response1');
+                                                //
+                                                //   if (_response1['res'] !=
+                                                //       'success') {
+                                                //     // if(_response1['messg'] == ""){
+                                                //     //   _errorMsg2 = "";
+                                                //     // }
+                                                //
+                                                //     _errorMsg2 =
+                                                //         _response1['messg'];
+                                                //     showToast(
+                                                //         _response1['messg'],
+                                                //         context,
+                                                //         type: 'warning');
+                                                //
+                                                //     setState(() {
+                                                //       processing = false;
+                                                //     });
+                                                //     return;
+                                                //   }
+                                                //   _dataSend =
+                                                //       _response1['data'];
+                                                // } else {
+                                                //   _dataSend['num'] =
+                                                //       _directorModelSelected
+                                                //           .phone;
+                                                // }
                                                 // capsaPrint(_dataSend);
 
                                                 // setState(() {
@@ -897,6 +931,322 @@ class _OnBoardPageState extends State<EnterInformationPage> {
                                                     );
                                                   } else if (_response['res'] ==
                                                       'success') {
+                                                    if (_directorModelSelected ==
+                                                        null) {
+                                                      var _response1 =
+                                                          await _actionProvider
+                                                              .verifyAccountBVN(
+                                                                  _body1);
+
+                                                      capsaPrint(
+                                                          'Pass 3 $_response1');
+
+                                                      if (_response1['res'] ==
+                                                          'failed2') {
+                                                        // if(_response1['messg'] == ""){
+                                                        //   _errorMsg2 = "";
+                                                        // }
+
+                                                        _errorMsg2 =
+                                                            _response1['messg'];
+                                                        showToast(
+                                                            _response1['messg'],
+                                                            context,
+                                                            type: 'warning');
+
+                                                        showDialog(
+                                                            context: context,
+                                                            barrierDismissible:
+                                                                false,
+                                                            builder:
+                                                                (context) =>
+                                                                    AlertDialog(
+                                                                      // title: Text(
+                                                                      //   '',
+                                                                      //   style: TextStyle(
+                                                                      //     fontSize: 24,
+                                                                      //     fontWeight: FontWeight.bold,
+                                                                      //     color: Theme.of(context).primaryColor,
+                                                                      //   ),
+                                                                      // ),
+                                                                      content: Container(
+                                                                          // width: 800,
+                                                                          height: Responsive.isMobile(context) ? 340 : 300,
+                                                                          child: Padding(
+                                                                            padding:
+                                                                                const EdgeInsets.all(16.0),
+                                                                            child:
+                                                                                Column(
+                                                                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                                                              children: [
+                                                                                SizedBox(
+                                                                                  height: 12,
+                                                                                ),
+                                                                                Image.asset('assets/icons/cancel.png'),
+                                                                                SizedBox(
+                                                                                  height: 12,
+                                                                                ),
+                                                                                Text(
+                                                                                  'Failure in verifying Director’s Information',
+                                                                                  textAlign: TextAlign.center,
+                                                                                  style: TextStyle(
+                                                                                    fontSize: 16,
+                                                                                    fontWeight: FontWeight.bold,
+                                                                                    color: Colors.black,
+                                                                                  ),
+                                                                                ),
+                                                                                SizedBox(
+                                                                                  height: 12,
+                                                                                ),
+                                                                                Text(
+                                                                                  'One of our representatives will be in touch with you within the next 24 hours.',
+                                                                                  textAlign: TextAlign.center,
+                                                                                  style: TextStyle(
+                                                                                    fontSize: 14,
+                                                                                    fontWeight: FontWeight.w400,
+                                                                                    color: Colors.black,
+                                                                                  ),
+                                                                                ),
+                                                                                SizedBox(
+                                                                                  height: 12,
+                                                                                ),
+                                                                                Padding(
+                                                                                  padding: const EdgeInsets.all(12.0),
+                                                                                  child: Row(
+                                                                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                                                    children: [
+                                                                                      InkWell(
+                                                                                        onTap: () {
+                                                                                          // formKey.currentState.reset();
+                                                                                          // Navigator.pop(context);
+                                                                                          logout(context);
+                                                                                        },
+                                                                                        child: Container(
+                                                                                          width: 100,
+                                                                                          decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.all(Radius.circular(10))),
+                                                                                          child: Center(
+                                                                                            child: Padding(
+                                                                                              padding: const EdgeInsets.all(12.0),
+                                                                                              child: Text(
+                                                                                                'Logout',
+                                                                                                style: TextStyle(
+                                                                                                  fontSize: 16,
+                                                                                                  fontWeight: FontWeight.w400,
+                                                                                                  color: Colors.white,
+                                                                                                ),
+                                                                                              ),
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                      SizedBox(
+                                                                                        width: 8,
+                                                                                      ),
+                                                                                      InkWell(
+                                                                                        onTap: () {
+                                                                                          formKey.currentState.reset();
+                                                                                          Navigator.pop(context);
+                                                                                          //logout(context);
+                                                                                        },
+                                                                                        child: Container(
+                                                                                          width: 100,
+                                                                                          decoration: BoxDecoration(color: HexColor('#0098DB'), borderRadius: BorderRadius.all(Radius.circular(10))),
+                                                                                          child: Center(
+                                                                                            child: Padding(
+                                                                                              padding: const EdgeInsets.all(12.0),
+                                                                                              child: Text(
+                                                                                                'Try Again',
+                                                                                                style: TextStyle(
+                                                                                                  fontSize: 16,
+                                                                                                  fontWeight: FontWeight.w400,
+                                                                                                  color: Colors.white,
+                                                                                                ),
+                                                                                              ),
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                    ],
+                                                                                  ),
+                                                                                ),
+                                                                              ],
+                                                                            ),
+                                                                          )),
+                                                                      //actions: <Widget>[],
+                                                                    ));
+
+                                                        setState(() {
+                                                          processing = false;
+                                                        });
+                                                        return;
+                                                      } else if (_response1[
+                                                              'res'] ==
+                                                          'details error') {
+                                                        // if(_response1['messg'] == ""){
+                                                        //   _errorMsg2 = "";
+                                                        // }
+
+                                                        _errorMsg2 =
+                                                            _response1['messg'];
+                                                        showToast(
+                                                            _response1['messg'],
+                                                            context,
+                                                            type: 'warning');
+
+                                                        showDialog(
+                                                            context: context,
+                                                            barrierDismissible:
+                                                                false,
+                                                            builder:
+                                                                (context) =>
+                                                                    AlertDialog(
+                                                                      // title: Text(
+                                                                      //   '',
+                                                                      //   style: TextStyle(
+                                                                      //     fontSize: 24,
+                                                                      //     fontWeight: FontWeight.bold,
+                                                                      //     color: Theme.of(context).primaryColor,
+                                                                      //   ),
+                                                                      // ),
+                                                                      content: Container(
+                                                                          // width: 800,
+                                                                          height: Responsive.isMobile(context) ? 340 : 300,
+                                                                          child: Padding(
+                                                                            padding:
+                                                                                const EdgeInsets.all(16.0),
+                                                                            child:
+                                                                                Column(
+                                                                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                                                              children: [
+                                                                                SizedBox(
+                                                                                  height: 12,
+                                                                                ),
+                                                                                Image.asset('assets/icons/cancel.png'),
+                                                                                SizedBox(
+                                                                                  height: 12,
+                                                                                ),
+                                                                                Text(
+                                                                                  'Error',
+                                                                                  textAlign: TextAlign.center,
+                                                                                  style: TextStyle(
+                                                                                    fontSize: 16,
+                                                                                    fontWeight: FontWeight.bold,
+                                                                                    color: Colors.black,
+                                                                                  ),
+                                                                                ),
+                                                                                SizedBox(
+                                                                                  height: 12,
+                                                                                ),
+                                                                                Text(
+                                                                                  'BVN details does not match the Director’s Name provided. Please try again',
+                                                                                  textAlign: TextAlign.center,
+                                                                                  style: TextStyle(
+                                                                                    fontSize: 14,
+                                                                                    fontWeight: FontWeight.w400,
+                                                                                    color: Colors.black,
+                                                                                  ),
+                                                                                ),
+                                                                                SizedBox(
+                                                                                  height: 12,
+                                                                                ),
+                                                                                Padding(
+                                                                                  padding: const EdgeInsets.all(12.0),
+                                                                                  child: Row(
+                                                                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                                                                    children: [
+                                                                                      InkWell(
+                                                                                        onTap: () {
+                                                                                          // formKey.currentState.reset();
+                                                                                          // Navigator.pop(context);
+                                                                                          logout(context);
+                                                                                        },
+                                                                                        child: Container(
+                                                                                          width: 100,
+                                                                                          decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.all(Radius.circular(10))),
+                                                                                          child: Center(
+                                                                                            child: Padding(
+                                                                                              padding: const EdgeInsets.all(12.0),
+                                                                                              child: Text(
+                                                                                                'Logout',
+                                                                                                style: TextStyle(
+                                                                                                  fontSize: 16,
+                                                                                                  fontWeight: FontWeight.w400,
+                                                                                                  color: Colors.white,
+                                                                                                ),
+                                                                                              ),
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                      SizedBox(
+                                                                                        width: 8,
+                                                                                      ),
+                                                                                      InkWell(
+                                                                                        onTap: () {
+                                                                                          formKey.currentState.reset();
+                                                                                          Navigator.pop(context);
+                                                                                          //logout(context);
+                                                                                        },
+                                                                                        child: Container(
+                                                                                          width: 100,
+                                                                                          decoration: BoxDecoration(color: HexColor('#0098DB'), borderRadius: BorderRadius.all(Radius.circular(10))),
+                                                                                          child: Center(
+                                                                                            child: Padding(
+                                                                                              padding: const EdgeInsets.all(12.0),
+                                                                                              child: Text(
+                                                                                                'Try Again',
+                                                                                                style: TextStyle(
+                                                                                                  fontSize: 16,
+                                                                                                  fontWeight: FontWeight.w400,
+                                                                                                  color: Colors.white,
+                                                                                                ),
+                                                                                              ),
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                    ],
+                                                                                  ),
+                                                                                ),
+                                                                              ],
+                                                                            ),
+                                                                          )),
+                                                                      //actions: <Widget>[],
+                                                                    ));
+
+                                                        setState(() {
+                                                          processing = false;
+                                                        });
+                                                        return;
+                                                      } else if (_response1[
+                                                              'res'] ==
+                                                          'failed') {
+                                                        // if(_response1['messg'] == ""){
+                                                        //   _errorMsg2 = "";
+                                                        // }
+
+                                                        _errorMsg2 =
+                                                            _response1['messg'];
+                                                        showToast(
+                                                            _response1['messg'],
+                                                            context,
+                                                            type: 'warning');
+
+                                                        setState(() {
+                                                          processing = false;
+                                                        });
+                                                        return;
+                                                      }
+                                                      _dataSend =
+                                                          _response1['data'];
+                                                    } else {
+                                                      _dataSend['num'] =
+                                                          _directorModelSelected
+                                                              .phone;
+                                                    }
+                                                    //return;
                                                     var _body01 =
                                                         box.get('signUpData') ??
                                                             {};
@@ -1095,12 +1445,14 @@ class _OnBoardPageState extends State<EnterInformationPage> {
 class BankList {
   final String name;
   final String id;
+  final String slug;
 
-  const BankList(this.id, this.name);
+  const BankList(this.id, this.name, this.slug);
 
   Map<String, dynamic> toJson() => {
         'name': name,
         'id': id,
+        'slug': slug,
       };
 }
 

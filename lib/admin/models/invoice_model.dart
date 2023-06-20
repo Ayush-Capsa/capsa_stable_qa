@@ -16,6 +16,8 @@ class InvoiceModel {
   String isSplit;
   String parentInvoice;
   String cu_gst;
+  String anchorName;
+  String extendedDueDate;
 
   InvoiceModel(
       {this.id,
@@ -34,7 +36,9 @@ class InvoiceModel {
       this.askRate,
       this.isSplit,
       this.parentInvoice,
-      this.cu_gst});
+      this.cu_gst,
+      this.anchorName,
+      this.extendedDueDate});
 }
 
 class AccountLetterModel {

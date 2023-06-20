@@ -225,7 +225,7 @@ class _ALlAccountPageState extends State<AllTransactionHistoryPage> {
                             // _tmpTransactionDetails.forEach((element) {
                             //   transactionDetails.add(value)
                             // });
-                            final _bankList = _profileProvider.bankList;
+                            //final _bankList = _profileProvider.bankList;
                             if (_getBankDetails.bene_account_no.trim() == '') {
                               addnewbene = true;
                             }

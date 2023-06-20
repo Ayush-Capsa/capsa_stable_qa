@@ -28,7 +28,7 @@ import 'package:capsa/pages/change_password_page.dart';
 import 'package:capsa/vendor-new/pages/confirm_invoice_page.dart';
 import 'package:capsa/pages/edit_profile_page.dart';
 import 'package:capsa/pages/faq-page.dart';
-import 'package:capsa/vendor-new/pages/invoices_list_page_2.dart';
+
 import 'package:capsa/pages/profile_page.dart';
 import 'package:capsa/providers/bid_history_provider.dart';
 import 'package:capsa/vendor-new/pages/bids_details_page.dart';
@@ -74,7 +74,7 @@ class _VendorNewAppState extends State<VendorNewApp> {
     mobileTitle = mobileTitle.capitalize();
     return BeamPage(
       key: ValueKey('invoice-list-' + type),
-      title: mobileTitle + " Invoice's",
+      title: mobileTitle + " Invoices",
       // popToNamed: '/',
       type: BeamPageType.fadeTransition,
 

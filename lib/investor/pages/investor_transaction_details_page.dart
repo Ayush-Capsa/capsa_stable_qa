@@ -290,6 +290,8 @@ class _InvestorTransactionDetailsPageState
                             ? null
                             : _data['ilplist'][0];
 
+
+
                         openInvoices = element != null
                             ? OpenDealModel(
                                 invoice_value:
@@ -345,7 +347,8 @@ class _InvestorTransactionDetailsPageState
                                 totalDiscount:
                                     element['totalDiscount'].toString(),
                                 alcptdy: element['alcptdy'].toString(),
-                                prop_amt: element['prop_amt'].toString())
+                                prop_amt: element['prop_amt'].toString(),
+                                RF: _data['RF'].toString())
                             : null;
 
                         print('pass 1 $openInvoices');
@@ -428,6 +431,8 @@ class _InvestorTransactionDetailsPageState
                                 }
                               }
 
+                              capsaPrint('pass 1 ${openInvoices.RF}');
+
                               return Row(
                                 children: [
                                   openInvoices != null
@@ -451,7 +456,7 @@ class _InvestorTransactionDetailsPageState
                                         child: Column(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            if (ispending)
+                                            if (ispending  && openInvoices.RF != '1')
                                               InkWell(
                                                 onTap: () async {
                                                   //capsaPrint(_proposalModel.invoice_number);
@@ -499,11 +504,11 @@ class _InvestorTransactionDetailsPageState
                                                   ),
                                                 ),
                                               ),
-                                            if (ispending)
+                                            if (ispending  && openInvoices.RF != '1')
                                               SizedBox(
                                                 height: 20,
                                               ),
-                                            if (ispending)
+                                            if (ispending  && openInvoices.RF != '1')
                                               InkWell(
                                                 onTap: () async {
                                                   //capsaPrint(_proposalModel.invoice_number);
@@ -553,66 +558,68 @@ class _InvestorTransactionDetailsPageState
                                                   ),
                                                 ),
                                               ),
+                                            if (isdownload && openInvoices.RF != '1')
+                                              SizedBox(
+                                                height: 20,
+                                              ),
                                             if (isdownload)
-                                              Container(
-                                                child: Column(
-                                                  children: [
-                                                    InkWell(
-                                                      onTap: () {
-                                                        downloadCall(context,
-                                                            proposalProvider);
-                                                      },
-                                                      child: Container(
-                                                        width: double.infinity,
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          borderRadius:
-                                                              BorderRadius.only(
-                                                            topLeft:
-                                                                Radius.circular(
-                                                                    15),
-                                                            topRight:
-                                                                Radius.circular(
-                                                                    15),
-                                                            bottomLeft:
-                                                                Radius.circular(
-                                                                    15),
-                                                            bottomRight:
-                                                                Radius.circular(
-                                                                    15),
-                                                          ),
-                                                          color: Color.fromRGBO(
-                                                              0, 152, 219, 1),
+                                              Column(
+                                                children: [
+                                                  InkWell(
+                                                    onTap: () {
+                                                      downloadCall(context,
+                                                          proposalProvider);
+                                                    },
+                                                    child: Container(
+                                                      width: double.infinity,
+                                                      decoration:
+                                                          BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius.only(
+                                                          topLeft:
+                                                              Radius.circular(
+                                                                  15),
+                                                          topRight:
+                                                              Radius.circular(
+                                                                  15),
+                                                          bottomLeft:
+                                                              Radius.circular(
+                                                                  15),
+                                                          bottomRight:
+                                                              Radius.circular(
+                                                                  15),
                                                         ),
-                                                        padding: EdgeInsets
-                                                            .symmetric(
-                                                                horizontal: 15,
-                                                                vertical: 15),
-                                                        child: Center(
-                                                          child: Text(
-                                                            'Download Contract',
-                                                            textAlign: TextAlign
-                                                                .center,
-                                                            style: TextStyle(
-                                                                color: Color
-                                                                    .fromRGBO(
-                                                                        242,
-                                                                        242,
-                                                                        242,
-                                                                        1),
-                                                                fontSize: 16,
-                                                                letterSpacing:
-                                                                    0 /*percentages not used in flutter. defaulting to zero*/,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .normal,
-                                                                height: 1),
-                                                          ),
+                                                        color: Color.fromRGBO(
+                                                            0, 152, 219, 1),
+                                                      ),
+                                                      padding: EdgeInsets
+                                                          .symmetric(
+                                                              horizontal: 15,
+                                                              vertical: 15),
+                                                      child: Center(
+                                                        child: Text(
+                                                          'Download Contract',
+                                                          textAlign: TextAlign
+                                                              .center,
+                                                          style: TextStyle(
+                                                              color: Color
+                                                                  .fromRGBO(
+                                                                      242,
+                                                                      242,
+                                                                      242,
+                                                                      1),
+                                                              fontSize: 16,
+                                                              letterSpacing:
+                                                                  0 /*percentages not used in flutter. defaulting to zero*/,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .normal,
+                                                              height: 1),
                                                         ),
                                                       ),
                                                     ),
-                                                  ],
-                                                ),
+                                                  ),
+                                                ],
                                               ),
                                           ],
                                         ),
@@ -655,9 +662,12 @@ class _InvestorTransactionDetailsPageState
                                   }
                                 }
 
+
+                                capsaPrint('pass 2 ${openInvoices.RF}');
+
                                 return Column(
                                   children: [
-                                    if (ispending)
+                                    if (ispending && openInvoices.RF != '1')
                                       InkWell(
                                         onTap: () async {
                                           //capsaPrint(_proposalModel.invoice_number);
@@ -701,7 +711,7 @@ class _InvestorTransactionDetailsPageState
                                       SizedBox(
                                         height: 20,
                                       ),
-                                    if (ispending)
+                                    if (ispending && openInvoices.RF != '1')
                                       InkWell(
                                         onTap: () async {
                                           //capsaPrint(_proposalModel.invoice_number);

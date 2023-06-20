@@ -7,7 +7,7 @@ import 'package:capsa/common/responsive.dart';
 import 'package:capsa/functions/currency_format.dart';
 import 'package:capsa/vendor-new/dialog_boxes/invoice_builder_dialog_box.dart';
 import 'package:capsa/vendor-new/model/invoice_builder_model.dart';
-import 'package:capsa/vendor-new/pages/edit_built_invoice.dart';
+import 'package:capsa/vendor-new/pages/EditInvoice/edit_built_invoice.dart';
 import 'package:capsa/vendor-new/provider/invoice_builder_provider.dart';
 import 'package:capsa/vendor-new/provider/vendor_action_provider.dart';
 import 'package:capsa/widgets/TopBarWidget.dart';

@@ -24,6 +24,7 @@ import 'package:capsa/investor/provider/opendeal_provider.dart';
 import 'package:capsa/investor/provider/proposal_provider.dart';
 import 'package:capsa/pages/account-all-transaction-history.dart';
 import 'package:capsa/pages/account_page.dart';
+import 'package:capsa/pages/api_call_history.dart';
 import 'package:capsa/pages/change-transaction-pin/change_transaction_pin.dart';
 import 'package:capsa/pages/change_password_page.dart';
 import 'package:capsa/pages/edit_profile_page.dart';
@@ -38,38 +39,21 @@ import 'package:capsa/vendor-new/pages/confirm_invoice_page.dart';
 import 'package:capsa/widgets/DesktopMainMenuWidget.dart';
 import 'package:capsa/widgets/capsaapp/generated_mobilemenunavigationsvendorwidget/Generated_MobileMenuNavigationsVendorWidget.dart';
 
-import 'package:flutter/material.dart';import 'package:capsa/functions/custom_print.dart';
+import 'package:flutter/material.dart';
+import 'package:capsa/functions/custom_print.dart';
 import 'package:provider/provider.dart';
 
 import '../main.dart';
 
 class InvestorNewApp extends StatefulWidget {
-  InvestorNewApp({Key key}) : super(key: key);
+  const InvestorNewApp({Key key}) : super(key: key);
 
   @override
   State<InvestorNewApp> createState() => _InvestorNewAppState();
 }
 
 class _InvestorNewAppState extends State<InvestorNewApp> {
-  var routerDelegate;
-
-  //
-  // BeamPage returnFunInvoiceList(type, url) {
-  //   return BeamPage(
-  //     key: ValueKey('invoice-list-' + type),
-  //     title: type + " Invoice's",
-  //     // popToNamed: '/',
-  //     type: BeamPageType.fadeTransition,
-  //
-  //     child: InvestorMain(
-  //       pageUrl: url,
-  //       mobileTitle: "All Invoice",
-  //       menuList: true,
-  //       body: InvoiceListPage(type),
-  //       backButton: true,
-  //     ),
-  //   );
-  // }
+  BeamerDelegate routerDelegate;
 
   @override
   void initState() {
@@ -100,9 +84,22 @@ class _InvestorNewAppState extends State<InvestorNewApp> {
                               pageUrl: "/home",
                               mobileTitle: 'Hello ${userData['name']} 👋',
                               mobileSubTitle:
-                                  "Welcome, make money from alternative financing!",
+                                  "Welcome, enjoy alternative financing!",
                               showLogo: true,
                               body: InvestorHomePage()),
+                        );
+                      },
+                      '/api-history': (context, state, data) {
+                        return BeamPage(
+                          key: ValueKey('api-history'),
+                          title: 'API Calls History',
+                          type: BeamPageType.fadeTransition,
+                          child: InvestorMain(
+                              pageUrl: "/api-history",
+                              backButton: true,
+                              menuList: false,
+                              mobileTitle: "API Calls History",
+                              body: ApiCallHistory()),
                         );
                       },
                       '/my-transactions': (context, state, data) {
@@ -140,9 +137,12 @@ class _InvestorNewAppState extends State<InvestorNewApp> {
                               body: LiveDealsPage()),
                         );
                       },
-                      '/live-deals/bid-details/:id/:isSplit': (context, state, data) {
+                      '/live-deals/bid-details/:id/:isSplit/:onlyRF':
+                          (context, state, data) {
                         final id = state.pathParameters['id'];
-                        bool isSplit = stringToBool(state.pathParameters['isSplit']);
+                        bool isSplit =
+                            stringToBool(state.pathParameters['isSplit']);
+                        bool onlyRF = stringToBool(state.pathParameters['onlyRF']);
                         //String currencyAvailable = state.pathParameters['currencyAvailable'];
                         return BeamPage(
                           key: ValueKey('live-deals-details-' + id),
@@ -152,30 +152,14 @@ class _InvestorNewAppState extends State<InvestorNewApp> {
                               pageUrl: "/live-deals/bid-details/" + id,
                               backButton: true,
                               menuList: false,
-                              mobileTitle: "Bid Details",
-                              body: InvestorBidDetailsPage(id,isSplit: isSplit)),
+                              mobileTitle: "Invoice Details",
+                              body:
+                              // InvestorTransactionDetailsPage(id,
+                              //     amt: '0', onlyBid: true)
+                              InvestorBidDetailsPage(id, isSplit: isSplit, onlyRF: onlyRF,)
+                            ),
                         );
                       },
-                      // '/live-deals/bid-details/anchor-analysis': (context, state, data) {
-                      //   //final panNumber = state.pathParameters['panNumber'];
-                      //   //capsaPrint('PanNumber: $panNumber');
-                      //   capsaPrint('tapped');
-                      //   return BeamPage(
-                      //     key: const ValueKey('live-deals-details-anchor-analysis'),
-                      //     title: 'Anchor Analysis',
-                      //     type: BeamPageType.fadeTransition,
-                      //     child:
-                      //     InvestorMain(
-                      //         pageUrl: "/live-deals/bid-details/anchor-analysis",
-                      //         backButton: true,
-                      //         menuList: false,
-                      //         mobileTitle: "Anchor Analysis",
-                      //         body: const Center(child: Text('Anchor Analysis'),)
-                      //
-                      //         //AnchorAnalysisHomePage()
-                      //     ),
-                      //   );
-                      // },
                       '/live-deals/anchor-analysis': (context, state, data) {
                         //capsaPrint('PanNumber: $panNumber');
                         capsaPrint('tapped');
@@ -194,7 +178,10 @@ class _InvestorNewAppState extends State<InvestorNewApp> {
                                     AnchorAnalysisProvider(),
                                 child: AnchorAnalysisHomePage(
                                   model: data,
-                                    scale: Responsive.isMobile(context)?MediaQuery.of(context).size.width/1050.0:1,
+                                  scale: Responsive.isMobile(context)
+                                      ? MediaQuery.of(context).size.width /
+                                          1050.0
+                                      : 1,
                                 ),
                               )),
                         );
@@ -383,7 +370,7 @@ class _InvestorNewAppState extends State<InvestorNewApp> {
                         );
                       },
                       '/account/withdraw-amt': (context, state, data) {
-                        return  BeamPage(
+                        return BeamPage(
                           key: ValueKey('withdraw-amt'),
                           title: 'Withdraw Amount',
                           // popToNamed: '/',
@@ -397,7 +384,9 @@ class _InvestorNewAppState extends State<InvestorNewApp> {
                           title: 'Withdraw response',
                           // popToNamed: '/',
                           type: BeamPageType.fadeTransition,
-                          child: WithdrawResponse(response: data,),
+                          child: WithdrawResponse(
+                            response: data,
+                          ),
                         );
                       },
                       '/sign_in': (context, state, data) {
@@ -480,8 +469,8 @@ class InvestorMain extends StatelessWidget {
       this.mobileTitle,
       this.menuList,
       this.backButton,
-        this.pop = false,
-        this.showLogo = false,
+      this.pop = false,
+      this.showLogo = false,
       Key key})
       : super(key: key);
 
@@ -571,13 +560,8 @@ class InvestorMain extends StatelessWidget {
             _menuList2.add(k)
           });
     }
-    //
-    // capsaPrint('_menuList2');
-    // capsaPrint(_menuList2);
 
     if (backButton != null) _backButton = backButton;
-
-    // capsaPrint(Responsive.isMobile(context));
 
     var userData = Map<String, dynamic>.from(box.get('userData'));
 
@@ -592,14 +576,16 @@ class InvestorMain extends StatelessWidget {
                 automaticallyImplyLeading: false,
                 backgroundColor: HexColor("#F5FBFF"),
                 actions: [
-                  showLogo?Padding(
-                    padding: const EdgeInsets.only(top: 12, right: 8),
-                    child: Image.asset(
-                      "assets/images/Ellipse 3.png",
-                      width: 35,
-                      height: 35,
-                    ),
-                  ):Container(),
+                  showLogo
+                      ? Padding(
+                          padding: const EdgeInsets.only(top: 12, right: 8),
+                          child: Image.asset(
+                            "assets/images/Ellipse 3.png",
+                            width: 35,
+                            height: 35,
+                          ),
+                        )
+                      : Container(),
                 ],
                 title: Column(
                   children: [
@@ -613,8 +599,9 @@ class InvestorMain extends StatelessWidget {
                         if (_backButton)
                           InkWell(
                             onTap: () {
-                              print('BeamBack ${Beamer.of(context).canBeamBack} \n\n');
-                              if(Beamer.of(context).canBeamBack) {
+                              if (pop) {
+                                Navigator.pop(context);
+                              } else if (Beamer.of(context).canBeamBack) {
                                 Beamer.of(context).beamBack();
                               } else {
                                 Navigator.pushReplacement(
@@ -639,7 +626,9 @@ class InvestorMain extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              mobileTitle != null ? mobileTitle : 'Hello ${userData['name']} 👋',
+                              mobileTitle != null
+                                  ? mobileTitle
+                                  : 'Hello ${userData['name']} 👋',
                               textAlign: TextAlign.left,
                               style: TextStyle(
                                   color: Color.fromRGBO(51, 51, 51, 1),
@@ -679,14 +668,16 @@ class InvestorMain extends StatelessWidget {
             )
           : null,
       body: Container(
-        // height: MediaQuery.of(context).size.height,
         width: MediaQuery.of(context).size.width,
         decoration: bgDecoration,
         child: Responsive(
           desktop: Row(
             children: <Widget>[
-              DesktopMainMenuWidget(_menuList2, backButton: _backButton,pop: pop,),
-              // const VerticalDivider(thickness: 1, width: 1),
+              DesktopMainMenuWidget(
+                _menuList2,
+                backButton: _backButton,
+                pop: pop,
+              ),
               Expanded(
                 child: body,
               )

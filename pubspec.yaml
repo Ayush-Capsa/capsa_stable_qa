@@ -92,6 +92,13 @@ dependencies:
   getwidget: ^1.2.4
   native_pdf_view:
   internet_file:
+  local_session_timeout:
+  xml: ^5.0.0
+  web_smooth_scroll:
+  shared_preferences:
+  #firebase_analytics_web:
+  #firebase_analytics: 8.0.0
+  #firebase_core: 1.0.3
 
 dev_dependencies:
   flutter_test:

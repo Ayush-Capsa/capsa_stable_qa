@@ -32,6 +32,10 @@ import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:http/http.dart' as http;
 
+import '../../common/app_theme.dart';
+import '../../vendor-new/provider/vendor_action_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 const titleStyle = TextStyle(
   color: Colors.green,
   fontWeight: FontWeight.bold,
@@ -167,7 +171,7 @@ bool bidDeleted = false;
 
 showBidDialog(
     BuildContext context, int index, OpenDealProvider openDealProvider,
-    {buyNow = false}) {
+    {buyNow = false, pop = false}) {
   return showDialog(
     context: context,
     barrierDismissible: false,
@@ -255,102 +259,12 @@ showBidDialog(
             )
           ],
         ),
-        content: ShowBidContentMyClass(index, buyNow, openDealProvider),
-      );
-    },
-  );
-}
-
-showEditInvoiceDialog(
-    BuildContext context, int index, OpenDealProvider openDealProvider,
-    {buyNow = false}) {
-  return showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      OpenDealModel openInvoice = openDealProvider.openInvoices[index];
-      return AlertDialog(
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(32.0))),
-        backgroundColor: HexColor("#F5FBFF"),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              buyNow ? "Buy Now" : 'Place Bid',
-              textAlign: TextAlign.left,
-              style: TextStyle(
-                  color: Color.fromRGBO(33, 150, 83, 1),
-                  fontFamily: 'Poppins',
-                  fontSize: 24,
-                  letterSpacing:
-                      0 /*percentages not used in flutter. defaulting to zero*/,
-                  fontWeight: FontWeight.normal,
-                  height: 1),
-            ),
-            SizedBox(
-              width: 10,
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(
-                  'Invoice Value',
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                      color: Color.fromRGBO(51, 51, 51, 1),
-                      // fontFamily: 'Poppins',
-                      fontSize: 14,
-                      letterSpacing:
-                          0 /*percentages not used in flutter. defaulting to zero*/,
-                      fontWeight: FontWeight.normal,
-                      height: 1),
-                ),
-
-                SizedBox(
-                  height: 10,
-                ),
-                // Figma Flutter Generator AmountWidget - FRAME - HORIZONTAL
-                Container(
-                  decoration: BoxDecoration(),
-                  padding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Text(
-                        '₦',
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
-                            color: Color.fromRGBO(0, 152, 219, 1),
-                            fontFamily: 'Poppins',
-                            fontSize: 18,
-                            letterSpacing:
-                                0 /*percentages not used in flutter. defaulting to zero*/,
-                            fontWeight: FontWeight.normal,
-                            height: 1),
-                      ),
-                      SizedBox(width: 4),
-                      Text(
-                        formatCurrency(openInvoice.invoice_value),
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
-                            color: Color.fromRGBO(0, 152, 219, 1),
-                            fontFamily: 'Poppins',
-                            fontSize: 18,
-                            letterSpacing:
-                                0 /*percentages not used in flutter. defaulting to zero*/,
-                            fontWeight: FontWeight.normal,
-                            height: 1),
-                      ),
-                    ],
-                  ),
-                )
-              ],
-            )
-          ],
+        content: ShowBidContentMyClass(
+          index,
+          buyNow,
+          openDealProvider,
+          pop: pop,
         ),
-        content: ShowBidContentMyClass(index, buyNow, openDealProvider),
       );
     },
   );
@@ -359,10 +273,12 @@ showEditInvoiceDialog(
 class ShowBidContentMyClass extends StatefulWidget {
   final int index;
   final bool buyNow;
+  bool pop;
 
   final OpenDealProvider openDealProvider;
 
-  ShowBidContentMyClass(this.index, this.buyNow, this.openDealProvider);
+  ShowBidContentMyClass(this.index, this.buyNow, this.openDealProvider,
+      {this.pop = false});
 
   @override
   _ShowBidContentMyClassState createState() => _ShowBidContentMyClassState();
@@ -477,6 +393,11 @@ class _ShowBidContentMyClassState extends State<ShowBidContentMyClass> {
               rValue.toStringAsFixed(2) +
               '\n';
     });
+    if(widget.buyNow) {
+      myController3.text = formatCurrency(rValue.toStringAsFixed(2));
+    }
+
+    myController5.text = formatCurrency(netreturn.toStringAsFixed(2));
   }
 
   @override
@@ -490,6 +411,8 @@ class _ShowBidContentMyClassState extends State<ShowBidContentMyClass> {
       myController0.text = openInvoice.ask_amt;
       amount = openInvoice.ask_amt;
       calCul();
+      myController0.text = formatCurrency(openInvoice.ask_amt);
+
     }
   }
 
@@ -643,14 +566,21 @@ class _ShowBidContentMyClassState extends State<ShowBidContentMyClass> {
                         _loading = true;
                       });
                       // return;
-                      if (widget.buyNow)
-                        await widget.openDealProvider.bidActionCall(
-                            context, openInvoice, 1, widget.index,
-                            buyNow: widget.buyNow);
-                      else
-                        await widget.openDealProvider.bidActionCall(
-                            context, openInvoice, 0, widget.index,
-                            tRate: tRate, rate: rate, amt: amount);
+                      if (openInvoice.RF.toString() != '1') {
+                        if (widget.buyNow)
+                          await widget.openDealProvider.bidActionCall(
+                              context, openInvoice, 1, widget.index,
+                              buyNow: widget.buyNow);
+                        else
+                          await widget.openDealProvider.bidActionCall(
+                              context, openInvoice, 0, widget.index,
+                              tRate: tRate, rate: rate, amt: amount);
+                      } else {
+                        Navigator.pop(context);
+                        showSaleAgreementDialog(context, openInvoice, 1,
+                            widget.index, widget.openDealProvider,
+                            pop: widget.pop);
+                      }
                     },
                     child: Container(
                         width: double.infinity,
@@ -668,7 +598,7 @@ class _ShowBidContentMyClassState extends State<ShowBidContentMyClass> {
                         child: Center(
                           child: Text(
                             (widget.buyNow ? 'Buy now at ' : 'Place Bid at ') +
-                                formatCurrency(myController0.text,
+                                formatCurrency(openInvoice.ask_amt,
                                     withIcon: true),
                             textAlign: TextAlign.center,
                             style: TextStyle(
@@ -737,11 +667,107 @@ class _ShowBidContentMyClassState extends State<ShowBidContentMyClass> {
   }
 }
 
+showEditInvoiceDialog(
+    BuildContext context, int index, OpenDealProvider openDealProvider,
+    {buyNow = false}) {
+  return showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      OpenDealModel openInvoice = openDealProvider.openInvoices[index];
+      return AlertDialog(
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(32.0))),
+        backgroundColor: HexColor("#F5FBFF"),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              buyNow ? "Buy Now" : 'Place Bid',
+              textAlign: TextAlign.left,
+              style: TextStyle(
+                  color: Color.fromRGBO(33, 150, 83, 1),
+                  fontFamily: 'Poppins',
+                  fontSize: 24,
+                  letterSpacing:
+                      0 /*percentages not used in flutter. defaulting to zero*/,
+                  fontWeight: FontWeight.normal,
+                  height: 1),
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  'Invoice Value',
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                      color: Color.fromRGBO(51, 51, 51, 1),
+                      // fontFamily: 'Poppins',
+                      fontSize: 14,
+                      letterSpacing:
+                          0 /*percentages not used in flutter. defaulting to zero*/,
+                      fontWeight: FontWeight.normal,
+                      height: 1),
+                ),
+
+                SizedBox(
+                  height: 10,
+                ),
+                // Figma Flutter Generator AmountWidget - FRAME - HORIZONTAL
+                Container(
+                  decoration: BoxDecoration(),
+                  padding: EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Text(
+                        '₦',
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                            color: Color.fromRGBO(0, 152, 219, 1),
+                            fontFamily: 'Poppins',
+                            fontSize: 18,
+                            letterSpacing:
+                                0 /*percentages not used in flutter. defaulting to zero*/,
+                            fontWeight: FontWeight.normal,
+                            height: 1),
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        formatCurrency(openInvoice.invoice_value),
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                            color: Color.fromRGBO(0, 152, 219, 1),
+                            fontFamily: 'Poppins',
+                            fontSize: 18,
+                            letterSpacing:
+                                0 /*percentages not used in flutter. defaulting to zero*/,
+                            fontWeight: FontWeight.normal,
+                            height: 1),
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            )
+          ],
+        ),
+        content: ShowBidContentMyClass(index, buyNow, openDealProvider),
+      );
+    },
+  );
+}
+
 showEditBidDialog(
   BuildContext context,
   OpenDealModel data,
   String amt,
 ) {
+  capsaPrint(amt);
   return showDialog(
     context: context,
     barrierDismissible: false,
@@ -1289,9 +1315,12 @@ class _ShowEditBidContentMyClassState extends State<ShowEditBidContentMyClass> {
                                     });
 
                                     if (amount.trim() == '') return;
-                                    dynamic response = await bidEdit(widget.data,
-                                        amt: amount, rate: rate);
-                                    capsaPrint('Edit Invoice Response : $response');
+                                    dynamic response = await bidEdit(
+                                        widget.data,
+                                        amt: amount,
+                                        rate: rate);
+                                    capsaPrint(
+                                        'Edit Invoice Response : $response');
 
                                     setState(() {
                                       _loading = false;
@@ -1328,7 +1357,8 @@ class _ShowEditBidContentMyClassState extends State<ShowEditBidContentMyClass> {
                                         'Edit Bid',
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
-                                            color: Color.fromRGBO(242, 242, 242, 1),
+                                            color: Color.fromRGBO(
+                                                242, 242, 242, 1),
                                             fontFamily: 'Poppins',
                                             fontSize: 16,
                                             letterSpacing:
@@ -1339,12 +1369,11 @@ class _ShowEditBidContentMyClassState extends State<ShowEditBidContentMyClass> {
                                     ),
                                   ),
                                 ),
-
                                 SizedBox(height: 10),
-
                                 InkWell(
                                   onTap: () {
-                                    Navigator.of(context, rootNavigator: true).pop();
+                                    Navigator.of(context, rootNavigator: true)
+                                        .pop();
                                   },
                                   child: Container(
                                       width: double.infinity,
@@ -1357,23 +1386,23 @@ class _ShowEditBidContentMyClassState extends State<ShowEditBidContentMyClass> {
                                         ),
                                         color: Colors.red,
                                       ),
-                                      padding:
-                                      EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 15, vertical: 15),
                                       child: Center(
                                         child: Text(
                                           'Cancel',
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
-                                              color: Color.fromRGBO(242, 242, 242, 1),
+                                              color: Color.fromRGBO(
+                                                  242, 242, 242, 1),
                                               fontSize: 16,
                                               letterSpacing:
-                                              0 /*percentages not used in flutter. defaulting to zero*/,
+                                                  0 /*percentages not used in flutter. defaulting to zero*/,
                                               fontWeight: FontWeight.normal,
                                               height: 1),
                                         ),
                                       )),
                                 ),
-
                               ],
                             ),
                           ),
@@ -1812,7 +1841,7 @@ class _ShowDeleteBidContentMyClassState
   }
 }
 
-showPayDialog(context, OpenDealModel invoice, openDealProvider) {
+showPayDialog(context, OpenDealModel invoice, OpenDealProvider openDealProvider) {
   num factorValue = openDealProvider.getFactorValue(invoice);
   num discountRate = openDealProvider.getDiscountRate(invoice);
 
@@ -1953,7 +1982,7 @@ showPayDialog(context, OpenDealModel invoice, openDealProvider) {
 
 // ignore: must_be_immutable
 class MyPayButtonClass extends StatefulWidget {
-  final openDealProvider;
+  final OpenDealProvider openDealProvider;
 
   OpenDealModel invoice;
 
@@ -2008,8 +2037,9 @@ class _MyPayButtonClassState extends State<MyPayButtonClass> {
                     loading = true;
                   });
                   dynamic _response = await widget.openDealProvider
-                      .payClick(context, widget.invoice);
-                  // capsaPrint(_response);
+                      .payClick(widget.invoice);
+                  capsaPrint('pay clock 2');
+                  capsaPrint(_response);
                   if (_response['res'] == 'success') {
                     showToast('Payment Success!.', context);
                   } else {
@@ -2041,7 +2071,8 @@ class _MyPayButtonClassState extends State<MyPayButtonClass> {
 }
 
 showBuyNowDialog(
-    BuildContext context, int index, OpenDealProvider openDealProvider) {
+    BuildContext context, int index, OpenDealProvider openDealProvider,
+    {bool pop = false}) {
   return showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -2174,6 +2205,1111 @@ showApproveLetterDialog(context) {
     },
   );
 }
+
+showSaleAgreementDialog(BuildContext context1, OpenDealModel openInvoice,
+    int clickType, index, OpenDealProvider provider,
+    {String rate, String amt, String tRate, buyNow = false, pop = false}) {
+  String digitalName = '';
+  bool processing = false;
+
+  bool purchased = false;
+
+  showDialog(
+    context: context1,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return StatefulBuilder(builder: (context, setState) {
+        return purchased
+            ? AlertDialog(
+                // title: Text(
+                //   '',
+                //   style: TextStyle(
+                //     fontSize: 24,
+                //     fontWeight: FontWeight.bold,
+                //     color: Theme.of(context).primaryColor,
+                //   ),
+                // ),
+                content: Container(
+                    // width: 800,
+                    height: 230,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            height: 12,
+                          ),
+                          Image.asset('assets/icons/check.png'),
+                          SizedBox(
+                            height: 12,
+                          ),
+                          Text(
+                            'Invoice Purchased Successfully',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          SizedBox(
+                            height: 12,
+                          ),
+                          InkWell(
+                            onTap: () {
+                              Navigator.pop(context);
+                              Navigator.pop(context);
+                            },
+                            child: Container(
+                              width: 160,
+                              decoration: BoxDecoration(
+                                  color: HexColor('#0098DB'),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(10))),
+                              child: Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Text(
+                                    'Okay',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w400,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )),
+                //actions: <Widget>[],
+              )
+            : AlertDialog(
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                insetPadding:
+                    EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                title: Text(
+                  "Sale Agreement",
+                  style: titleStyle,
+                ),
+                content: Theme(
+                  data: appTheme,
+                  child: FutureBuilder<Object>(
+                      future: provider.loadPurchaseAgreement(
+                          openInvoice, 'false'),
+                      builder: (context, snapshot) {
+                        dynamic _data = snapshot.data;
+
+                        if (snapshot.hasData) {
+                          capsaPrint('agreement data: $_data');
+                          if (_data['res'] == 'success') {
+                            var url = _data['data']['url'];
+                            return Padding(
+                              padding:
+                              EdgeInsets.all(Responsive.isMobile(context) ? 1 : 8.0),
+                              child: Container(
+                                margin: EdgeInsets.symmetric(
+                                    horizontal: Responsive.isMobile(context) ? 1 : 20),
+                                constraints: Responsive.isMobile(context)
+                                    ? BoxConstraints(
+                                  minWidth: 450,
+                                )
+                                    : BoxConstraints(minWidth: 750),
+                                child: Center(
+                                  child: Container(
+                                    width: double.infinity,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Expanded(
+                                          child: Container(
+                                            // color: Theme.of(context).accentColor,
+                                            child: Container(
+                                              margin: EdgeInsets.all(5),
+                                              child: SfPdfViewer.network(
+                                                  url),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          height: 15,
+                                        ),
+                                        Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: Text(
+                                            'Digital Signature',
+                                            style:
+                                            lableStyle.copyWith(color: Colors.black),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          height: 5,
+                                        ),
+
+                                        TextFormField(
+                                          inputFormatters: [
+                                            UpperCaseTextFormatter(),
+                                          ],
+                                          onChanged: (value) => digitalName = value,
+                                          autovalidateMode:
+                                          AutovalidateMode.onUserInteraction,
+                                          textCapitalization:
+                                          TextCapitalization.characters,
+                                          keyboardType: TextInputType.text,
+                                          validator: (String value) {
+                                            if (value.trim().isEmpty) {
+                                              return 'Cannot be empty';
+                                            }
+                                            return null;
+                                          },
+                                          decoration: InputDecoration(
+                                              hintText:
+                                              'Enter First Name & Last Name'),
+                                        ),
+                                        if (Responsive.isMobile(context))
+                                          SizedBox(
+                                            height: 15,
+                                          )
+                                        else
+                                          SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                          ),
+
+                                        OrientationSwitcher(
+                                          orientation: 'Row',
+                                          children: [
+
+                                            if (processing) CircularProgressIndicator(),
+                                            if (!processing)
+                                              Flexible(
+                                                flex: 1,
+                                                child: MaterialButton(
+                                                  height: 56,
+                                                  color: Colors.green,
+                                                  child: Text(
+                                                    'Accept',
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    setState(() {
+                                                      processing = true;
+                                                    });
+
+                                                    if (digitalName.trim() == '' ||
+                                                        digitalName == null) {
+                                                      showToast(
+                                                          'Please Enter Digital Name Field',
+                                                          context,
+                                                          type: 'warning');
+                                                      return;
+                                                    }
+
+                                                    capsaPrint(
+                                                        'digital signtaure pass 1');
+
+                                                    dynamic _response =
+                                                    await provider.actionOnProposal(
+                                                        openInvoice,
+                                                        'ACCEPT',
+                                                        digitalName);
+
+
+
+                                                    capsaPrint(
+                                                        'digital signtaure pass 2 $_response');
+
+                                                    if (_response['msg'] ==
+                                                        'success') {
+                                                      capsaPrint('action on proposal');
+
+                                                      dynamic bidActionCallResponse =
+                                                      await provider.bidActionCall(
+                                                          context,
+                                                          openInvoice,
+                                                          1,
+                                                          index,
+                                                          buyNow: buyNow);
+
+                                                      capsaPrint(
+                                                          'digital signtaure pass 3 $_response');
+
+                                                      if (bidActionCallResponse['res'] ==
+                                                          'success' ||
+                                                          _response['msg'] == 'success') {
+                                                        //showToast('Invoice Purchased Successfully', context);
+
+                                                        dynamic _response2 =
+                                                        await provider.actionOnProposal2(
+                                                            openInvoice,
+                                                            'ACCEPT',
+                                                            digitalName);
+
+                                                        if(_response2['res'] != 'success'){
+                                                          showToast(
+                                                              'Something Went Wrong',
+                                                              context,
+                                                              type: 'warning');
+                                                          return;
+                                                        }
+
+                                                        dynamic payResponse =
+                                                        await provider
+                                                            .payClick(openInvoice);
+                                                        capsaPrint(
+                                                            'digital signtaure pass 4 $payResponse');
+                                                        capsaPrint('pass 2.4');
+                                                        // capsaPrint(_response);
+                                                        if (payResponse['res'] ==
+                                                            'success') {
+                                                          capsaPrint('pass 2.56');
+                                                          setState(() {
+                                                            purchased = true;
+                                                          });
+                                                          //Navigator.of(context, rootNavigator: true).pop();
+                                                          final prefs =
+                                                          await SharedPreferences
+                                                              .getInstance();
+
+                                                          await prefs.setString('message',
+                                                              'Invoice Purchased Successfully');
+
+                                                          if (pop) {
+                                                            payResponse['res'] ==
+                                                                'success'
+                                                                ? showToast(
+                                                                'Invoice purchased Successfully',
+                                                                context)
+                                                                : showToast(
+                                                                'Something Went Wrong',
+                                                                context,
+                                                                type: 'warning');
+                                                            Navigator.pop(context);
+                                                            Navigator.pop(context);
+                                                          } else {
+                                                            showInvoicePurchasedDialog(
+                                                                context1, payResponse,
+                                                                pop: pop);
+                                                          }
+
+                                                          // showInvoicePurchasedDialog(context1, payResponse, pop: pop);
+
+                                                          capsaPrint('pass 2.58');
+                                                        } else {
+                                                          final prefs =
+                                                          await SharedPreferences
+                                                              .getInstance();
+
+                                                          await prefs.setString('message',
+                                                              _response['messg']);
+                                                          await prefs.setString(
+                                                              'type', 'warning');
+
+                                                          if (pop) {
+                                                            payResponse['res'] ==
+                                                                'success'
+                                                                ? showToast(
+                                                                'Invoice purchased Successfully',
+                                                                context)
+                                                                : showToast(
+                                                                'Something Went Wrong',
+                                                                context,
+                                                                type: 'warning');
+                                                            Navigator.pop(context);
+                                                            Navigator.pop(context);
+                                                          } else {
+                                                            showInvoicePurchasedDialog(
+                                                                context1, payResponse,
+                                                                pop: pop);
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  },
+                                                ),
+                                              ),
+                                            if (Responsive.isMobile(context))
+                                              SizedBox(
+                                                width: 15,
+                                              )
+                                            else
+                                              SizedBox(
+                                                width: 20,
+                                              ),
+                                            if (!processing)
+                                              Flexible(
+                                                  flex: 1,
+                                                  child: MaterialButton(
+                                                    height: 56,
+                                                    color: Colors.red,
+                                                    child: Text(
+                                                      'Cancel',
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                      ),
+                                                    ),
+                                                    onPressed: () async {
+                                                      Navigator.of(context,
+                                                          rootNavigator: true)
+                                                          .pop();
+                                                      return null;
+                                                    },
+                                                  )),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          } else {
+                            return Container();
+                          }
+                        } else {
+                          return Center(
+                            child: Container(
+                              height: 200,
+                              width: 500,
+                              child: Center(
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      CircularProgressIndicator(),
+                                      SizedBox(
+                                        width: 15,
+                                      ),
+                                      Text('Loading...'),
+                                    ],
+                                  )),
+                            ),
+                          );
+                        }
+                      }),
+
+                  // Padding(
+                  //   padding:
+                  //       EdgeInsets.all(Responsive.isMobile(context) ? 1 : 8.0),
+                  //   child: Container(
+                  //     margin: EdgeInsets.symmetric(
+                  //         horizontal: Responsive.isMobile(context) ? 1 : 20),
+                  //     constraints: Responsive.isMobile(context)
+                  //         ? BoxConstraints(
+                  //             minWidth: double.infinity,
+                  //           )
+                  //         : BoxConstraints(minWidth: 750),
+                  //     child: Center(
+                  //       child: Container(
+                  //         width: double.infinity,
+                  //         child: Column(
+                  //           mainAxisSize: MainAxisSize.min,
+                  //           children: [
+                  //             Expanded(
+                  //               child: Container(
+                  //                 // color: Theme.of(context).accentColor,
+                  //                 child: Container(
+                  //                   margin: EdgeInsets.all(5),
+                  //                   child: SfPdfViewer.network(
+                  //                       'https://cdn.syncfusion.com/content/PDFViewer/flutter-succinctly.pdf'),
+                  //                 ),
+                  //               ),
+                  //             ),
+                  //             SizedBox(
+                  //               height: 15,
+                  //             ),
+                  //             Align(
+                  //               alignment: Alignment.centerLeft,
+                  //               child: Text(
+                  //                 'Digital Signature',
+                  //                 style:
+                  //                     lableStyle.copyWith(color: Colors.black),
+                  //               ),
+                  //             ),
+                  //             SizedBox(
+                  //               height: 5,
+                  //             ),
+                  //             OrientationSwitcher(
+                  //               children: [
+                  //                 Flexible(
+                  //                   flex: Responsive.isMobile(context) ? 1 : 3,
+                  //                   child: TextFormField(
+                  //                     inputFormatters: [
+                  //                       UpperCaseTextFormatter(),
+                  //                     ],
+                  //                     onChanged: (value) => digitalName = value,
+                  //                     autovalidateMode:
+                  //                         AutovalidateMode.onUserInteraction,
+                  //                     textCapitalization:
+                  //                         TextCapitalization.characters,
+                  //                     keyboardType: TextInputType.text,
+                  //                     validator: (String value) {
+                  //                       if (value.trim().isEmpty) {
+                  //                         return 'Cannot be empty';
+                  //                       }
+                  //                       return null;
+                  //                     },
+                  //                     decoration: InputDecoration(
+                  //                         hintText:
+                  //                             'Enter First Name & Last Name'),
+                  //                   ),
+                  //                 ),
+                  //                 if (Responsive.isMobile(context))
+                  //                   SizedBox(
+                  //                     height: 15,
+                  //                   )
+                  //                 else
+                  //                   SizedBox(
+                  //                     width: 20,
+                  //                   ),
+                  //                 if (processing) CircularProgressIndicator(),
+                  //                 if (!processing)
+                  //                   Flexible(
+                  //                     flex: 1,
+                  //                     child: MaterialButton(
+                  //                       height: 56,
+                  //                       color: Colors.green,
+                  //                       child: Text(
+                  //                         'Accept',
+                  //                         style: TextStyle(
+                  //                           color: Colors.white,
+                  //                         ),
+                  //                       ),
+                  //                       onPressed: () async {
+                  //                         setState(() {
+                  //                           processing = true;
+                  //                         });
+                  //
+                  //                         if (digitalName.trim() == '' ||
+                  //                             digitalName == null) {
+                  //                           showToast(
+                  //                               'Please Enter Digital Name Field',
+                  //                               context,
+                  //                               type: 'warning');
+                  //                           return;
+                  //                         }
+                  //
+                  //                         capsaPrint(
+                  //                             'digital signtaure pass 1');
+                  //
+                  //                         dynamic bidActionCallResponse =
+                  //                             await provider.bidActionCall(
+                  //                                 context,
+                  //                                 openInvoice,
+                  //                                 1,
+                  //                                 index,
+                  //                                 buyNow: buyNow);
+                  //
+                  //                         capsaPrint(
+                  //                             'digital signtaure pass 2 $bidActionCallResponse');
+                  //
+                  //                         if (bidActionCallResponse['res'] ==
+                  //                             'success') {
+                  //                           capsaPrint('action on proposal');
+                  //                           dynamic _response =
+                  //                               await provider.actionOnProposal(
+                  //                                   openInvoice,
+                  //                                   'ACCEPT',
+                  //                                   digitalName);
+                  //
+                  //                           capsaPrint(
+                  //                               'digital signtaure pass 3 $_response');
+                  //
+                  //                           if (_response['status'] ==
+                  //                                   'success' ||
+                  //                               _response['msg'] == 'success') {
+                  //                             //showToast('Invoice Purchased Successfully', context);
+                  //                             dynamic payResponse =
+                  //                                 await provider
+                  //                                     .payClick(openInvoice);
+                  //                             capsaPrint(
+                  //                                 'digital signtaure pass 4 $payResponse');
+                  //                             capsaPrint('pass 2.4');
+                  //                             // capsaPrint(_response);
+                  //                             if (payResponse['res'] ==
+                  //                                 'success') {
+                  //                               capsaPrint('pass 2.56');
+                  //                               setState(() {
+                  //                                 purchased = true;
+                  //                               });
+                  //                               //Navigator.of(context, rootNavigator: true).pop();
+                  //                               final prefs =
+                  //                                   await SharedPreferences
+                  //                                       .getInstance();
+                  //
+                  //                               await prefs.setString('message',
+                  //                                   'Invoice Purchased Successfully');
+                  //
+                  //                               if (pop) {
+                  //                                 payResponse['res'] ==
+                  //                                         'success'
+                  //                                     ? showToast(
+                  //                                         'Invoice purchased Successfully',
+                  //                                         context)
+                  //                                     : showToast(
+                  //                                         'Something Went Wrong',
+                  //                                         context,
+                  //                                         type: 'warning');
+                  //                                 Navigator.pop(context);
+                  //                                 Navigator.pop(context);
+                  //                               } else {
+                  //                                 showInvoicePurchasedDialog(
+                  //                                     context1, payResponse,
+                  //                                     pop: pop);
+                  //                               }
+                  //
+                  //                               // showInvoicePurchasedDialog(context1, payResponse, pop: pop);
+                  //
+                  //                               capsaPrint('pass 2.58');
+                  //                             } else {
+                  //                               final prefs =
+                  //                                   await SharedPreferences
+                  //                                       .getInstance();
+                  //
+                  //                               await prefs.setString('message',
+                  //                                   _response['messg']);
+                  //                               await prefs.setString(
+                  //                                   'type', 'warning');
+                  //
+                  //                               if (pop) {
+                  //                                 payResponse['res'] ==
+                  //                                     'success'
+                  //                                     ? showToast(
+                  //                                     'Invoice purchased Successfully',
+                  //                                     context)
+                  //                                     : showToast(
+                  //                                     'Something Went Wrong',
+                  //                                     context,
+                  //                                     type: 'warning');
+                  //                                 Navigator.pop(context);
+                  //                                 Navigator.pop(context);
+                  //                               } else {
+                  //                                 showInvoicePurchasedDialog(
+                  //                                     context1, payResponse,
+                  //                                     pop: pop);
+                  //                               }
+                  //                             }
+                  //                           }
+                  //                         }
+                  //                       },
+                  //                     ),
+                  //                   ),
+                  //                 if (Responsive.isMobile(context))
+                  //                   SizedBox(
+                  //                     height: 15,
+                  //                   )
+                  //                 else
+                  //                   SizedBox(
+                  //                     width: 20,
+                  //                   ),
+                  //                 if (!processing)
+                  //                   Flexible(
+                  //                       flex: 1,
+                  //                       child: MaterialButton(
+                  //                         height: 56,
+                  //                         color: Colors.red,
+                  //                         child: Text(
+                  //                           'Cancel',
+                  //                           style: TextStyle(
+                  //                             color: Colors.white,
+                  //                           ),
+                  //                         ),
+                  //                         onPressed: () async {
+                  //                           Navigator.of(context,
+                  //                                   rootNavigator: true)
+                  //                               .pop();
+                  //                           return null;
+                  //                         },
+                  //                       )),
+                  //               ],
+                  //             ),
+                  //           ],
+                  //         ),
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
+                ),
+              );
+      });
+    },
+  );
+}
+
+showInvoicePurchasedDialog(context1, payResponse, {bool pop = false}) {
+  String digitalName = '';
+  bool processing = false;
+
+  return showDialog(
+      context: context1,
+      barrierDismissible: true,
+      builder: (context) => AlertDialog(
+            // title: Text(
+            //   '',
+            //   style: TextStyle(
+            //     fontSize: 24,
+            //     fontWeight: FontWeight.bold,
+            //     color: Theme.of(context).primaryColor,
+            //   ),
+            // ),
+            content: Container(
+                // width: 800,
+                height: 230,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 12,
+                      ),
+                      payResponse['res'] == 'success'
+                          ? Image.asset('assets/icons/check.png')
+                          : Image.asset('assets/icons/cancel.png'),
+                      SizedBox(
+                        height: 12,
+                      ),
+                      Text(
+                        payResponse['res'] == 'success'
+                            ? 'Invoice Purchased Successfully'
+                            : 'Something went wrong',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 12,
+                      ),
+                      InkWell(
+                        onTap: () {
+                          capsaPrint('Pressed okay');
+                          Navigator.pop(context);
+                          capsaPrint('pop : $pop');
+                          if (pop) {
+                            Navigator.pop(context);
+                          }
+                        },
+                        child: Container(
+                          width: 160,
+                          decoration: BoxDecoration(
+                              color: HexColor('#0098DB'),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(10))),
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Text(
+                                'Okay 4',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+            //actions: <Widget>[],
+          ));
+}
+
+//
+// class ShowSaleAgreementContentMyClass extends StatefulWidget {
+//   final OpenDealModel data;
+//   String amt;
+//   BuildContext context1;
+//
+//   ShowSaleAgreementContentMyClass(this.data, this.amt, this.context1);
+//
+//   @override
+//   _ShowSaleAgreementContentMyClassState createState() =>
+//       _ShowSaleAgreementContentMyClassState();
+// }
+//
+// class _ShowSaleAgreementContentMyClassState
+//     extends State<ShowSaleAgreementContentMyClass> {
+//   bool _loading = false;
+//   bool bidDeletedSuccessfully = false;
+//
+//   void getData() async{
+//     dynamic response = await Provider.of<VendorActionProvider>(context, listen: false).bidProposalDetails(Uri.decodeComponent(widget.data.invoice_number));
+//
+//   }
+//
+//   Future<Object> deleteBid(OpenDealModel invoice,
+//       {String rate, String amt, String tRate}) async {
+//     if (box.get('isAuthenticated', defaultValue: false)) {
+//       var userData = Map<String, dynamic>.from(box.get('userData'));
+//
+//       // var invoicedays = 0;
+//       //
+//       // var payableamount = double.parse(invoice.invoice_value);
+//       // var purchaseprice;
+//       // if (amt != null) {
+//       //   double _amt = double.parse(amt);
+//       //   purchaseprice = _amt;
+//       // } else {
+//       //   purchaseprice = double.parse(invoice.ask_amt);
+//       // }
+//       //
+//       // DateTime invoiceDate =
+//       //     new DateFormat("yyyy-MM-dd").parse(invoice.start_date);
+//       //
+//       // DateTime invoiceDueDate =
+//       //     new DateFormat("yyyy-MM-dd").parse(invoice.due_date);
+//       //
+//       // // invoice.invDate = DateFormat.yMMMd('en_US').format(invoiceDate);
+//       // // invoice.invDueDate = DateFormat.yMMMd('en_US').format(invoiceDueDate);
+//       // invoicedays = invoiceDueDate.difference(invoiceDate).inDays;
+//       //
+//       // var termRate =
+//       //     (1 / invoicedays) * (payableamount / purchaseprice - 1) * invoicedays;
+//       // termRate = termRate * 100;
+//       // termRate = termRate.toPrecision(2);
+//       //
+//       // var rate = (1 / invoicedays) * (payableamount / purchaseprice - 1) * 360;
+//       // rate = rate * 100;
+//       // rate = rate.toPrecision(2);
+//
+//       // return null;
+//
+//       var _body = {};
+//
+//       _body['investor_pan'] = userData['panNumber'];
+//       _body['userName'] = userData['userName'];
+//       _body['role'] = userData['role'];
+//       _body['new_prop_amt'] = amt.toString();
+//       _body['discount_per'] = rate.toString();
+//
+//       _body['pay_amt'] = '';
+//       // _body['discount_val'] = openInvoice.;
+//       _body['plt_fee'] = '';
+//       _body['pay_amt'] = '';
+//       _body['from_popup'] = '1';
+//       // _body['comp_pan'] = invoice.comp_pan;
+//       // _body['cust_pan'] = invoice.cust_pan;
+//       // _body['prop_amt'] = invoice.prop_amt;
+//       // _body['discper1'] = openInvoice.discper;
+//       // _body['childcontract1'] = openInvoice.childcontract;
+//       _body['duedate1'] = invoice.due_date;
+//       _body['inv_number'] = invoice.invoice_number;
+//       _body['invval1'] = invoice.invoice_value;
+//       _body['start_date'] = invoice.start_date;
+//       _body['due_date'] = invoice.due_date;
+//       // _body['click_type'] = clickType.toString();
+//
+//       //_body['diffDays'] = invoicedays.toString();
+//
+//       // capsaPrint(_body);
+//       // return null;
+//       String _url = apiUrl;
+//
+//       dynamic _uri;
+//       _uri = _url + 'dashboard/i/deleteBid';
+//       _uri = Uri.parse(_uri);
+//       var response = await http.post(_uri,
+//           headers: <String, String>{
+//             'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+//           },
+//           body: _body);
+//       var data = jsonDecode(response.body);
+//
+//       capsaPrint('Delete response : $data');
+//
+//       // if (data['res'] == 'success') {
+//       //   var _data = data['data'];
+//       //
+//       //   notifyListeners();
+//       // }
+//
+//       return data;
+//     }
+//     return null;
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     //OpenDealProvider openDealProvider = Provider.of<OpenDealProvider>(context, listen: false);
+//     return Container(
+//       constraints: Responsive.isMobile(context)
+//           ? BoxConstraints(
+//         minHeight: 300,
+//       )
+//           : BoxConstraints(minHeight: 220, maxWidth: 400),
+//       decoration: BoxDecoration(
+//         color: Color.fromRGBO(245, 251, 255, 1),
+//       ),
+//       child: Padding(
+//         padding: const EdgeInsets.fromLTRB(6, 8, 6, 8),
+//         child: Column(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           crossAxisAlignment: CrossAxisAlignment.center,
+//           mainAxisSize: MainAxisSize.min,
+//           children: [
+//             Text(
+//               _text,
+//               textAlign: TextAlign.center,
+//             ),
+//             SizedBox(
+//               height: 22,
+//             ),
+//             Text("Do you wish to proceed? ", textAlign: TextAlign.center),
+//             SizedBox(
+//               height: 30,
+//             ),
+//             Row(
+//               mainAxisAlignment: MainAxisAlignment.center,
+//               crossAxisAlignment: CrossAxisAlignment.center,
+//               children: [
+//                 // Figma Flutter Generator YesWidget - TEXT
+//                 InkWell(
+//                   onTap: () {
+//                     Navigator.of(context, rootNavigator: true).pop();
+//
+//                     return showDialog(
+//                       context: context,
+//                       builder: (BuildContext context) {
+//                         return StatefulBuilder(builder: (context, setState) {
+//                           return AlertDialog(
+//                             contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+//                             insetPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+//                             title: Text(
+//                               "Sale Agreement",
+//                               style: titleStyle,
+//                             ),
+//                             content: Theme(
+//                               data: appTheme,
+//                               child: Padding(
+//                                 padding: EdgeInsets.all(Responsive.isMobile(context) ? 1 : 8.0),
+//                                 child: Container(
+//                                   margin: EdgeInsets.symmetric(horizontal: Responsive.isMobile(context) ? 1 : 20),
+//                                   constraints: Responsive.isMobile(context)
+//                                       ? BoxConstraints(
+//                                     minWidth: double.infinity,
+//                                   )
+//                                       : BoxConstraints(minWidth: 750),
+//                                   child: Center(
+//                                     child: FutureBuilder<Object>(
+//                                         future: actionProvider.loadPurchaseAgreement(widget.bids),
+//                                         builder: (context, snapshot) {
+//                                           dynamic _data = snapshot.data;
+//
+//                                           if (snapshot.hasData) {
+//                                             if (_data['res'] == 'success') {
+//                                               var url = _data['data']['url'];
+//                                               return Container(
+//                                                 width: double.infinity,
+//                                                 child: Column(
+//                                                   mainAxisSize: MainAxisSize.min,
+//                                                   children: [
+//                                                     Expanded(
+//                                                       child: Container(
+//                                                         // color: Theme.of(context).accentColor,
+//                                                         child: Container(
+//                                                           margin: EdgeInsets.all(5),
+//                                                           child: SfPdfViewer.network(url),
+//                                                         ),
+//                                                       ),
+//                                                     ),
+//                                                     SizedBox(
+//                                                       height: 15,
+//                                                     ),
+//                                                     Align(
+//                                                       alignment: Alignment.centerLeft,
+//                                                       child: Text(
+//                                                         'Digital Signature',
+//                                                         style: lableStyle.copyWith(color: Colors.black),
+//                                                       ),
+//                                                     ),
+//                                                     SizedBox(
+//                                                       height: 5,
+//                                                     ),
+//                                                     OrientationSwitcher(
+//                                                       children: [
+//                                                         Flexible(
+//                                                           flex: Responsive.isMobile(context) ? 1 : 3,
+//                                                           child: TextFormField(
+//                                                             inputFormatters: [
+//                                                               UpperCaseTextFormatter(),
+//                                                             ],
+//                                                             onChanged: (value) => digitalName = value,
+//                                                             autovalidateMode: AutovalidateMode.onUserInteraction,
+//                                                             textCapitalization: TextCapitalization.characters,
+//                                                             keyboardType: TextInputType.text,
+//                                                             validator: (String value) {
+//                                                               if (value.trim().isEmpty) {
+//                                                                 return 'Cannot be empty';
+//                                                               }
+//                                                               return null;
+//                                                             },
+//                                                             decoration: InputDecoration(hintText: 'Enter First Name & Last Name'),
+//                                                           ),
+//                                                         ),
+//                                                         if (Responsive.isMobile(context))
+//                                                           SizedBox(
+//                                                             height: 15,
+//                                                           )
+//                                                         else
+//                                                           SizedBox(
+//                                                             width: 20,
+//                                                           ),
+//                                                         if (processing) CircularProgressIndicator(),
+//                                                         if (!processing)
+//                                                           Flexible(
+//                                                             flex: 1,
+//                                                             child: MaterialButton(
+//                                                               height: 56,
+//                                                               color: Colors.green,
+//                                                               child: Text(
+//                                                                 'Accept',
+//                                                                 style: TextStyle(
+//                                                                   color: Colors.white,
+//                                                                 ),
+//                                                               ),
+//                                                               onPressed: () async {
+//                                                                 setState(() {
+//                                                                   processing = true;
+//                                                                 });
+//
+//                                                                 if (digitalName.trim() == '' || digitalName == null) {
+//                                                                   showToast('Please Enter Digital Name Field', context,
+//                                                                       type: 'warning');
+//                                                                   return;
+//                                                                 }
+//
+//                                                                 if (widget.bids.prop_stat == '0') {
+//                                                                   await actionProvider.actionOnProposal(
+//                                                                       widget.bids, "ACCEPT", digitalName);
+//
+//                                                                   showToast('Bid Successfully accepted.', context);
+//
+//                                                                   //widget.justCallSetState();
+//
+//                                                                   actionProvider..bidProposalDetails(Uri.decodeComponent(widget.invoiceNum));
+//
+//                                                                   Navigator.of(context, rootNavigator: true).pop();
+//
+//                                                                 }
+//
+//                                                                 return null;
+//                                                               },
+//                                                             ),
+//                                                           ),
+//                                                         if (Responsive.isMobile(context))
+//                                                           SizedBox(
+//                                                             height: 15,
+//                                                           )
+//                                                         else
+//                                                           SizedBox(
+//                                                             width: 20,
+//                                                           ),
+//                                                         if (!processing)
+//                                                           Flexible(
+//                                                               flex: 1,
+//                                                               child: MaterialButton(
+//                                                                 height: 56,
+//                                                                 color: Colors.red,
+//                                                                 child: Text(
+//                                                                   'Cancel',
+//                                                                   style: TextStyle(
+//                                                                     color: Colors.white,
+//                                                                   ),
+//                                                                 ),
+//                                                                 onPressed: () async {
+//                                                                   Navigator.of(context, rootNavigator: true).pop();
+//                                                                   return null;
+//                                                                 },
+//                                                               )),
+//                                                       ],
+//                                                     ),
+//                                                   ],
+//                                                 ),
+//                                               );
+//                                             } else {
+//                                               return Container();
+//                                             }
+//                                           } else {
+//                                             return Center(
+//                                               child: Container(
+//                                                 child: Center(
+//                                                     child: Row(
+//                                                       children: [
+//                                                         CircularProgressIndicator(),
+//                                                         SizedBox(
+//                                                           width: 15,
+//                                                         ),
+//                                                         Text('Loading...'),
+//                                                       ],
+//                                                     )),
+//                                               ),
+//                                             );
+//                                           }
+//                                         }),
+//                                   ),
+//                                 ),
+//                               ),
+//                             ),
+//                           );
+//                         });
+//                       },
+//                     );
+//                   },
+//                   child: Text(
+//                     'Yes',
+//                     textAlign: TextAlign.center,
+//                     style: TextStyle(
+//                         color: Color.fromRGBO(33, 150, 83, 1),
+//                         fontFamily: 'Poppins',
+//                         fontSize: 18,
+//                         letterSpacing: 0 /*percentages not used in flutter. defaulting to zero*/,
+//                         fontWeight: FontWeight.normal,
+//                         height: 1),
+//                   ),
+//                 ),
+//                 SizedBox(
+//                   width: 50,
+//                 ),
+//                 InkWell(
+//                   onTap: () {
+//                     Navigator.of(context, rootNavigator: true).pop();
+//                   },
+//                   child: // Figma Flutter Generator NoWidget - TEXT
+//                   Text(
+//                     'No',
+//                     textAlign: TextAlign.center,
+//                     style: TextStyle(
+//                         color: Color.fromRGBO(235, 87, 87, 1),
+//                         fontFamily: 'Poppins',
+//                         fontSize: 18,
+//                         letterSpacing: 0 /*percentages not used in flutter. defaulting to zero*/,
+//                         fontWeight: FontWeight.normal,
+//                         height: 1),
+//                   ),
+//                 )
+//               ],
+//             )
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
 
 showMoreDetailsDialog(context, OpenDealModel openInvoice) {
   return showDialog(

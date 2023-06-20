@@ -21,7 +21,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
-import '../model/bids_model.dart';
+import '../../model/bids_model.dart';
 
 class InvoiceBuilderEditPage extends StatefulWidget {
   InvoiceBuilderModel model;

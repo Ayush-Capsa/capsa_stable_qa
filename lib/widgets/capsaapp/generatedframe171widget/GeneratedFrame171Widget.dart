@@ -12,63 +12,89 @@ class GeneratedFrame171Widget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-        child: Container(
+        child: InkWell(
+          onTap: (){
+            showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(32.0))),
+                    backgroundColor: Color.fromRGBO(245, 251, 255, 1),
+                    content: Container(
+                      constraints: Responsive.isMobile(context)
+                          ? BoxConstraints(
+                        minHeight: 300,
+                        minWidth: 350,
+                        maxHeight: 500,
+                        maxWidth: 400,
+                      )
+                          : BoxConstraints(minHeight: 300, maxHeight: 500, maxWidth: 800, minWidth: 600),
+                      decoration: BoxDecoration(
+                        color: Color.fromRGBO(245, 251, 255, 1),
+                      ),
+                      child: SfPdfViewer.asset('assets/How to upload an invoice - User guide.pdf'),
+                    ),
+                  );
+                });
+          },
+          child: Container(
       width: Responsive.isMobile(context) ? MediaQuery.of(context).size.width * 0.92 : 590.0,
       height: Responsive.isMobile(context) ? 180 : 240.0,
       child: Stack(fit: StackFit.expand, alignment: Alignment.center, overflow: Overflow.visible, children: [
-        Positioned(
-          left: 0.0,
-          top: 0.0,
-          right: null,
-          bottom: null,
-          width: Responsive.isMobile(context) ? MediaQuery.of(context).size.width * 0.92 : 590.0,
-          height: Responsive.isMobile(context) ? 180 : 240.0,
-          child: GeneratedRectangle91Widget(),
-        ),
-        // Positioned(
-        //   left: null,
-        //   top: Responsive.isMobile(context) ? 80 : 50.0,
-        //   right: Responsive.isMobile(context) ? 30 : 40,
-        //   bottom: null,
-        //   width: 150.0,
-        //   height: 80.0,
-        //   child: GeneratedAddinvoiceWidget(),
-        // ),
-        Positioned(
-          left: 0.0,
-          top: Responsive.isMobile(context) ? 140 : 190.0,
-          right: null,
-          bottom: null,
-          width: Responsive.isMobile(context) ? MediaQuery.of(context).size.width * 0.92 : 590.0,
-          height: Responsive.isMobile(context) ? 40 : 50.0,
-          child: InkWell(
-              onTap: () {
-                return showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return new AlertDialog(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(32.0))),
-                        backgroundColor: Color.fromRGBO(245, 251, 255, 1),
-                        content: Container(
-                          constraints: Responsive.isMobile(context)
-                              ? BoxConstraints(
-                                  minHeight: 300,
-                                  minWidth: 350,
-                                  maxHeight: 500,
-                                  maxWidth: 400,
-                                )
-                              : BoxConstraints(minHeight: 300, maxHeight: 500, maxWidth: 800, minWidth: 600),
-                          decoration: BoxDecoration(
-                            color: Color.fromRGBO(245, 251, 255, 1),
+          Positioned(
+            left: 0.0,
+            top: 0.0,
+            right: null,
+            bottom: null,
+            width: Responsive.isMobile(context) ? MediaQuery.of(context).size.width * 0.92 : 590.0,
+            height: Responsive.isMobile(context) ? 180 : 240.0,
+            child: GeneratedRectangle91Widget(),
+          ),
+          // Positioned(
+          //   left: null,
+          //   top: Responsive.isMobile(context) ? 80 : 50.0,
+          //   right: Responsive.isMobile(context) ? 30 : 40,
+          //   bottom: null,
+          //   width: 150.0,
+          //   height: 80.0,
+          //   child: GeneratedAddinvoiceWidget(),
+          // ),
+          Positioned(
+            left: 0.0,
+            top: Responsive.isMobile(context) ? 140 : 190.0,
+            right: null,
+            bottom: null,
+            width: Responsive.isMobile(context) ? MediaQuery.of(context).size.width * 0.92 : 590.0,
+            height: Responsive.isMobile(context) ? 40 : 50.0,
+            child: InkWell(
+                onTap: () {
+                  return showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return new AlertDialog(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(32.0))),
+                          backgroundColor: Color.fromRGBO(245, 251, 255, 1),
+                          content: Container(
+                            constraints: Responsive.isMobile(context)
+                                ? BoxConstraints(
+                                    minHeight: 300,
+                                    minWidth: 350,
+                                    maxHeight: 500,
+                                    maxWidth: 400,
+                                  )
+                                : BoxConstraints(minHeight: 300, maxHeight: 500, maxWidth: 800, minWidth: 600),
+                            decoration: BoxDecoration(
+                              color: Color.fromRGBO(245, 251, 255, 1),
+                            ),
+                            child: SfPdfViewer.asset('assets/How to upload an invoice - User guide.pdf'),
                           ),
-                          child: SfPdfViewer.asset('assets/How to upload an invoice - User guide.pdf'),
-                        ),
-                      );
-                    });
-              },
-              child: GeneratedFrame170Widget()),
-        )
+                        );
+                      });
+                },
+                child: GeneratedFrame170Widget()),
+          )
       ]),
-    ));
+    ),
+        ));
   }
 }

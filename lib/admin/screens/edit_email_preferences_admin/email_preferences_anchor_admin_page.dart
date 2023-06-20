@@ -3,7 +3,7 @@ import 'package:capsa/functions/hexcolor.dart';
 import 'package:capsa/functions/show_toast.dart';
 import 'package:capsa/main.dart';
 import 'package:capsa/models/profile_model.dart';
-import 'package:capsa/providers/profile_provider.dart';
+import 'package:capsa/admin/providers/profile_provider.dart';
 import 'package:capsa/widgets/TopBarWidget.dart';
 import 'package:capsa/widgets/orientation_switcher.dart';
 import 'package:capsa/widgets/user_input.dart';
@@ -18,7 +18,8 @@ import 'package:http/http.dart' as http;
 import 'package:capsa/functions/call_api.dart';
 
 class EmailPreferenceAnchorAdminPage extends StatefulWidget {
-  const EmailPreferenceAnchorAdminPage({Key key}) : super(key: key);
+  AccountData data;
+  EmailPreferenceAnchorAdminPage({Key key, this.data}) : super(key: key);
 
   @override
   State<EmailPreferenceAnchorAdminPage> createState() => _EmailPreferenceAnchorAdminPageState();
@@ -299,7 +300,7 @@ class _EmailPreferenceAnchorAdminPageState extends State<EmailPreferenceAnchorAd
 
                                               _body = body();
 
-                                              dynamic response = await profileProvider.setUserEmailPreference(_body);
+                                              dynamic response = await profileProvider.setUserEmailPreference(_body,panNumber: widget.data.panNumber, role: 'ANCHOR');
 
                                               capsaPrint('Set preferences response : $response');
 
@@ -446,7 +447,7 @@ class _EmailPreferenceAnchorAdminPageState extends State<EmailPreferenceAnchorAd
     capsaPrint('Pass 2');
     //final profileProvider = Provider.of<ProfileProvider>(context);
     capsaPrint('Pass 3');
-    dynamic data = await profileProvider.getUserEmailPreference();
+    dynamic data = await profileProvider.getUserEmailPreference(panNumber: widget.data.panNumber, role: 'ANCHOR');
     capsaPrint('Pass 4');
     capsaPrint('\n\nResponse : $data');
     invoiceApproved = value(data['data']['invoiceApproved']);

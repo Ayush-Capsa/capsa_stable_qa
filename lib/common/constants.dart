@@ -67,6 +67,16 @@ String formatPanNumber(String s){
   return result;
 }
 
+String extractPanNumber(String s){
+  String result = '';
+  for(int i = 0;i<s.length;i++){
+    if(s[i]!='X'){
+      result += s[i];
+    }
+  }
+  return result;
+}
+
 bool notNull(String s){
   if(s == '' || s == null || s == 'null') {
     return false;

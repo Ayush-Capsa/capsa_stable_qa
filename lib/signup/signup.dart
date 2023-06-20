@@ -6,6 +6,7 @@ import 'package:capsa/functions/hexcolor.dart';
 import 'package:capsa/signup/pages/account-letter/account_letter_download.dart';
 import 'package:capsa/signup/pages/account-letter/account_letter_upload.dart';
 import 'package:capsa/signup/pages/account-letter/account_letter_upload_success.dart';
+import 'package:capsa/signup/pages/bvn_verification_failed.dart';
 import 'package:capsa/signup/pages/capsa_account_generation.dart';
 import 'package:capsa/signup/pages/enter_address_page.dart';
 import 'package:capsa/signup/pages/enter_details_page.dart';
@@ -27,19 +28,23 @@ import 'package:capsa/signup/provider/action_provider.dart';
 import 'package:flutter/material.dart';import 'package:capsa/functions/custom_print.dart';
 import 'package:provider/provider.dart';
 
+import '../common/constants.dart';
+
 class Signup extends StatefulWidget {
   final String passwordResetToken;
-  const Signup({this.passwordResetToken, Key key}) : super(key: key);
+  final String uniqueId;
+  const Signup({this.passwordResetToken, this.uniqueId, Key key}) : super(key: key);
 
   @override
   State<Signup> createState() =>
-      _SignupState(passwordResetToken: this.passwordResetToken);
+      _SignupState(passwordResetToken: this.passwordResetToken, uniqueId: this.uniqueId);
 }
 
 class _SignupState extends State<Signup> {
   var routerDelegate;
   String passwordResetToken;
-  _SignupState({this.passwordResetToken});
+  String uniqueId;
+  _SignupState({this.passwordResetToken, this.uniqueId});
 
   @override
   void initState() {
@@ -51,6 +56,13 @@ class _SignupState extends State<Signup> {
     capsaPrint(passwordResetToken);
     if (passwordResetToken != null) {
       initialPathFinal = "/change-password";
+    }
+
+    if (uniqueId != null && uniqueId != '') {
+      box.put('onboardType', 'Vendor');
+      box.put('uniqueId', uniqueId ?? '');
+
+      initialPathFinal = "/select-country";
     }
     routerDelegate = BeamerDelegate(
       initialPath: initialPathFinal,
@@ -79,6 +91,8 @@ class _SignupState extends State<Signup> {
                         );
                       },
                       '/sign_in': (context, state, data) {
+                        // final _token = state.queryParameters['t'];
+                        // print('\n\nuserid : $_token\n\n');
                         return BeamPage(
                           key: ValueKey('sign_in'),
                           title: 'Sign In',
@@ -155,6 +169,19 @@ class _SignupState extends State<Signup> {
                               mobileTitle: 'Verify OTP',
                               title: 'Verify OTP',
                               body: OTPVerifyPage(isEmail: false)),
+                        );
+                      },
+                      '/bvn-verification-failed': (context, state, data) {
+                        return BeamPage(
+                          key: ValueKey('bvn-verification-failed'),
+                          title: 'BVN Verification Failed',
+                          // popToNamed: '/',
+                          type: BeamPageType.fadeTransition,
+                          child: RegistrationMain(
+                              pageUrl: "/bvn-verification-failed",
+                              mobileTitle: 'BVN Verification Failed',
+                              title: 'BVN Verification Failed',
+                              body: BVNVerificationFailed()),
                         );
                       },
                       '/home/:id/details': (context, state, data) {

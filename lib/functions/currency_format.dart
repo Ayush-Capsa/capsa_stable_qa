@@ -38,6 +38,12 @@ String formatCurrency(dynamic value,{ withIcon = false, withCurrencyName = false
   return '${numberFormat.format(value)}';
 }
 
+String deFormatCurrency(dynamic value,{ withIcon = false, withCurrencyName = false }) {
+
+  return value.toString().replaceAll(',', '');
+
+}
+
 bool stringToBool(String s){
   try{
     int n = int.parse(s);

@@ -249,6 +249,51 @@ class ActionModel extends ChangeNotifier {
     // return data;
   }
 
+  Future<Object> queryAnchorInvoiceList() async {
+    var _body = {};
+    return await callApi('admin/anchorInvoiceList', body: _body);
+
+    // var _body = {};
+    // dynamic _uri;
+    // _uri = _url + 'admin/anchor-list';
+    // _uri = Uri.parse(_uri);
+    // var response = await http.post(_uri, headers: <String, String>{
+    //   'Authorization': 'Basic '+box.get('token',defaultValue: '0')
+    // }, body: _body);
+    // var data = jsonDecode(response.body);
+    // return data;
+  }
+
+  Future<Object> queryAnchorRFList() async {
+    var _body = {};
+    return await callApi('admin/anchorRFList',);
+
+    // var _body = {};
+    // dynamic _uri;
+    // _uri = _url + 'admin/anchor-list';
+    // _uri = Uri.parse(_uri);
+    // var response = await http.post(_uri, headers: <String, String>{
+    //   'Authorization': 'Basic '+box.get('token',defaultValue: '0')
+    // }, body: _body);
+    // var data = jsonDecode(response.body);
+    // return data;
+  }
+
+  Future<Object> queryVendorRFList() async {
+    var _body = {};
+    return await callApi('admin/vendorsRFList',);
+
+    // var _body = {};
+    // dynamic _uri;
+    // _uri = _url + 'admin/anchor-list';
+    // _uri = Uri.parse(_uri);
+    // var response = await http.post(_uri, headers: <String, String>{
+    //   'Authorization': 'Basic '+box.get('token',defaultValue: '0')
+    // }, body: _body);
+    // var data = jsonDecode(response.body);
+    // return data;
+  }
+
   Future<Object> queryInvestorView(bvnNumber) async {
     var _body = {};
     _body['panNo'] = bvnNumber;

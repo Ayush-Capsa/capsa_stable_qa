@@ -115,6 +115,8 @@ afterSuccess(context, response, AuthProvider authProvider, myController0) {
   var role = _rawData['role'];
   var alUpload = _rawData['al_upload'];
 
+  capsaPrint('Raw Data - $_rawData\n\n');
+
   // capsaPrint('active' + active.toString() );
   // capsaPrint('kyc' + kyc.toString());
   // capsaPrint('alUpload' + alUpload.toString());
@@ -146,12 +148,22 @@ afterSuccess(context, response, AuthProvider authProvider, myController0) {
   box.put('tmpUserData', _rawData);
 
   box.put('signUpData', _body);
-  //return Beamer.of(context).beamToNamed('/terms-and-condition');
-  //return Beamer.of(context).beamToNamed('/account-letter-upload-success');
 
-  // if(true){
-  //   return Beamer.of(context).beamToNamed('/resubmit-document-success-page');
+  // if (role == 'COMPANY') {
+  //   return Beamer.of(context).beamToNamed('/home/director/information');
   // }
+  //
+  // return Beamer.of(context).beamToNamed('/home/personal/information');
+
+  if(_rawData['bvn_verified'].toString() == '0' || _rawData['bvn_verified'].toString() == '2'){
+    //return Beamer.of(context).beamToNamed('/bvn-verification-failed');
+    if (role == 'COMPANY') {
+      return Beamer.of(context).beamToNamed('/home/director/information');
+    }
+
+    return Beamer.of(context).beamToNamed('/home/personal/information');
+  }
+
   if (active == 1 && kyc == 1) {
     // if(role != 'ADMIN' && role != 'INVESTOR' && role!='BUYER'){
     if (role != 'ADMIN' && role != 'BUYER' && role!='INVESTOR') {

@@ -1,3 +1,4 @@
+import 'package:capsa/anchor/Profile/edit_payment_options.dart';
 import 'package:capsa/providers/profile_provider.dart';
 import 'package:capsa/anchor/Profile/change_password.dart';
 import 'package:capsa/anchor/provider/anchor_action_providers.dart';
@@ -207,6 +208,8 @@ class _profileScreenState extends State<profileScreen> {
       dataLoaded = true;
     });
   }
+
+  bool showPaymentOptions = true;
 
   @override
   void initState() {
@@ -539,6 +542,54 @@ class _profileScreenState extends State<profileScreen> {
                                         ),
                                       ),
                                     ),
+
+                                    // InkWell(
+                                    //   onTap: () {
+                                    //     Navigator.push(
+                                    //       context,
+                                    //       MaterialPageRoute(
+                                    //         builder: (context) =>
+                                    //             ChangeNotifierProvider(
+                                    //                 create: (BuildContext
+                                    //                 context) =>
+                                    //                     AnchorActionProvider(),
+                                    //                 child: EditPaymentSettings()),
+                                    //       ),
+                                    //     );
+                                    //   },
+                                    //   child: Padding(
+                                    //     padding: const EdgeInsets.fromLTRB(
+                                    //         16, 0, 16, 16),
+                                    //     child: Container(
+                                    //       width: MediaQuery.of(context)
+                                    //           .size
+                                    //           .width *
+                                    //           0.34,
+                                    //       height: 59,
+                                    //       child: Card(
+                                    //         color: Color.fromRGBO(
+                                    //             245, 251, 255, 1),
+                                    //         shape: RoundedRectangleBorder(
+                                    //             borderRadius: BorderRadius.all(
+                                    //                 Radius.circular(15))),
+                                    //         child: Padding(
+                                    //           padding:
+                                    //           const EdgeInsets.fromLTRB(
+                                    //               16, 8, 260, 8),
+                                    //           child: Text(
+                                    //             'Edit Payment Settings',
+                                    //             style: TextStyle(
+                                    //                 fontSize: 18,
+                                    //                 fontWeight: FontWeight.w500,
+                                    //                 color: Color.fromRGBO(
+                                    //                     51, 51, 51, 1)),
+                                    //           ),
+                                    //         ),
+                                    //       ),
+                                    //     ),
+                                    //   ),
+                                    // ),
+
                                     // Padding(
                                     //   padding: const EdgeInsets.fromLTRB(
                                     //       16, 0, 16, 16),

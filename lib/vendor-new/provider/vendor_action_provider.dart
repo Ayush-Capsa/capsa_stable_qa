@@ -107,6 +107,8 @@ class VendorActionProvider extends ChangeNotifier {
 
     request.headers['Authorization'] = 'Basic ' + box.get('token', defaultValue: '0');
 
+    capsaPrint('Upload Invoice body - $_body');
+
     _body.forEach((key, value) {
       request.fields[key] = value;
     });

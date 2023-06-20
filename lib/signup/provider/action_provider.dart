@@ -285,7 +285,11 @@ class SignUpActionProvider extends ChangeNotifier {
   }
 
   Future submitData(_body) async {
+
+    capsaPrint('signup submit data body : $_body');
+
     return await callApi('signup/submitData', body: _body);
+
     // dynamic _uri = _url + 'signup/submitData';
     // _uri = Uri.parse(_uri);
     // var response = await http.post(_uri, body: _body);

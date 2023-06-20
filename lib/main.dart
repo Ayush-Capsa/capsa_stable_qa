@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:beamer/beamer.dart';
 import 'package:capsa/admin/admin.dart';
 import 'package:capsa/common/MyCustomScrollBehavior.dart';
+import 'package:capsa/functions/logout.dart';
 import 'package:capsa/investor/investor_new.dart';
 import 'package:capsa/investor/pages/AnchorAnalysisPage/pages/home_page.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/src/change_notifier_provider.dart';
@@ -19,7 +21,8 @@ import 'package:capsa/vendor-new/vendor_new.dart';
 // import 'package:capsa/vendor/providers/profile_provider.dart';
 // import 'package:capsa/vendor/vendor_new.dart';
 
-import 'package:flutter/material.dart';import 'package:capsa/functions/custom_print.dart';
+import 'package:flutter/material.dart';
+import 'package:capsa/functions/custom_print.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
@@ -30,11 +33,15 @@ import 'anchor/Responsive_Layout.dart';
 import 'anchor/anchor.dart';
 import 'anchor/anchor_home.dart';
 import 'anchor/provider/anchor_action_providers.dart';
+import 'anchor/provider/anchor_invoice_provider.dart';
 import 'common/app_theme.dart';
 import 'package:capsa/functions/custom_print.dart';
+import 'common/constants.dart';
+import 'functions/hexcolor.dart';
 import 'investor/pages/AnchorAnalysisPage/provider/anchor_analysis_provider.dart';
 import 'providers/auth_provider.dart';
 import 'signup/signup.dart';
+import 'package:local_session_timeout/local_session_timeout.dart';
 
 // Future<void> main() async {
 //   WidgetsFlutterBinding.ensureInitialized();
@@ -71,8 +78,6 @@ Future<void> main() async {
 //   runMain(appTitle: _appTitle, buildFlavour: _buildFlavour, ip: _ip);
 // }
 
-
-
 Future<void> runMain(
     {@required String appTitle,
     @required String buildFlavour,
@@ -81,7 +86,7 @@ Future<void> runMain(
 
   Box box = await Hive.openBox('capsaBox');
 
-  if(box.isEmpty) {
+  if (box.isEmpty) {
     // print('EMPTY BOX');
     box.clear();
   }
@@ -91,6 +96,11 @@ Future<void> runMain(
   box.put('ip', ip);
   box.put('buildFlavour', buildFlavour);
 
+  // FirebaseAnalytics analytics = FirebaseAnalytics();
+  // await FirebaseAnalytics().logEvent(name: 'fire_up',parameters:null);
+
+
+
   // final flavor = const String.fromEnvironment("flavor");
   // print('flavor');
   // print(flavor);
@@ -98,18 +108,24 @@ Future<void> runMain(
   //print = (String message, {int wrapWidth}) {};
   runZonedGuarded(() {
     runApp(CapsaApp());
+    // runApp(MaterialApp(
+    //   home: CapsaApp(),
+    //   navigatorObservers: [
+    //     FirebaseAnalyticsObserver(analytics: analytics),
+    //   ],
+    // ),);
   }, (error, stackTrace) {
     print(stackTrace);
   }, zoneSpecification: new ZoneSpecification(
-      print: (Zone self, ZoneDelegate parent, Zone zone, String message){
-        // parent.print(zone, '${new DateTime.now()}: $message');
-        /**
+      print: (Zone self, ZoneDelegate parent, Zone zone, String message) {
+    // parent.print(zone, '${new DateTime.now()}: $message');
+    /**
          * print only in debug mode
          * */
-        if (kDebugMode) {
-          parent.print(zone, message);
-        }
-      }));
+    if (kDebugMode) {
+      parent.print(zone, message);
+    }
+  }));
   //runApp(CapsaApp());
   setPathUrlStrategy();
 }
@@ -187,6 +203,20 @@ class _CapsaMaterialAppState extends State<CapsaMaterialApp> {
             child: CapsaHome(passwordResetToken: _token),
           );
         },
+        '/sign_up': (context, state, data) {
+          // print("reaching here");
+          final _token = state.queryParameters['uniqueId'];
+          capsaPrint('\n\nuser-token = $_token');
+          box.put('uniqueId', _token ?? '');
+          dynamic s = box.get('uniqueId');
+          print('\n\nUnique Id : $s\n\n\n');
+          return BeamPage(
+            key: ValueKey('Capsahomeuser'),
+            title: 'Capsa',
+            type: BeamPageType.material,
+            child: CapsaHome(uniqueId: _token,),
+          );
+        },
         '/': (context, state, data) {
           // context.beamTo('location');
           return BeamPage(
@@ -205,7 +235,7 @@ class _CapsaMaterialAppState extends State<CapsaMaterialApp> {
             child: CapsaHome(),
           );
         },
-        '/anchor-analysis':(context, state, data) {
+        '/anchor-analysis': (context, state, data) {
           // context.beamTo('location');
           return BeamPage(
             key: ValueKey('AnchorAnalysis'),
@@ -275,18 +305,43 @@ class _CapsaMaterialAppState extends State<CapsaMaterialApp> {
     ),
   );
 
+  final sessionStateStream = StreamController<SessionState>();
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      onGenerateTitle: (context) {
-        return 'Dashboard';
-      },
-      scrollBehavior: MyCustomScrollBehavior(),
-      routeInformationParser: BeamerParser(),
-      routerDelegate: routerDelegate,
-      debugShowCheckedModeBanner: false,
-      theme: appTheme,
-    );
+    sessionStateStream.add(SessionState.startListening);
+    final sessionConfig = SessionConfig(
+        invalidateSessionForAppLostFocus: const Duration(seconds: 20),
+        invalidateSessionForUserInactiviity: const Duration(seconds: 20));
+
+    sessionConfig.stream.listen((SessionTimeoutState timeoutEvent) {
+      if (timeoutEvent == SessionTimeoutState.userInactivityTimeout) {
+        //capsaPrint('Calling inactivity 1');
+        //logout(context);
+      } else if (timeoutEvent == SessionTimeoutState.appFocusTimeout) {
+        //capsaPrint('Calling inactivity 2');
+        //logout(context);
+        // handle user  app lost focus timeout
+        // Navigator.of(context).pushNamed("/auth");
+      }
+    });
+
+    return SessionTimeoutManager(
+        sessionConfig: sessionConfig,
+        userActivityDebounceDuration: const Duration(seconds: 1),
+        sessionStateStream: sessionStateStream.stream,
+        child: MaterialApp.router(
+          onGenerateTitle: (context) {
+            return 'Dashboard';
+          },
+          scrollBehavior: MyCustomScrollBehavior(),
+          routeInformationParser: BeamerParser(),
+          routerDelegate: routerDelegate,
+          debugShowCheckedModeBanner: false,
+          theme: appTheme,
+        ));
+
+    //return
   }
 }
 
@@ -294,8 +349,9 @@ class CapsaHome extends StatelessWidget {
   final box = Hive.box('capsaBox');
   final DateTime now = new DateTime.now();
   String passwordResetToken = "";
+  String uniqueId = "";
 
-  CapsaHome({this.passwordResetToken, Key key}) : super(key: key);
+  CapsaHome({this.passwordResetToken, this.uniqueId, Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -328,18 +384,31 @@ class CapsaHome extends StatelessWidget {
         authProvider.authChange(false, '');
         // Beamer.of(context).beamToNamed('/sign_in', replaceCurrent: true);
         // print(pass           wordResetToken);
-        return Signup(passwordResetToken: passwordResetToken);
+        return Signup(passwordResetToken: passwordResetToken, uniqueId: uniqueId);
       }
     }
 
     if (_role == 'ADMIN') {
       return AdminApp();
     } else if (_role == 'BUYER') {
-      return ChangeNotifierProvider(
-        create: (BuildContext context) => AnchorActionProvider(),
+      return MultiProvider(
+        providers: [
+          ChangeNotifierProvider<AnchorActionProvider>(
+            create: (_) => AnchorActionProvider(),
+          ),
+          ChangeNotifierProvider<AnchorInvoiceProvider>(
+            create: (_) => AnchorInvoiceProvider(),
+          ),
+
+        ],
         child: responsiveLayout(
             mobileBody: mobileHomePage(), desktopBody: anchorHomePage()),
       );
+      // ChangeNotifierProvider(
+      //   create: (BuildContext context) => AnchorActionProvider(),
+      //   child: responsiveLayout(
+      //       mobileBody: mobileHomePage(), desktopBody: anchorHomePage()),
+      // );
     } else if (_role == 'INVESTOR') {
       return InvestorNewApp();
       return ChangeNotifierProvider(
@@ -350,7 +419,7 @@ class CapsaHome extends StatelessWidget {
     } else if (_role == 'COMPANY') {
       return VendorNewApp();
     } else {
-      return Signup(passwordResetToken: passwordResetToken);
+      return Signup(passwordResetToken: passwordResetToken, uniqueId: uniqueId,);
     }
   }
 }

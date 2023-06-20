@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';import 'package:capsa/functions/custom_pr
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:web_smooth_scroll/web_smooth_scroll.dart';
 
 class BidsPage extends StatefulWidget {
   const BidsPage({Key key}) : super(key: key);
@@ -19,6 +20,15 @@ class BidsPage extends StatefulWidget {
 }
 
 class _BidsPageState extends State<BidsPage> {
+
+  ScrollController _scrollController;
+
+  @override
+  void initState(){
+    _scrollController = ScrollController();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final _profileProvider =
@@ -94,7 +104,11 @@ class _BidsPageState extends State<BidsPage> {
                       // capsaPrint('bidsModel.length');
                       // capsaPrint(_bidsModel.length);
 
-                      return _bidsModel.length>0?StaggeredGridView.countBuilder(
+                      return _bidsModel.length>0?
+
+                      StaggeredGridView.countBuilder(
+                          //physics: const NeverScrollableScrollPhysics(),
+                          //controller: _scrollController,
                           crossAxisCount: Responsive.isMobile(context) ? 1 : 3,
                           crossAxisSpacing: Responsive.isMobile(context) ? 20 : 50,
                           mainAxisSpacing: Responsive.isMobile(context) ? 20 : 50,

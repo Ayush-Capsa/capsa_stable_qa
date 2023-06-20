@@ -325,7 +325,7 @@ class InvoiceProvider extends ChangeNotifier {
           },
           body: _body);
       var data = jsonDecode(response.body);
-      //capsaPrint('\n\nInvoices $type\n : $data');
+      capsaPrint('\n\nInvoices $type\n : $data');
 
       await setInvoiceList(data);
 
@@ -364,6 +364,8 @@ class InvoiceProvider extends ChangeNotifier {
     dynamic _uri;
     _body['isSplit'] = '0';
     _uri = _url + 'requestApproval';
+    capsaPrint('request approval 5');
+   // capsaPrint('\ncalling requestApproval\n');
     _uri = Uri.parse(_uri);
     var response = await http.post(_uri,
         headers: <String, String>{

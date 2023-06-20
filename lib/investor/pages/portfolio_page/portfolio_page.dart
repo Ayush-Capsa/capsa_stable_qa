@@ -152,7 +152,7 @@ class _PortfolioPageState extends State<PortfolioPage> {
                       Row(
                         children: [
                           tab('Overview',0),
-                          SizedBox(width: 15,),
+                          const SizedBox(width: 15,),
                           tab('Bids Analysis',1)
                         ],
 

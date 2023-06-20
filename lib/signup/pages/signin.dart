@@ -1,6 +1,7 @@
 import 'package:capsa/common/constants.dart';
 import 'package:capsa/common/responsive.dart';
 import 'package:capsa/functions/hexcolor.dart';
+import 'package:capsa/functions/show_toast.dart';
 import 'package:capsa/providers/auth_provider.dart';
 import 'package:capsa/signup/function/login_function.dart';
 import 'package:capsa/signup/provider/action_provider.dart';
@@ -88,6 +89,8 @@ class _SignInState extends State<SignIn> {
   Widget build(BuildContext context) {
     final _actionProvider =
         Provider.of<SignUpActionProvider>(context, listen: false);
+
+    dynamic uniqueId = box.get('uniqueId');
 
     return Container(
       decoration: Responsive.isMobile(context)
@@ -293,6 +296,7 @@ class _SignInState extends State<SignIn> {
   }
 
   Widget inputSection(_actionProvider) {
+    dynamic uniqueId = box.get('uniqueId');
     return Padding(
       padding: EdgeInsets.all(!Responsive.isMobile(context) ? 10 : 10.0),
       child: Padding(
@@ -457,6 +461,12 @@ class _SignInState extends State<SignIn> {
                           _body['emailid'] = myController0.text;
                           _body['password'] = myController1.text;
                           _body['device'] = _platformDevice;
+                          dynamic uniqueId = box.get('uniqueId');
+                          if(uniqueId != '' && uniqueId != null){
+                            _body['uniqueId'] = uniqueId;
+                          }
+                          capsaPrint('\n\n\nSign in body : $_body\n\n');
+                          //showToast(_body.toString(), context);
                           var _response = await _actionProvider.signIn(_body);
                           // var _response = await _actionProvider.signIn(_body);
                           if (_response != null) {

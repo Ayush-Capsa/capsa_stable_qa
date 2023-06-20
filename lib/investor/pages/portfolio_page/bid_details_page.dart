@@ -12,7 +12,6 @@ class BidDetailsPage extends StatelessWidget {
   BidDetailsPage({Key key, this.bid}) : super(key: key);
 
   Widget status(BidHistoryModel bids) {
-    // return Text(bids.historyStatus);
     String _text = 'Pending';
     String _text2 = "";
     dynamic clr = HexColor('#F2994A');

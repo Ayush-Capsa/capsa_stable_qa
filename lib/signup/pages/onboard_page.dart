@@ -6,7 +6,8 @@ import 'package:capsa/signup/widgets/StackColumnSwitch.dart';
 import 'package:capsa/signup/widgets/capsalogo.dart';
 import 'package:capsa/widgets/orientation_switcher.dart';
 // import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter/material.dart';import 'package:capsa/functions/custom_print.dart';
+import 'package:flutter/material.dart';
+import 'package:capsa/functions/custom_print.dart';
 import 'package:capsa/common/constants.dart';
 import 'package:capsa/signup/provider/action_provider.dart';
 import 'package:capsa/widgets/user_input.dart';
@@ -14,6 +15,9 @@ import 'package:beamer/beamer.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import 'package:provider/provider.dart';
+
+import '../../functions/call_api.dart';
+import '../../functions/show_toast.dart';
 
 class OnBoardPage extends StatefulWidget {
   const OnBoardPage({Key key}) : super(key: key);
@@ -229,6 +233,7 @@ class _OnBoardPageState extends State<OnBoardPage> {
                             // autovalidateMode: AutovalidateMode.onUserInteraction,
                             // initialValue: '',
                             errorText: _errorMsg3,
+                            note: 'This should be the BVN of a Director in the company',
                             validator: (value) {
                               if (value.trim().isEmpty) {
                                 return 'BVN is required';
@@ -348,43 +353,48 @@ class _OnBoardPageState extends State<OnBoardPage> {
                       ],
                     ),
                   ),
-                  if(type2 != 'Individual')Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: OrientationSwitcher(
-                      children: [
-                        Flexible(
-                          child: ((type2 != 'Individual'))
-                              ? conPasswordInput()
-                              : Container(),
-                        ),
-                        SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.57-185-8-45-8,
-                        ),
-                        if (!isAllTrue())
-                          if ((type2 == ''))
-                            if (Responsive.isMobile(context))
-                              if (!isDone)
-                                Padding(
-                                  padding: EdgeInsets.only(
-                                    left: 8,
-                                  ),
-                                  child: passwordGuide(),
-                                ),
-                        if (type2 == '')
+                  if (type2 != 'Individual')
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: OrientationSwitcher(
+                        children: [
+                          Flexible(
+                            child: ((type2 != 'Individual'))
+                                ? conPasswordInput()
+                                : Container(),
+                          ),
+                          SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.57 -
+                                185 -
+                                8 -
+                                45 -
+                                8,
+                          ),
                           if (!isAllTrue())
-                            if (Responsive.isMobile(context))
-                              if (!isDone)
-                                SizedBox(
-                                  height: 20,
-                                ),
-                        // Flexible(
-                        //   child: ((type2 != 'Individual'))
-                        //       ? passwordInput()
-                        //       : conPasswordInput(),
-                        // ),
-                      ],
+                            if ((type2 == ''))
+                              if (Responsive.isMobile(context))
+                                if (!isDone)
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                      left: 8,
+                                    ),
+                                    child: passwordGuide(),
+                                  ),
+                          if (type2 == '')
+                            if (!isAllTrue())
+                              if (Responsive.isMobile(context))
+                                if (!isDone)
+                                  SizedBox(
+                                    height: 20,
+                                  ),
+                          // Flexible(
+                          //   child: ((type2 != 'Individual'))
+                          //       ? passwordInput()
+                          //       : conPasswordInput(),
+                          // ),
+                        ],
+                      ),
                     ),
-                  ),
                   // if (!isDone)
                   if (!Responsive.isMobile(context))
                     Padding(
@@ -405,6 +415,19 @@ class _OnBoardPageState extends State<OnBoardPage> {
                         width: 400,
                         child: InkWell(
                           onTap: () async {
+                            // capsaPrint('submit 1');
+                            // dynamic _body = {};
+                            // _body['panNumber'] = bvnController0.text;
+                            // _body['nPassword'] = passController0.text;
+                            // _body['cPassword'] = confController0.text;
+                            // capsaPrint('submit 2');
+                            // dynamic uniqueId = box.get('uniqueId');
+                            // if(uniqueId != '' && uniqueId != null){
+                            //   _body['uniqueId'] = uniqueId;
+                            // }
+                            // capsaPrint('submit 3');
+
+                            //capsaPrint('\n\nsignup body\n$_body');
                             if (formKey.currentState.validate()) {
                               setState(() {
                                 processing = true;
@@ -423,85 +446,114 @@ class _OnBoardPageState extends State<OnBoardPage> {
 
                               _body['acctType'] = type2;
                               _body['userType'] = type;
+                              _body['panNumber'] = bvnController0.text;
+                              _body['nPassword'] = passController0.text;
+                              _body['cPassword'] = confController0.text;
+                              dynamic uniqueId = box.get('uniqueId');
+                              if(uniqueId != '' && uniqueId != null){
+                                _body['uniqueId'] = uniqueId;
+                              }
+                              //_body['oPassword'] = _oldPassword;
 
                               final _actionProvider =
                                   Provider.of<SignUpActionProvider>(context,
                                       listen: false);
 
-                              var _response =
-                                  await _actionProvider.submitData(_body);
-                              _body['pas'] = '';
-                              _body['cPas'] = '';
+                              dynamic checkPassword = await callApi(
+                                  'signin/checkBlockedPassword',
+                                  body: _body);
 
-                              if (_response != null) {
-                                if (_response['res'] == 'failed') {
-                                  setState(() {
-                                    processing = false;
-                                  });
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(_response['messg']),
-                                      action: SnackBarAction(
-                                        label: 'Ok',
-                                        onPressed: () {
-                                          // Code to execute.
-                                        },
-                                      ),
-                                    ),
-                                  );
-                                } else if (_response['res'] == 'success') {
-                                  box.put('signUpData', _body);
+                              if (checkPassword['msg'] == 'failed') {
+                                showToast(checkPassword['data'], context,
+                                    type: 'error');
 
-                                  // Beamer.of(context).beamToNamed('/email-otp');
-                                  _body = {};
+                                passController0.text = "";
+                                confController0.text = "";
 
-                                  _body['emailid'] = emailController0.text;
-                                  _body['password'] = confController0.text;
-                                  _body['device'] = _platformDevice;
+                                setState(() {
+                                  processing = false;
+                                });
+                              } else {
+                                var _response =
+                                    await _actionProvider.submitData(_body);
+                                _body['pas'] = '';
+                                _body['cPas'] = '';
 
-                                  var _response =
-                                      await _actionProvider.signIn(_body);
-                                  // var _response = await _actionProvider.signIn(_body);
-                                  if (_response != null) {
-                                    if (_response['res'] == 'failed') {
-                                      if (_response['messg'] ==
-                                              "No Account found" ||
-                                          _response['messg'] ==
-                                              "No Account found") {
-                                        _errorMsg1 = _response['messg'];
-                                      } else {
-                                        _errorMsg2 = _response['messg'];
-                                      }
-                                      setState(() {
-                                        processing = false;
-                                      });
-                                      // ScaffoldMessenger.of(context).showSnackBar(
-                                      //   SnackBar(
-                                      //     content: Text(_response['messg']),
-                                      //     action: SnackBarAction(
-                                      //       label: 'Ok',
-                                      //       onPressed: () {
-                                      //         // Code to execute.
-                                      //       },
-                                      //     ),
-                                      //   ),
-                                      // );
-                                    } else if (_response['res'] == 'success') {
-                                      // _btnController.success();
-                                      final authProvider =
-                                          Provider.of<AuthProvider>(context,
-                                              listen: false);
-                                      afterSuccess(context, _response,
-                                          authProvider, emailController0);
+                                if (_response != null) {
+                                  if (_response['res'] == 'failed') {
+                                    setState(() {
+                                      processing = false;
+                                    });
+                                    ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text('Successfully Login '),
+                                        content: Text(_response['messg']),
                                         action: SnackBarAction(
                                           label: 'Ok',
                                           onPressed: () {
                                             // Code to execute.
                                           },
                                         ),
-                                      );
+                                      ),
+                                    );
+                                  } else if (_response['res'] == 'success') {
+                                    box.put('signUpData', _body);
+
+                                    // Beamer.of(context).beamToNamed('/email-otp');
+                                    _body = {};
+
+                                    _body['emailid'] = emailController0.text;
+                                    _body['password'] = confController0.text;
+                                    _body['device'] = _platformDevice;
+
+                                    var _response =
+                                        await _actionProvider.signIn(_body);
+                                    // var _response = await _actionProvider.signIn(_body);
+                                    if (_response != null) {
+                                      if (_response['res'] == 'failed') {
+                                        if (_response['messg'] ==
+                                                "No Account found" ||
+                                            _response['messg'] ==
+                                                "No Account found") {
+                                          _errorMsg1 = _response['messg'];
+                                        } else {
+                                          _errorMsg2 = _response['messg'];
+                                        }
+                                        setState(() {
+                                          processing = false;
+                                        });
+                                        // ScaffoldMessenger.of(context).showSnackBar(
+                                        //   SnackBar(
+                                        //     content: Text(_response['messg']),
+                                        //     action: SnackBarAction(
+                                        //       label: 'Ok',
+                                        //       onPressed: () {
+                                        //         // Code to execute.
+                                        //       },
+                                        //     ),
+                                        //   ),
+                                        // );
+                                      } else if (_response['res'] ==
+                                          'success') {
+                                        // _btnController.success();
+                                        final authProvider =
+                                            Provider.of<AuthProvider>(context,
+                                                listen: false);
+                                        afterSuccess(context, _response,
+                                            authProvider, emailController0);
+                                        SnackBar(
+                                          content: Text('Successfully Login '),
+                                          action: SnackBarAction(
+                                            label: 'Ok',
+                                            onPressed: () {
+                                              // Code to execute.
+                                            },
+                                          ),
+                                        );
+                                      }
+                                    } else {
+                                      setState(() {
+                                        processing = false;
+                                      });
                                     }
                                   } else {
                                     setState(() {
@@ -513,10 +565,6 @@ class _OnBoardPageState extends State<OnBoardPage> {
                                     processing = false;
                                   });
                                 }
-                              } else {
-                                setState(() {
-                                  processing = false;
-                                });
                               }
                             }
                           },
@@ -1052,10 +1100,10 @@ class _OnBoardPageState extends State<OnBoardPage> {
               return null;
             },
             keyboardType: TextInputType.number,
-              inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(10),
-              ],
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(10),
+            ],
             onChanged: (v) {
               setState(() {});
             },

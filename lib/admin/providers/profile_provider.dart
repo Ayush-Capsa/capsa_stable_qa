@@ -380,7 +380,7 @@ class ProfileProvider extends ChangeNotifier {
     return jsonDecode(response.body);
   }
 
-  Future<Object> getAllAccountTransactions({filter}) async {
+  Future<Object> getAllAccountTransactions({filter, String search = ''}) async {
     if (box.get('isAuthenticated', defaultValue: false)) {
       var userData = Map<String, dynamic>.from(box.get('userData'));
       var _body = {};
@@ -402,8 +402,14 @@ class ProfileProvider extends ChangeNotifier {
         var _data = data['data'];
         var names = _data['names'];
         var tmpTransactionDetails = _data['transactions'];
+        int i = 0;
 
         tmpTransactionDetails.forEach((element) {
+          if(i<2){
+            capsaPrint('\ntransaction $i');
+            capsaPrint(element);
+            i++;
+          }
           var estateSelected = {};
           var name = '';
           try {
@@ -427,11 +433,12 @@ class ProfileProvider extends ChangeNotifier {
             opening_balance: element['opening_balance'].toString(),
             order_number: element['order_number'].toString(),
             stat_txt: element['stat_txt'],
-            status: element['status'],
+            status: element['admin_status'] ?? '',
             trans_hash: element['trans_hash'].toString(),
             updated_on: element['updated_on'],
             withdrawl_amt: element['withdrawl_amt'].toString(),
           );
+          if(search == '' || _tmptransactionDetails.name.toString().toLowerCase().contains(search.toLowerCase()))
           _transactionDetails.add(_tmptransactionDetails);
         });
 
@@ -731,7 +738,7 @@ class ProfileProvider extends ChangeNotifier {
             capsaPrint(element);
           }
           capsaPrint(
-              '${element['user_id']} ${element['modified_at']} ${element['file_extensions_CACFORM7']}');
+              '${element['user_id']} ${element['modified_at']} ${element['bvn_verified']}');
           capsaPrint('\n');
           i++;
         }
@@ -804,6 +811,9 @@ class ProfileProvider extends ChangeNotifier {
                           .parse(element['modified_at'].toString()))
                       .toString()
                   : '',
+              bvnVerifyStatus: notNull(element['bvn_verified'].toString())
+                  ? element['bvn_verified'].toString()
+                  : '',
               // isBlackListed: element['isBlacklisted'] != null
               //     ? element['isBlacklisted'] == '1'
               //     ? true
@@ -870,8 +880,14 @@ class ProfileProvider extends ChangeNotifier {
           if (i < 2) {
             capsaPrint(element);
             capsaPrint('\n\n');
-            i++;
+
           }
+
+          i++;
+
+          if(element['invoice_number'].toString().contains('EX'))
+          capsaPrint('\n$element');
+
           //if(search == '' || search.toString().toLowerCase() == element['invoice_number'].toString().toLowerCase())
           invoices.add(InvoiceModel(
             id: element['id'] != null ? element['id'].toString() : "",
@@ -920,6 +936,15 @@ class ProfileProvider extends ChangeNotifier {
             cu_gst: element['customer_gst'] != null
                 ? element['customer_gst'].toString()
                 : "",
+            anchorName: element['customer_name'] != null
+                ? element['customer_name'].toString()
+                : "",
+            extendedDueDate: element['effective_due_date'] != null
+                ? element['effective_due_date'].toString()
+                : element['invoice_due_date'] != null
+                ? element['invoice_due_date'].toString()
+                : "",
+
           ));
           invoices.sort((a, b) {
             String aDate = a.customerName;
@@ -1470,6 +1495,36 @@ class ProfileProvider extends ChangeNotifier {
     _body['panNumber'] = userData['panNumber'];
     capsaPrint('Pass 2 check password reset');
     var response = await callApi(_uri, body: _body);
+    // capsaPrint('Pass 3 check password reset ${response.body}');
+    // // await http.post(_uri,
+    // //     headers: <String, String>{
+    // //       'Authorization': 'Basic ' + box.get('token', defaultValue: '0')
+    // //     },
+    // //     body: _body);
+    // //capsaPrint('company name pass 2');
+    // capsaPrint(response.body);
+    // var data = jsonDecode(response.body);
+
+    // if (data['res'] == 'success') {
+    //   for (int i = 0; i < data['data'].length; i++) {
+    //     _anchorsNameList.add(data['data'][i]['name']);
+    //     _cinList[data['data'][i]['name']] = data['data'][i]['cu_pan'];
+    //   }
+    // }
+
+    return response;
+  }
+
+  Future updateBVN(dynamic body) async {
+    capsaPrint('Pass 1 update bvn');
+    String _uri = 'admin/bvnUpdate';
+    //_uri = Uri.parse(_uri);
+    //capsaPrint('company name pass 1');
+    //var _body = {};
+    var userData = Map<String, dynamic>.from(box.get('tmpUserData'));
+    //_body['panNumber'] = userData['panNumber'];
+    capsaPrint('Pass 2 update');
+    var response = await callApi(_uri, body: body);
     // capsaPrint('Pass 3 check password reset ${response.body}');
     // // await http.post(_uri,
     // //     headers: <String, String>{

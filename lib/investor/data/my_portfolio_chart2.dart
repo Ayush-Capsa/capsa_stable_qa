@@ -83,16 +83,6 @@ class SplineSeriesChart extends StatelessWidget {
               title: Responsive.isMobile(context)
                   ? null
                   : AxisTitle(text: 'Net Gains (in thousands)'),
-              // maximum: max,
-              // minimum: 0,
-              // interval: interval,
-              // axisLabelFormatter: (value){
-              //     return ChartAxisLabel('${value.text}k',TextStyle(
-              //         fontFamily: 'Roboto',
-              //         fontStyle: FontStyle.normal,
-              //         fontWeight: FontWeight.normal,
-              //         fontSize: 12));
-              // },
             ),
             axes: <ChartAxis>[
               NumericAxis(
@@ -128,20 +118,6 @@ class SplineSeriesChart extends StatelessWidget {
               )
             ],
             series: <ChartSeries>[
-              // SplineSeries<TimeSeriesSales2, String>(
-              //     name: 'Net Gains',
-              //     dataSource: seriesList,
-              //     xValueMapper: (TimeSeriesSales2 sales, _) =>
-              //         label(sales.time),
-              //     color: HexColor('#0E9CFF'),
-              //     yValueMapper: (TimeSeriesSales2 sales, _) => sales.sales,
-              //     dataLabelMapper: (TimeSeriesSales2 sales, _) =>
-              //         formatCurrency(sales.sales),
-              //     enableTooltip: true,
-              //     dataLabelSettings: const DataLabelSettings(
-              //       isVisible: false,
-              //     ),
-              //     markerSettings: MarkerSettings(isVisible: true)),
               SplineSeries<TimeSeriesSales2, String>(
                 name: 'Net Gain',
                 dataSource: seriesList,
@@ -173,129 +149,6 @@ class SplineSeriesChart extends StatelessWidget {
                   markerSettings: const MarkerSettings(isVisible: true),
                   yAxisName: 'yAxis'),
             ]),
-        // SfCartesianChart(
-        //     primaryXAxis: CategoryAxis(
-        //       isVisible: Responsive.isMobile(context)?false:true,
-        //       majorGridLines: MajorGridLines(width: 0),
-        //     ),
-        //     primaryYAxis: CategoryAxis(
-        //       isVisible: Responsive.isMobile(context)?false:true,
-        //       majorGridLines: MajorGridLines(width: 0),
-        //     ),
-        //     axes: <ChartAxis>[
-        //       NumericAxis(
-        //           name: 'xAxis',
-        //           opposedPosition: true,
-        //           title: AxisTitle(
-        //               text: 'Secondary X Axis'
-        //           )
-        //       ),
-        //       NumericAxis(
-        //           name: 'yAxis',
-        //           opposedPosition: true,
-        //           title: AxisTitle(
-        //               text: 'Secondary Y Axis'
-        //           )
-        //       )
-        //     ],
-        //     series: <ChartSeries>[
-        //       SplineSeries<TimeSeriesSales2, String>(
-        //           dataSource: seriesList,
-        //           xValueMapper: (TimeSeriesSales2 sales, _) =>
-        //               label(sales.time),
-        //           color: HexColor('#0E9CFF'),
-        //           yValueMapper: (TimeSeriesSales2 sales, _) => sales.sales,
-        //           dataLabelMapper: (TimeSeriesSales2 sales, _) =>
-        //               formatCurrency(sales.sales),
-        //           dataLabelSettings: const DataLabelSettings(
-        //             isVisible: true,
-        //           ),
-        //           markerSettings: MarkerSettings(isVisible: true)),
-        //       // SplineSeries<TimeSeriesSales2, String>(
-        //       //   dataSource: seriesList,
-        //       //   xValueMapper: (TimeSeriesSales2 sales, _) => label(sales.time),
-        //       //   color: HexColor('#EB5757'),
-        //       //   yValueMapper: (TimeSeriesSales2 sales, _) => sales.per,
-        //       //   dataLabelMapper: (TimeSeriesSales2 sales, _) =>
-        //       //       sales.per.toString(),
-        //       //   dataLabelSettings: const DataLabelSettings(
-        //       //     isVisible: true,
-        //       //   ),
-        //       // )
-        //     ]),
-        //
-        // SfCartesianChart(
-        //     primaryXAxis: CategoryAxis(
-        //         isVisible: Responsive.isMobile(context)?false:true,
-        //         majorGridLines: MajorGridLines(width: 0),
-        //         labelStyle: TextStyle(color: Colors.transparent)
-        //     ),
-        //     primaryYAxis: CategoryAxis(
-        //       isVisible: Responsive.isMobile(context)?false:true,
-        //       majorGridLines: MajorGridLines(width: 0),
-        //       opposedPosition: true,
-        //     ),
-        //     axes: [
-        //       NumericAxis(
-        //           name:'xAxis',
-        //           isVisible: false,
-        //           opposedPosition: true
-        //       ),
-        //       NumericAxis(
-        //           name:'yAxis',
-        //           //title: AxisTitle(text:'Secondary y-axis'),
-        //           opposedPosition: true
-        //       )
-        //     ],
-        //     series: <ChartSeries>[
-        //       SplineSeries<TimeSeriesSales2, String>(
-        //           dataSource: seriesList,
-        //           xValueMapper: (TimeSeriesSales2 sales, _) => label(sales.time),
-        //           color: HexColor('#EB5757'),
-        //
-        //           yValueMapper: (TimeSeriesSales2 sales, _) => sales.per,
-        //           dataLabelMapper: (TimeSeriesSales2 sales, _) => sales.per.toString(),
-        //           dataLabelSettings: const DataLabelSettings(
-        //             isVisible: true,
-        //
-        //           ),
-        //
-        //           markerSettings: MarkerSettings(isVisible: true)
-        //       )
-        //       // SplineSeries<TimeSeriesSales2, String>(
-        //       //     dataSource: seriesList,
-        //       //     xValueMapper: (TimeSeriesSales2 sales, _) => label(sales.time),
-        //       //     color: HexColor('#EB5757'),
-        //       //
-        //       //     yValueMapper: (TimeSeriesSales2 sales, _) => double.parse(sales.per.toString()),
-        //       //     dataLabelMapper: (TimeSeriesSales2 sales, _) => sales.per.toString(),
-        //       //     dataLabelSettings: const DataLabelSettings(
-        //       //       isVisible: true,
-        //       //
-        //       //     ),
-        //       //     // xAxisName: 'xAxis',
-        //       //     //
-        //       //     // //Bind the y-axis to secondary y-axis.
-        //       //     // yAxisName: 'yAxis',
-        //       //
-        //       //     markerSettings: MarkerSettings(isVisible: true)
-        //       // )
-        //       // SplineSeries<TimeSeriesSales2, String>(
-        //       //     dataSource: seriesList,
-        //       //     xValueMapper: (TimeSeriesSales2 sales, _) => label(sales.time),
-        //       //     color: Colors.green,
-        //       //
-        //       //     yValueMapper: (TimeSeriesSales2 sales, _) => sales.per,
-        //       //     dataLabelMapper: (TimeSeriesSales2 sales, _) => sales.per.toString(),
-        //       //     dataLabelSettings: const DataLabelSettings(
-        //       //       isVisible: true,
-        //       //
-        //       //     ),
-        //       //
-        //       //     markerSettings: MarkerSettings(isVisible: true)
-        //       // )
-        //     ]
-        // ),
       ],
     );
   }

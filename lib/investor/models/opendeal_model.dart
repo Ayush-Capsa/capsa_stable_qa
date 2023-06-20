@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'package:capsa/functions/custom_print.dart';
+
 class OpenDealModel {
   final String invoice_value,
       isRevenue,
@@ -47,7 +49,8 @@ class OpenDealModel {
       totalDiscount,
       alcptdy,
   prop_amt,
-      isSplit;
+      isSplit,
+      RF;
 
   // final Uint8List img;
 
@@ -99,7 +102,35 @@ class OpenDealModel {
     this.totalDiscount,
     this.alcptdy,
     this.isSplit = '0',
-    this.prop_amt
+    this.prop_amt,
+    this.RF,
 
   });
+
+  Map<String, dynamic> toJson() => {
+    'cust_pan': customer_pan,
+    'customer_name': customer_name,
+    'description': description,
+    'docID': '',
+    'due_date': due_date,
+    'eff_due_date': eff_due_date,
+    'int_rate': ask_rate,
+    'invoice_number': invoice_number,
+    'invoice_value': invoice_value,
+    'lender_name': companyName,
+    'lender_pan': companyPAN,
+    'p_type': '',
+    'prop_amt': ask_amt,
+    'prop_stat': '',
+    'sign_stat': '',
+    'start_date': start_date,
+    'nofBids': '',
+    'ask_amt': ask_amt
+  };
+
+  void printDetails(){
+    dynamic r = toJson();
+    capsaPrint(r);
+  }
+
 }

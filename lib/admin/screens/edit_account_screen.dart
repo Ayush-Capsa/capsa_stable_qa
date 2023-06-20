@@ -23,6 +23,7 @@ import 'package:intl/intl.dart';
 
 import 'edit_email_preferences_admin/email_preference_investor_admin_page.dart';
 import 'edit_email_preferences_admin/email_preference_vendor_admin_page.dart';
+import 'edit_email_preferences_admin/email_preferences_anchor_admin_page.dart';
 
 class EditAccountScreen extends StatefulWidget {
   final String title;
@@ -390,7 +391,7 @@ class _EditAccountState extends State<EditAccountScreen> {
                                   ),
                                 ):null,
 
-                                dropdownvalue!='ANCHOR'?PopupMenuItem(
+                                PopupMenuItem(
 
                                   child: InkWell(
                                     onTap: (){
@@ -402,11 +403,17 @@ class _EditAccountState extends State<EditAccountScreen> {
                                                 create: (context) => ProfileProvider(),
                                                 child:EmailPreferenceVendorAdminPage(
                                                   data: data[i],)),
-                                          )):Navigator.of(context).push(
+                                          )):dropdownvalue =='INVESTOR'?Navigator.of(context).push(
                                           MaterialPageRoute(
                                             builder: (context) =>ChangeNotifierProvider(
                                                 create: (context) => ProfileProvider(),
                                                 child:EmailPreferenceInvestorAdminPage(
+                                                    data: data[i])),
+                                          )):Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) =>ChangeNotifierProvider(
+                                                create: (context) => ProfileProvider(),
+                                                child:EmailPreferenceAnchorAdminPage(
                                                     data: data[i])),
                                           ));
                                     },
@@ -426,7 +433,7 @@ class _EditAccountState extends State<EditAccountScreen> {
                                       ],
                                     ),
                                   ),
-                                ):null
+                                )
 
                               ],
                             ):null)
